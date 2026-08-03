@@ -5,7 +5,14 @@ export default function HomePage() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
       <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(255,102,0,0.2),_transparent_55%),radial-gradient(ellipse_at_bottom,_rgba(168,85,247,0.12),_transparent_50%)]" />
-      <Image src="/brand/logo-on-orange.svg" alt="Spark" width={72} height={72} priority />
+      <Image
+        src="/brand/logo.png"
+        alt="Spark"
+        width={88}
+        height={88}
+        priority
+        className="rounded-2xl shadow-glow"
+      />
       <h1 className="mt-8 max-w-xl text-4xl font-semibold tracking-tight text-text sm:text-5xl">
         Pay once. Unlock credit.
       </h1>

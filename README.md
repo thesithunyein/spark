@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="brand/logo-on-orange.svg" width="72" height="72" alt="Spark" />
+  <img src="brand/logo.png" width="88" height="88" alt="Spark" />
 </p>
 
 <h1 align="center">Spark</h1>
