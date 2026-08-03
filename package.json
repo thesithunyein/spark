@@ -1,0 +1,14 @@
+{
+  "name": "spark",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Spark — pay once, unlock credit. Attestcoin-verified payment credit on Creditcoin.",
+  "scripts": {
+    "dev": "pnpm --dir app dev",
+    "build": "pnpm --dir app build",
+    "test:contracts": "cd contracts && forge test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
