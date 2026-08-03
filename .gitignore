@@ -17,3 +17,4 @@ broadcast/
 typechain-types/
 lib/forge-std/
 contracts/lib/
+.env*
