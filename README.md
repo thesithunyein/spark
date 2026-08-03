@@ -17,7 +17,13 @@
   <img alt="ui" src="https://img.shields.io/badge/UI-Next.js-black" />
   <img alt="contracts" src="https://img.shields.io/badge/contracts-Foundry-grey" />
   <img alt="status" src="https://img.shields.io/badge/status-testnet-yellow" />
-  <img alt="vercel" src="https://img.shields.io/badge/deploy-Vercel%20Hobby-black" />
+  <img alt="demo" src="https://img.shields.io/badge/demo-live-22c55e" />
+</p>
+
+<p align="center">
+  <a href="https://spark-delta-gray.vercel.app"><strong>Live demo → spark-delta-gray.vercel.app</strong></a>
+  ·
+  <a href="https://github.com/thesithunyein/spark">GitHub</a>
 </p>
 
 ## What it is
