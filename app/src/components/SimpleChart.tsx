@@ -13,9 +13,9 @@ export function SimpleChart({ points }: { points: number[] }) {
 
   return (
     <div className="rounded-xl border border-border bg-panel p-4">
-      <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Credit over time</p>
+      <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Position snapshot</p>
       {points.every((p) => p === 0) ? (
-        <p className="py-12 text-center text-sm text-muted">No credit history yet</p>
+        <p className="py-12 text-center text-sm text-muted">No position yet</p>
       ) : (
         <svg viewBox={`0 0 ${w} ${h}`} className="h-44 w-full">
           <defs>

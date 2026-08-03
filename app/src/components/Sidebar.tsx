@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LayoutDashboard, ArrowDownToLine, Undo2, List, Shield, Settings, X } from "lucide-react";
+import { LayoutDashboard, ArrowDownToLine, Undo2, List, Shield, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 const nav = [
@@ -21,10 +21,7 @@ const nav = [
   },
   {
     label: "Utility",
-    items: [
-      { href: "/advanced", label: "Advanced", icon: Shield },
-      { href: "/advanced#settings", label: "Settings", icon: Settings },
-    ],
+    items: [{ href: "/advanced", label: "Advanced", icon: Shield }],
   },
 ];
 

@@ -10,9 +10,11 @@ import { config } from "@/lib/config";
 import { creditLineAbi } from "@/lib/abi";
 import { formatEth, statusLabel } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
+import { usePaymentActivity } from "@/hooks/usePaymentActivity";
 
 export default function OverviewPage() {
   const { address, isConnected } = useAccount();
+  const { items: recent } = usePaymentActivity("all");
 
   const { data: position } = useReadContract({
     address: config.creditLineAddress,
@@ -104,21 +106,13 @@ export default function OverviewPage() {
         </div>
         <div className="lg:col-span-2">
           <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Recent activity</p>
-          <ActivityTable
-            items={
-              status === 0
-                ? []
-                : [
-                    {
-                      id: "1",
-                      type: "Credit opened",
-                      amount: `${formatEth(credit)} ETH`,
-                      status: "Completed",
-                      at: "On Creditcoin testnet",
-                    },
-                  ]
-            }
-          />
+          <ActivityTable items={recent.slice(0, 5)} />
+          {recent.length === 0 && isConnected && (
+            <p className="mt-2 text-xs text-muted">No on-chain activity yet.</p>
+          )}
+          <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-brand hover:underline">
+            View all payments →
+          </Link>
           <div className="mt-3 flex gap-2 sm:hidden">
             <Link href="/pay" className="flex-1 rounded-lg bg-brand px-3 py-2 text-center text-xs font-semibold text-white">
               Pay deposit

@@ -25,7 +25,7 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         {config.demoBanner && (
           <div className="border-b border-brand/30 bg-brand/10 px-4 py-2 text-center text-xs text-brand sm:px-6">
-            Demo funds on test network — not real bank money. Spark is testnet-ready for CEIP.
+            Testnet demo — not real money. Pay → verify (MockVerifier today) → credit on Creditcoin.
           </div>
         )}
         {!isConfigured() && (

@@ -45,9 +45,9 @@ export function defaultDemoAmount() {
 
 export type ActivityItem = {
   id: string;
-  type: "Deposit" | "Repayment" | "Credit opened" | "Credit closed";
+  type: string;
   amount?: string;
-  status: "Pending" | "Confirming" | "Confirmed" | "Completed";
+  status: string;
   at: string;
   href?: string;
 };

@@ -1,18 +1,20 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
 import { parseEther, keccak256, toBytes, type Hex } from "viem";
 import { sepolia } from "wagmi/chains";
 import { AppShell } from "@/components/AppShell";
 import { ConfirmingStages } from "@/components/ConfirmingStages";
+import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodeMockProof } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
 
 export default function PayPage() {
-  const { address, chainId } = useAccount();
+  const { address, chainId, isConnected } = useAccount();
   const [amount, setAmount] = useState("0.01");
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
@@ -66,7 +68,7 @@ export default function PayPage() {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
       const amountWei = parseEther(amount || "0.01");
-      // Structured proof for MockPaymentVerifier. Replace with USC SDK proof for Attestcoin depth on live testnet.
+      // Demo path: MockPaymentVerifier. Swap to Attestcoin USC proof for production depth.
       const proof = encodeMockProof({
         txHash,
         payer: address,
@@ -100,6 +102,21 @@ export default function PayPage() {
   return (
     <AppShell title="Pay deposit" subtitle="Pay on Sepolia. Spark verifies it, then unlocks credit on Creditcoin.">
       <div className="mx-auto max-w-lg rounded-xl border border-border bg-panel p-6 shadow-glow">
+        {!isConnected && (
+          <div className="mb-5 rounded-xl border border-border bg-panel2 px-4 py-4">
+            <p className="text-sm font-medium text-text">Connect a wallet to pay</p>
+            <p className="mt-1 text-xs text-muted">You will switch to Sepolia, then Creditcoin testnet.</p>
+            <div className="mt-3">
+              <ConnectButton />
+            </div>
+          </div>
+        )}
+
+        <div className="mb-4 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-xs text-muted">
+          Demo verification uses <span className="text-text">MockVerifier</span> on testnet.
+          Attestcoin USC proofs plug in for production depth.
+        </div>
+
         <label className="text-xs font-medium uppercase tracking-wide text-muted">Amount (ETH)</label>
         <input
           value={amount}
@@ -125,7 +142,7 @@ export default function PayPage() {
           <button
             type="button"
             onClick={onPay}
-            disabled={isPending || waiting}
+            disabled={!isConnected || isPending || waiting}
             className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-accent2 disabled:opacity-50"
           >
             {isPending || waiting ? "Confirm in wallet…" : "Pay deposit"}
@@ -151,7 +168,18 @@ export default function PayPage() {
         )}
         {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
         {step === 4 && (
-          <p className="mt-3 text-sm text-success">Credit ready. Go to Overview.</p>
+          <div className="mt-4 rounded-xl border border-success/30 bg-success/10 px-4 py-3">
+            <p className="text-sm font-medium text-success">Credit ready</p>
+            <p className="mt-1 text-xs text-muted">Your line is open on Creditcoin testnet.</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Link href="/overview" className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">
+                View credit
+              </Link>
+              <Link href="/activity" className="rounded-lg border border-border px-3 py-2 text-xs font-semibold">
+                See payments
+              </Link>
+            </div>
+          </div>
         )}
       </div>
     </AppShell>

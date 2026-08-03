@@ -12,12 +12,12 @@
 
 <p align="center">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue" />
-  <img alt="network" src="https://img.shields.io/badge/network-Sepolia%20%2B%20Creditcoin%20testnet-7c3aed" />
-  <img alt="attestcoin" src="https://img.shields.io/badge/Attestcoin-required-ff6600" />
+  <img alt="network" src="https://img.shields.io/badge/network-Sepolia%20%2B%20Creditcoin%20testnet-ff6600" />
+  <img alt="attestcoin" src="https://img.shields.io/badge/Attestcoin-path-ff6600" />
   <img alt="ui" src="https://img.shields.io/badge/UI-Next.js-black" />
   <img alt="contracts" src="https://img.shields.io/badge/contracts-Foundry-grey" />
   <img alt="status" src="https://img.shields.io/badge/status-testnet-yellow" />
-  <img alt="demo" src="https://img.shields.io/badge/demo-live-22c55e" />
+  <img alt="demo" src="https://img.shields.io/badge/demo-spark--defi.vercel.app-22c55e" />
 </p>
 
 <p align="center">
@@ -28,11 +28,12 @@
 
 ## What it is
 
-Other credit apps can’t trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies the payment with **Attestcoin**, then unlocks or clears credit on **Creditcoin**.
+Other credit apps can’t trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies the payment, then unlocks or clears credit on **Creditcoin**.
 
 - Track: **DeFi** (BUIDL CTC 2026 Fall)
 - No AI demo — rules, proofs, balances only
 - Demo funds on testnets
+- Live UI uses **MockVerifier** today; contracts include an **Attestcoin** verifier path for USC proofs when wired
 
 ## Architecture
 
