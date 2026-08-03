@@ -1,7 +1,7 @@
 export function ConfirmingStages({ step }: { step: 0 | 1 | 2 | 3 | 4 }) {
   const stages = ["Submitted", "Confirming payment", "Verifying", "Credit ready"];
   return (
-    <ol className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+    <ol className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
       {stages.map((label, i) => {
         const n = i + 1;
         const done = step > n;
@@ -11,7 +11,7 @@ export function ConfirmingStages({ step }: { step: 0 | 1 | 2 | 3 | 4 }) {
             <span
               className={
                 done || current
-                  ? "flex h-6 w-6 items-center justify-center rounded-full bg-accent text-[11px] font-semibold text-white"
+                  ? "flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-white"
                   : "flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted"
               }
             >

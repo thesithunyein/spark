@@ -107,7 +107,7 @@ export default function RepayPage() {
             type="button"
             onClick={onRepayPay}
             disabled={isPending || waiting}
-            className="rounded-xl bg-gradient-to-r from-accent to-accent2 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-accent2 disabled:opacity-50"
           >
             {isPending || waiting ? "Confirm in wallet…" : "Make repayment"}
           </button>
@@ -115,7 +115,7 @@ export default function RepayPage() {
             <button
               type="button"
               onClick={onProveRepay}
-              className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm font-semibold"
+              className="rounded-xl border border-brand/50 bg-brand/10 px-4 py-3 text-sm font-semibold"
             >
               Verify repayment & update credit
             </button>

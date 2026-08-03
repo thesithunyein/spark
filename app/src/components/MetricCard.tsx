@@ -15,11 +15,11 @@ export function MetricCard({
     <div
       className={clsx(
         "rounded-xl border border-border bg-panel p-5",
-        glow && "shadow-glow relative overflow-hidden",
+        glow && "relative overflow-hidden shadow-glow",
       )}
     >
       {glow && (
-        <div className="pointer-events-none absolute -bottom-10 -left-6 h-28 w-28 rounded-full bg-accent/30 blur-3xl" />
+        <div className="pointer-events-none absolute -bottom-10 -left-6 h-28 w-28 rounded-full bg-brand/35 blur-3xl" />
       )}
       <p className="text-xs font-medium uppercase tracking-wide text-muted">{label}</p>
       <p className="mt-2 font-mono text-3xl font-semibold tabular-nums tracking-tight">{value}</p>

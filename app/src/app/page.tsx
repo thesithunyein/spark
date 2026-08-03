@@ -4,7 +4,7 @@ import Link from "next/link";
 export default function HomePage() {
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
-      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(255,102,0,0.2),_transparent_55%),radial-gradient(ellipse_at_bottom,_rgba(168,85,247,0.12),_transparent_50%)]" />
+      <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(255,102,0,0.28),_transparent_55%)]" />
       <Image
         src="/brand/logo.png"
         alt="Spark"
@@ -20,12 +20,24 @@ export default function HomePage() {
         We verify your payment so credit can open—no paperwork chase.
       </p>
       <Link
-        href="/overview"
-        className="mt-8 inline-flex rounded-xl bg-gradient-to-r from-accent to-accent2 px-8 py-3 text-sm font-semibold text-white shadow-glow transition hover:opacity-95"
+        href="/pay"
+        className="mt-8 inline-flex rounded-xl bg-brand px-8 py-3 text-sm font-semibold text-white shadow-glow transition hover:bg-accent2"
       >
         Get credit
       </Link>
-      <p className="mt-4 text-xs text-muted">Demo funds on test network</p>
+      <ol className="mt-10 grid w-full max-w-lg gap-3 text-left text-sm text-muted sm:grid-cols-3">
+        {[
+          { n: "1", t: "Pay deposit" },
+          { n: "2", t: "We verify it" },
+          { n: "3", t: "Credit unlocks" },
+        ].map((s) => (
+          <li key={s.n} className="rounded-xl border border-border bg-panel/70 px-3 py-3">
+            <span className="font-semibold text-brand">{s.n}</span>
+            <p className="mt-1 text-text">{s.t}</p>
+          </li>
+        ))}
+      </ol>
+      <p className="mt-6 text-xs text-muted">Demo funds on test network</p>
     </div>
   );
 }

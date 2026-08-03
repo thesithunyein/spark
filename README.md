@@ -21,7 +21,7 @@
 </p>
 
 <p align="center">
-  <a href="https://spark-delta-gray.vercel.app"><strong>Live demo → spark-delta-gray.vercel.app</strong></a>
+  <a href="https://spark-defi.vercel.app"><strong>Live demo → spark-defi.vercel.app</strong></a>
   ·
   <a href="https://github.com/thesithunyein/spark">GitHub</a>
 </p>
@@ -63,6 +63,8 @@ pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) — you should understand Spark in **3 seconds**: *Pay once. Unlock credit.*
+
+Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app)
 
 ## Deploy
 

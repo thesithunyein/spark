@@ -27,7 +27,7 @@ export function ActivityTable({ items }: { items: ActivityItem[] }) {
                   item.status === "Completed" || item.status === "Confirmed"
                     ? "bg-success/15 text-success"
                     : item.status === "Pending" || item.status === "Confirming"
-                      ? "bg-accent/15 text-accent"
+                      ? "bg-brand/15 text-brand"
                       : "bg-white/5 text-muted",
                 )}
               >

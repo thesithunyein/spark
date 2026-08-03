@@ -126,7 +126,7 @@ export default function PayPage() {
             type="button"
             onClick={onPay}
             disabled={isPending || waiting}
-            className="rounded-xl bg-gradient-to-r from-accent to-accent2 px-4 py-3 text-sm font-semibold text-white disabled:opacity-50"
+            className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-accent2 disabled:opacity-50"
           >
             {isPending || waiting ? "Confirm in wallet…" : "Pay deposit"}
           </button>
@@ -134,7 +134,7 @@ export default function PayPage() {
             <button
               type="button"
               onClick={onProveAndOpen}
-              className="rounded-xl border border-accent/50 bg-accent/10 px-4 py-3 text-sm font-semibold text-text"
+              className="rounded-xl border border-brand/50 bg-brand/10 px-4 py-3 text-sm font-semibold text-text"
             >
               Verify payment & open credit
             </button>

@@ -13,13 +13,13 @@ export function ConnectButton() {
   const { switchChain } = useSwitchChain();
 
   if (!isConnected) {
-    const injected = connectors.find((c) => c.id === "injected") ?? connectors[0];
+    const injected = connectors.find((c) => c.id === "spark-injected") ?? connectors[0];
     return (
       <button
         type="button"
         disabled={!injected || isPending}
         onClick={() => injected && connect({ connector: injected })}
-        className="rounded-lg bg-accent px-3 py-2 text-xs font-semibold text-white disabled:opacity-50"
+        className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-accent2 disabled:opacity-50"
       >
         {isPending ? "Connecting…" : "Connect wallet"}
       </button>
@@ -40,13 +40,13 @@ export function ConnectButton() {
           Switch network
         </button>
       )}
-      <span className="rounded-lg border border-border bg-panel2 px-2.5 py-1.5 font-mono text-[11px] text-muted">
+      <span className="hidden rounded-lg border border-border bg-panel2 px-2.5 py-1.5 font-mono text-[11px] text-muted sm:inline">
         {onSepolia ? "Sepolia" : onCredit ? "Creditcoin" : `Chain ${chainId}`}
       </span>
       <button
         type="button"
         onClick={() => disconnect()}
-        className="rounded-lg border border-border px-2.5 py-1.5 font-mono text-[11px] text-text"
+        className="rounded-lg border border-border px-2.5 py-1.5 font-mono text-[11px] text-text hover:border-brand/40"
         title="Disconnect"
       >
         {shortHash(address ?? "")}

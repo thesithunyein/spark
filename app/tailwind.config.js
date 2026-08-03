@@ -4,20 +4,20 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#0B0B0F",
-        panel: "#12121A",
-        panel2: "#181822",
-        border: "#2A2A36",
-        muted: "#9A9AAB",
-        text: "#F4F4F7",
-        accent: "#A855F7",
-        accent2: "#D946EF",
+        bg: "#0C0B0A",
+        panel: "#161311",
+        panel2: "#1E1A17",
+        border: "#2F2924",
+        muted: "#A39A92",
+        text: "#FFF8F3",
+        accent: "#FF6600",
+        accent2: "#FF8533",
         brand: "#FF6600",
         success: "#22C55E",
         warn: "#F59E0B",
       },
       boxShadow: {
-        glow: "0 0 40px rgba(168, 85, 247, 0.25)",
+        glow: "0 0 48px rgba(255, 102, 0, 0.28)",
       },
       fontFamily: {
         sans: ["var(--font-geist)", "Segoe UI", "system-ui", "sans-serif"],
