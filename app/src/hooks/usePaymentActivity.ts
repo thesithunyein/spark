@@ -73,6 +73,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
               status: "Confirmed",
               at: "Sepolia",
               kind: "deposit",
+              href: `${config.explorerSepolia}/tx/${log.transactionHash}`,
             });
           }
           for (const log of repayments) {
@@ -83,6 +84,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
               status: "Confirmed",
               at: "Sepolia",
               kind: "repay",
+              href: `${config.explorerSepolia}/tx/${log.transactionHash}`,
             });
           }
         }
@@ -113,6 +115,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
               status: "Completed",
               at: "Creditcoin",
               kind: "deposit",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
             });
           }
           for (const log of repaid) {
@@ -123,6 +126,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
               status: "Completed",
               at: "Creditcoin",
               kind: "repay",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
             });
           }
         }

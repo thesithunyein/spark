@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LayoutDashboard, ArrowDownToLine, Undo2, List, Shield, X } from "lucide-react";
+import { LayoutDashboard, ArrowDownToLine, Undo2, List, Settings, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 const items = [
@@ -11,7 +11,7 @@ const items = [
   { href: "/pay", label: "Pay deposit", icon: ArrowDownToLine },
   { href: "/repay", label: "Repay", icon: Undo2 },
   { href: "/activity", label: "Payments", icon: List },
-  { href: "/advanced", label: "Advanced", icon: Shield },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => void }) {

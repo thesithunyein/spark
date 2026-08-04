@@ -21,18 +21,30 @@ export function ActivityTable({ items }: { items: ActivityItem[] }) {
             </div>
             <div className="shrink-0 text-right">
               {item.amount && <p className="tabular-nums text-text">{item.amount}</p>}
-              <span
-                className={clsx(
-                  "mt-1 inline-flex text-[11px]",
-                  item.status === "Completed" || item.status === "Confirmed"
-                    ? "text-success"
-                    : item.status === "Pending" || item.status === "Confirming"
-                      ? "text-brand"
-                      : "text-muted",
+              <div className="mt-1 flex flex-col items-end gap-0.5">
+                <span
+                  className={clsx(
+                    "text-[11px]",
+                    item.status === "Completed" || item.status === "Confirmed"
+                      ? "text-success"
+                      : item.status === "Pending" || item.status === "Confirming"
+                        ? "text-brand"
+                        : "text-muted",
+                  )}
+                >
+                  {item.status}
+                </span>
+                {item.href && (
+                  <a
+                    href={item.href}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[11px] text-muted hover:text-brand hover:underline"
+                  >
+                    View tx
+                  </a>
                 )}
-              >
-                {item.status}
-              </span>
+              </div>
             </div>
           </li>
         ))}
