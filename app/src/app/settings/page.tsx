@@ -1,9 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useAccount, useChainId, useConnect, useDisconnect, useSwitchChain } from "wagmi";
+import { useAccount, useChainId, useDisconnect, useSwitchChain } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { AppShell } from "@/components/AppShell";
+import { ConnectButton } from "@/components/ConnectButton";
 import { config, isConfigured } from "@/lib/config";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { shortHash } from "@/lib/format";
@@ -20,7 +21,6 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 export default function SettingsPage() {
   const { address, isConnected } = useAccount();
   const chainId = useChainId();
-  const { connect, connectors, isPending } = useConnect();
   const { disconnect } = useDisconnect();
   const { switchChain } = useSwitchChain();
 
@@ -50,17 +50,9 @@ export default function SettingsPage() {
           ) : (
             <>
               <p>No wallet connected.</p>
-              <button
-                type="button"
-                disabled={isPending}
-                onClick={() => {
-                  const c = connectors.find((x) => x.id === "spark-injected") ?? connectors[0];
-                  if (c) connect({ connector: c });
-                }}
-                className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
-              >
-                Connect wallet
-              </button>
+              <div className="pt-1">
+                <ConnectButton />
+              </div>
             </>
           )}
         </Section>

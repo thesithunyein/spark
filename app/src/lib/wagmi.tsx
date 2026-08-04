@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { WagmiProvider, createConfig, http } from "wagmi";
 import { sepolia } from "wagmi/chains";
+import { walletConnect } from "@wagmi/connectors/walletConnect";
 import { defineChain } from "viem";
 import { useState, type ReactNode } from "react";
 import { config as appConfig } from "@/lib/config";
@@ -21,9 +22,27 @@ export const creditcoinTestnet = defineChain({
   testnet: true,
 });
 
+const connectors = [
+  sparkInjected(),
+  ...(appConfig.walletConnectId
+    ? [
+        walletConnect({
+          projectId: appConfig.walletConnectId,
+          showQrModal: true,
+          metadata: {
+            name: "Spark",
+            description: "Pay once. Unlock credit.",
+            url: appConfig.appUrl || "https://spark-defi.vercel.app",
+            icons: ["https://spark-defi.vercel.app/brand/logo.png"],
+          },
+        }),
+      ]
+    : []),
+];
+
 export const wagmiConfig = createConfig({
   chains: [sepolia, creditcoinTestnet],
-  connectors: [sparkInjected()],
+  connectors,
   transports: {
     [sepolia.id]: http(appConfig.sepoliaRpc || undefined),
     [creditcoinTestnet.id]: http(appConfig.creditcoinRpc || undefined),

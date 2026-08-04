@@ -1,26 +1,28 @@
 "use client";
 
-import { useAccount, useConnect } from "wagmi";
+import { useState } from "react";
+import { useAccount } from "wagmi";
 import { AccountMenu } from "./AccountMenu";
+import { ConnectModal } from "./ConnectModal";
 
 export function ConnectButton() {
   const { isConnected } = useAccount();
-  const { connect, connectors, isPending } = useConnect();
+  const [open, setOpen] = useState(false);
 
   if (isConnected) {
     return <AccountMenu />;
   }
 
-  const injected = connectors.find((c) => c.id === "spark-injected") ?? connectors[0];
-
   return (
-    <button
-      type="button"
-      disabled={!injected || isPending}
-      onClick={() => injected && connect({ connector: injected })}
-      className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
-    >
-      {isPending ? "Connecting…" : "Connect wallet"}
-    </button>
+    <>
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2"
+      >
+        Connect wallet
+      </button>
+      <ConnectModal open={open} onClose={() => setOpen(false)} />
+    </>
   );
 }

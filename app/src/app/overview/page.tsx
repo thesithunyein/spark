@@ -6,6 +6,7 @@ import { AppShell } from "@/components/AppShell";
 import { MetricCard } from "@/components/MetricCard";
 import { PositionSnapshot } from "@/components/PositionSnapshot";
 import { ActivityTable } from "@/components/ActivityTable";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { config } from "@/lib/config";
 import { creditLineAbi } from "@/lib/abi";
 import { formatEth, statusLabel } from "@/lib/format";
@@ -33,20 +34,7 @@ export default function OverviewPage() {
   const credit = position ? position.credit : 0n;
   const deposit = position ? position.deposit : 0n;
   const debt = position ? position.debt : 0n;
-
-  const fallbackActivity =
-    status === 0
-      ? []
-      : [
-          {
-            id: "position",
-            type: status === 2 ? "Credit closed" : "Credit opened",
-            amount: `${formatEth(credit)} ETH`,
-            status: "Completed",
-            at: "Creditcoin",
-          },
-        ];
-  const activity = recent.length > 0 ? recent.slice(0, 5) : fallbackActivity;
+  const activity = recent.slice(0, 5);
 
   return (
     <AppShell
@@ -78,6 +66,8 @@ export default function OverviewPage() {
           </Link>
         </div>
       )}
+
+      <OnboardingChecklist hasCreditLine={status === 1 || status === 2} />
 
       {isConnected && status === 0 && (
         <div className="mb-8 max-w-lg">

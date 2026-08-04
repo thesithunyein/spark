@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
 import { parseEther, keccak256, toBytes, type Hex } from "viem";
@@ -10,8 +10,10 @@ import { ConfirmingStages } from "@/components/ConfirmingStages";
 import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
-import { encodeMockProof } from "@/lib/format";
+import { encodeMockProof, formatEth } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
+import { friendlyError } from "@/lib/errors";
+import { journalActivity } from "@/hooks/usePaymentActivity";
 
 export default function PayPage() {
   const { address, chainId, isConnected } = useAccount();
@@ -19,18 +21,20 @@ export default function PayPage() {
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
   const { isLoading: waiting, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
 
   async function onPay() {
     setError(null);
+    autoVerifyStarted.current = false;
     if (!address) {
       setError("Connect a wallet first.");
       return;
     }
     if (config.paymentAddress.endsWith("0000")) {
-      setError("Payment contract not deployed yet. Set NEXT_PUBLIC_PAYMENT_ADDRESS after forge deploy.");
+      setError("Payment contract not configured yet.");
       return;
     }
     try {
@@ -49,8 +53,17 @@ export default function PayPage() {
       });
       setTxHash(hash);
       setStep(2);
+      journalActivity(address, {
+        id: `${hash}-dep`,
+        type: "Deposit paid",
+        amount: `${amount || "0.01"} ETH`,
+        status: "Confirmed",
+        at: "Sepolia",
+        kind: "deposit",
+        href: `${config.explorerSepolia}/tx/${hash}`,
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Payment failed");
+      setError(friendlyError(e));
       setStep(0);
     }
   }
@@ -59,7 +72,7 @@ export default function PayPage() {
     setError(null);
     if (!address || !txHash) return;
     if (config.creditLineAddress.endsWith("0000")) {
-      setError("CreditLine not deployed. Set NEXT_PUBLIC_CREDITLINE_ADDRESS.");
+      setError("CreditLine not configured yet.");
       return;
     }
     try {
@@ -68,14 +81,13 @@ export default function PayPage() {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
       const amountWei = parseEther(amount || "0.01");
-      // Demo path: MockPaymentVerifier. Swap to Attestcoin USC proof for production depth.
       const proof = encodeMockProof({
         txHash,
         payer: address,
         amountWei,
         kind: 1,
       });
-      await writeContractAsync({
+      const openHash = await writeContractAsync({
         address: config.creditLineAddress,
         abi: creditLineAbi,
         functionName: "openCredit",
@@ -90,14 +102,33 @@ export default function PayPage() {
         ],
         chainId: creditcoinTestnet.id,
       });
+      journalActivity(address, {
+        id: `${openHash}-open`,
+        type: "Credit opened",
+        amount: `${formatEth(amountWei)} ETH`,
+        status: "Completed",
+        at: "Creditcoin",
+        kind: "deposit",
+        href: `${config.explorerCreditcoin}/tx/${openHash}`,
+      });
       setStep(4);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Verification failed");
+      setError(friendlyError(e));
       setStep(2);
+      autoVerifyStarted.current = false;
     }
   }
 
+  // Auto-advance to verify once Sepolia payment confirms
+  useEffect(() => {
+    if (!isSuccess || step !== 2 || autoVerifyStarted.current || !txHash) return;
+    autoVerifyStarted.current = true;
+    void onProveAndOpen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess, step, txHash]);
+
   const stage = isSuccess && step === 2 ? 2 : step;
+  const verifying = step === 3 || (isSuccess && step === 2 && autoVerifyStarted.current);
 
   return (
     <AppShell title="Pay deposit" subtitle="Pay on Sepolia. We verify, then unlock credit on Creditcoin.">
@@ -137,12 +168,18 @@ export default function PayPage() {
           <button
             type="button"
             onClick={onPay}
-            disabled={!isConnected || isPending || waiting}
+            disabled={!isConnected || isPending || waiting || verifying || step === 4}
             className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
           >
-            {isPending || waiting ? "Confirm in wallet…" : "Pay deposit"}
+            {isPending || waiting
+              ? "Confirm in wallet…"
+              : verifying
+                ? "Verifying & opening credit…"
+                : step === 4
+                  ? "Credit ready"
+                  : "Pay deposit"}
           </button>
-          {isSuccess && step >= 2 && step < 4 && (
+          {isSuccess && step >= 2 && step < 4 && !verifying && (
             <button
               type="button"
               onClick={onProveAndOpen}
@@ -150,6 +187,11 @@ export default function PayPage() {
             >
               Verify payment & open credit
             </button>
+          )}
+          {verifying && step < 4 && (
+            <p className="text-center text-[12px] text-muted">
+              Payment confirmed — switching to Creditcoin to open your line…
+            </p>
           )}
         </div>
 

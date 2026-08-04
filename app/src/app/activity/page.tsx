@@ -54,10 +54,9 @@ export default function ActivityPage() {
       {isConnected && isConfigured() && (
         <>
           {loading && <p className="mb-3 text-[12px] text-muted">Loading…</p>}
-          <ActivityTable items={items} />
-          {empty && (
-            <div className="mt-6 text-center">
-              <p className="text-[13px] text-muted">No payments yet.</p>
+          {!loading && empty ? (
+            <div className="rounded-2xl border border-dashed border-border px-5 py-12 text-center">
+              <p className="text-[13px] text-muted">No payments yet</p>
               <Link
                 href="/pay"
                 className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
@@ -65,6 +64,8 @@ export default function ActivityPage() {
                 Make your first deposit
               </Link>
             </div>
+          ) : (
+            !loading && <ActivityTable items={items} />
           )}
         </>
       )}

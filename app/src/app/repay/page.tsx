@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useReadContract } from "wagmi";
 import { parseEther, type Hex, keccak256, toBytes } from "viem";
@@ -12,6 +12,8 @@ import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodeMockProof, formatEth } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
+import { friendlyError } from "@/lib/errors";
+import { journalActivity } from "@/hooks/usePaymentActivity";
 
 export default function RepayPage() {
   const { address, chainId, isConnected } = useAccount();
@@ -19,6 +21,7 @@ export default function RepayPage() {
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
   const { isLoading: waiting, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
@@ -42,6 +45,7 @@ export default function RepayPage() {
 
   async function onRepayPay() {
     setError(null);
+    autoVerifyStarted.current = false;
     if (!address) return setError("Connect a wallet first.");
     if (!hasActiveLine) return setError("No active credit line to repay.");
     if (config.paymentAddress.endsWith("0000")) {
@@ -61,8 +65,17 @@ export default function RepayPage() {
       });
       setTxHash(hash);
       setStep(2);
+      journalActivity(address, {
+        id: `${hash}-rep`,
+        type: "Repayment paid",
+        amount: `${amount || "0.008"} ETH`,
+        status: "Confirmed",
+        at: "Sepolia",
+        kind: "repay",
+        href: `${config.explorerSepolia}/tx/${hash}`,
+      });
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Repayment payment failed");
+      setError(friendlyError(e));
       setStep(0);
     }
   }
@@ -77,19 +90,38 @@ export default function RepayPage() {
       }
       const amountWei = parseEther(amount || "0.008");
       const proof = encodeMockProof({ txHash, payer: address, amountWei, kind: 2 });
-      await writeContractAsync({
+      const repayHash = await writeContractAsync({
         address: config.creditLineAddress,
         abi: creditLineAbi,
         functionName: "repayCredit",
         args: [{ txHash, payer: address, amount: amountWei, kind: 2 }, proof],
         chainId: creditcoinTestnet.id,
       });
+      journalActivity(address, {
+        id: `${repayHash}-crepay`,
+        type: "Credit repaid",
+        amount: `${formatEth(amountWei)} ETH`,
+        status: "Completed",
+        at: "Creditcoin",
+        kind: "repay",
+        href: `${config.explorerCreditcoin}/tx/${repayHash}`,
+      });
       setStep(4);
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Verify repay failed");
+      setError(friendlyError(e));
       setStep(2);
+      autoVerifyStarted.current = false;
     }
   }
+
+  useEffect(() => {
+    if (!isSuccess || step !== 2 || autoVerifyStarted.current || !txHash) return;
+    autoVerifyStarted.current = true;
+    void onProveRepay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSuccess, step, txHash]);
+
+  const verifying = step === 3 || (isSuccess && step === 2 && autoVerifyStarted.current);
 
   return (
     <AppShell title="Repay" subtitle="Pay on Sepolia, verify, clear debt on Creditcoin.">
@@ -133,12 +165,16 @@ export default function RepayPage() {
           <button
             type="button"
             onClick={onRepayPay}
-            disabled={!hasActiveLine || isPending || waiting}
+            disabled={!hasActiveLine || isPending || waiting || verifying || step === 4}
             className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
           >
-            {isPending || waiting ? "Confirm in wallet…" : "Make repayment"}
+            {isPending || waiting
+              ? "Confirm in wallet…"
+              : verifying
+                ? "Verifying repayment…"
+                : "Make repayment"}
           </button>
-          {isSuccess && step >= 2 && step < 4 && (
+          {isSuccess && step >= 2 && step < 4 && !verifying && (
             <button
               type="button"
               onClick={onProveRepay}
@@ -146,6 +182,9 @@ export default function RepayPage() {
             >
               Verify repayment & update credit
             </button>
+          )}
+          {verifying && step < 4 && (
+            <p className="text-center text-[12px] text-muted">Payment confirmed — updating credit on Creditcoin…</p>
           )}
         </div>
         {txHash && (
