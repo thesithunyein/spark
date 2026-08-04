@@ -119,10 +119,6 @@ export default function RepayPage() {
           </p>
         )}
 
-        <div className="mb-4 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-xs text-muted">
-          Demo verification uses <span className="text-text">MockVerifier</span> on testnet.
-        </div>
-
         <label className="text-xs font-medium uppercase tracking-wide text-muted">Repay amount (ETH)</label>
         <input
           value={amount}

@@ -111,7 +111,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
               type: "Credit opened",
               amount: `${formatEther(log.args.credit ?? 0n)} ETH`,
               status: "Completed",
-              at: "Creditcoin testnet",
+              at: "Creditcoin",
               kind: "deposit",
             });
           }
@@ -121,7 +121,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
               type: "Credit repaid",
               amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
               status: "Completed",
-              at: "Creditcoin testnet",
+              at: "Creditcoin",
               kind: "repay",
             });
           }

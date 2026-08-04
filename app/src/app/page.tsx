@@ -37,7 +37,6 @@ export default function HomePage() {
           </li>
         ))}
       </ol>
-      <p className="mt-6 text-xs text-muted">Demo funds on test network</p>
     </div>
   );
 }

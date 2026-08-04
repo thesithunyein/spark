@@ -105,17 +105,12 @@ export default function PayPage() {
         {!isConnected && (
           <div className="mb-5 rounded-xl border border-border bg-panel2 px-4 py-4">
             <p className="text-sm font-medium text-text">Connect a wallet to pay</p>
-            <p className="mt-1 text-xs text-muted">You will switch to Sepolia, then Creditcoin testnet.</p>
+            <p className="mt-1 text-xs text-muted">You’ll pay on Sepolia, then unlock credit on Creditcoin.</p>
             <div className="mt-3">
               <ConnectButton />
             </div>
           </div>
         )}
-
-        <div className="mb-4 rounded-lg border border-brand/25 bg-brand/5 px-3 py-2 text-xs text-muted">
-          Demo verification uses <span className="text-text">MockVerifier</span> on testnet.
-          Attestcoin USC proofs plug in for production depth.
-        </div>
 
         <label className="text-xs font-medium uppercase tracking-wide text-muted">Amount (ETH)</label>
         <input
@@ -170,7 +165,7 @@ export default function PayPage() {
         {step === 4 && (
           <div className="mt-4 rounded-xl border border-success/30 bg-success/10 px-4 py-3">
             <p className="text-sm font-medium text-success">Credit ready</p>
-            <p className="mt-1 text-xs text-muted">Your line is open on Creditcoin testnet.</p>
+            <p className="mt-1 text-xs text-muted">Your line is open on Creditcoin.</p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Link href="/overview" className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">
                 View credit

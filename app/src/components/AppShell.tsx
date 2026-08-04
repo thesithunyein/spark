@@ -23,14 +23,9 @@ export function AppShell({
     <div className="flex min-h-screen">
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
-        {config.demoBanner && (
-          <div className="border-b border-brand/30 bg-brand/10 px-4 py-2 text-center text-xs text-brand sm:px-6">
-            Testnet demo — not real money. Pay → verify (MockVerifier today) → credit on Creditcoin.
-          </div>
-        )}
         {!isConfigured() && (
           <div className="border-b border-warn/30 bg-warn/10 px-4 py-2 text-center text-xs text-warn sm:px-6">
-            Contracts not configured yet — you can explore the product UI. Deploy addresses to unlock live pay/prove.
+            Contracts not configured — set payment and credit addresses to enable pay.
           </div>
         )}
         <header className="flex items-center justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
