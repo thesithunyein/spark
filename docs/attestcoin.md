@@ -6,31 +6,37 @@ Spark uses the **Attestcoin Protocol** (formerly USC) so a payment on Ethereum S
 
 | Action | Without proof | With Attestcoin |
 |---|---|---|
-| Open credit | Reverts | Opens after verify |
-| Repay / close | Reverts | Updates after verify |
+| Open credit | Reverts | Opens after BlockProver verify |
+| Repay / close | Reverts | Updates after BlockProver verify |
 
-`CreditLine.openCredit` and `CreditLine.repayCredit` call `IPaymentVerifier.verifyPayment`. Invalid or missing proofs revert (`ProofFailed`). `txHash` can only be used once. `claim.payer` must equal `msg.sender`.
+`CreditLine.openCredit` and `CreditLine.repayCredit` call `AttestcoinPaymentVerifier.verifyPayment`, which calls Creditcoin **BlockProver** (`0x…0FD2`) via `verifyAndEmit`. Invalid proofs revert. `txHash` can only be used once. `claim.payer` must equal `msg.sender`.
 
 ## Flow
 
 1. User calls `SepoliaPayment.payDeposit` / `payRepayment` (Sepolia)
-2. App waits for attestation / builds proof (USC SDK + Proof Builder API)
-3. User calls `CreditLine.openCredit` / `repayCredit` on Creditcoin with claim + proof
-4. Verifier checks proof; credit state updates
+2. App waits for attestation (`ProofBuilder.waitUntilHeightAttested`)
+3. App builds USC proof (`ProofBuilder.getProof` via Proof Builder API)
+4. User calls `CreditLine.openCredit` / `repayCredit` on Creditcoin with claim + USC proof
+5. Verifier calls BlockProver; credit state updates
 
 ## Contracts
 
 - `SepoliaPayment.sol` — payment events on Sepolia
 - `CreditLine.sol` — positions gated by verifier
-- `MockPaymentVerifier.sol` — local / early testnet
-- `AttestcoinPaymentVerifier.sol` — production-shaped USC adapter (swap in for submission depth)
+- `AttestcoinPaymentVerifier.sol` — USC BlockProver adapter (live)
+- `MockPaymentVerifier.sol` — local unit tests only
+
+## Live addresses (CC3 testnet)
+
+See [addresses.md](addresses.md).
 
 ## SDK / docs
 
 - USC SDK: https://docs.creditcoin.org/usc/dapp-builder-infrastructure/usc-sdk
 - Environments: https://docs.creditcoin.org/creditcoin-usc/usc-chains-environments
-- Prover (CC3 testnet): `NEXT_PUBLIC_PROVER_URL`
+- Prover API: `NEXT_PUBLIC_PROVER_URL` (default `https://proof-gen-api.cc3-testnet.creditcoin.network`)
+- App helper: `app/src/lib/usc.ts`
 
-## DoraHacks blurb (paste)
+## DoraHacks blurb
 
-> Spark is DeFi credit that only unlocks after Attestcoin verifies a Sepolia payment. Deposit and repay both require cryptographic payment proofs bound to the payer, with one-time txHash replay protection. The product is trust-minimized cross-system credit—not an AI demo.
+> Spark is DeFi credit that only unlocks after Attestcoin verifies a Sepolia payment via Creditcoin BlockProver. Deposit and repay require USC inclusion proofs bound to the payer, with one-time txHash replay protection.

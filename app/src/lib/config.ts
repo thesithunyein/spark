@@ -15,6 +15,8 @@ export const config = {
   explorerCreditcoin:
     process.env.NEXT_PUBLIC_EXPLORER_CREDITCOIN ?? "https://creditcoin-testnet.blockscout.com",
   walletConnectId: process.env.NEXT_PUBLIC_WALLETCONNECT_ID ?? "",
+  /** When true, open/repay use Attestcoin USC proofs via BlockProver. */
+  attestcoin: process.env.NEXT_PUBLIC_ATTESTCOIN === "true",
 };
 
 export function isConfigured() {

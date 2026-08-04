@@ -35,7 +35,7 @@ Other credit apps cannot trust a payment that happened somewhere else without pa
 - DeFi credit on Creditcoin (BUIDL CTC 2026 Fall)
 - Rules, proofs, and on-chain balances only
 - Runs on testnets today (Sepolia + Creditcoin testnet)
-- Live app uses **MockPaymentVerifier**; contracts include an **Attestcoin** verifier path for USC proofs when wired
+- Live app uses **Attestcoin Protocol** (USC BlockProver) to verify Sepolia payments before credit opens
 
 ## Architecture
 
@@ -67,15 +67,15 @@ pnpm dev
 
 Open [http://localhost:3000](http://localhost:3000). In-app **Help** explains the flow for new users.
 
-Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app)
+Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app) · Deck: [spark-defi.vercel.app/deck.pdf](https://spark-defi.vercel.app/deck.pdf)
 
 ## Deployed contracts (testnet)
 
 | Contract | Network | Address |
 |---|---|---|
 | SepoliaPayment | Sepolia | `0xfe6D6efD09D2Da22656AA197713A4dEdd064E14F` |
-| MockPaymentVerifier | Creditcoin testnet | `0xfe6D6efD09D2Da22656AA197713A4dEdd064E14F` |
-| CreditLine | Creditcoin testnet | `0x4B137F56A0b5A8633D079d2d6b34d6aC5CdD22E9` |
+| AttestcoinPaymentVerifier | Creditcoin testnet | `0xB8d175f48cbeCc70448639000F749463734C08d0` |
+| CreditLine | Creditcoin testnet | `0x336bF0cF045048f7a17efE6eD50671f304B4E815` |
 
 Details: [docs/addresses.md](docs/addresses.md)
 
@@ -88,9 +88,9 @@ Details: [docs/addresses.md](docs/addresses.md)
 
 | Phase | Focus |
 |---|---|
-| **Now** | Testnet demo: pay → verify → credit → repay on Creditcoin |
-| **Next** | Wire live Attestcoin USC proofs (replace mock verifier path) |
-| **Later** | Mainnet readiness, audit, clearer single-network UX |
+| **Now** | Testnet demo with live Attestcoin USC proofs |
+| **Next** | Stronger receipt decoding, faster attestation UX |
+| **Later** | Mainnet readiness, audit, simpler single-network UX |
 
 ## Security
 

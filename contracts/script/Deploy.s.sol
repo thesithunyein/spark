@@ -23,7 +23,7 @@ contract DeploySpark is Script {
             console2.log("MockPaymentVerifier", verifier);
         } else {
             address blockProver = vm.envAddress("BLOCK_PROVER");
-            uint256 chainKey = vm.envUint("CHAIN_KEY");
+            uint64 chainKey = uint64(vm.envUint("CHAIN_KEY"));
             AttestcoinPaymentVerifier v =
                 new AttestcoinPaymentVerifier(blockProver, paymentOnSepolia, chainKey);
             verifier = address(v);

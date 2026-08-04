@@ -11,6 +11,7 @@ import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodePaymentProof, formatEth } from "@/lib/format";
+import { buildAttestcoinProof } from "@/lib/usc";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
@@ -21,6 +22,7 @@ export default function PayPage() {
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [statusNote, setStatusNote] = useState<string | null>(null);
   const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
@@ -70,6 +72,7 @@ export default function PayPage() {
 
   async function onProveAndOpen() {
     setError(null);
+    setStatusNote(null);
     if (!address || !txHash) return;
     if (config.creditLineAddress.endsWith("0000")) {
       setError("CreditLine not configured yet.");
@@ -81,12 +84,21 @@ export default function PayPage() {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
       const amountWei = parseEther(amount || "0.01");
-      const proof = encodePaymentProof({
-        txHash,
-        payer: address,
-        amountWei,
-        kind: 1,
-      });
+
+      let proof: Hex;
+      if (config.attestcoin) {
+        setStatusNote("Waiting for Attestcoin attestation on Creditcoin, then building USC proof…");
+        proof = await buildAttestcoinProof(txHash);
+        setStatusNote("USC proof ready. Opening credit on Creditcoin…");
+      } else {
+        proof = encodePaymentProof({
+          txHash,
+          payer: address,
+          amountWei,
+          kind: 1,
+        });
+      }
+
       const openHash = await writeContractAsync({
         address: config.creditLineAddress,
         abi: creditLineAbi,
@@ -111,9 +123,11 @@ export default function PayPage() {
         kind: "deposit",
         href: `${config.explorerCreditcoin}/tx/${openHash}`,
       });
+      setStatusNote(null);
       setStep(4);
     } catch (e) {
       setError(friendlyError(e));
+      setStatusNote(null);
       setStep(2);
       autoVerifyStarted.current = false;
     }
@@ -190,7 +204,10 @@ export default function PayPage() {
           )}
           {verifying && step < 4 && (
             <p className="text-center text-[12px] text-muted">
-              Payment confirmed. Switching to Creditcoin to open your line…
+              {statusNote ||
+                (config.attestcoin
+                  ? "Payment confirmed. Waiting for Attestcoin / USC proof…"
+                  : "Payment confirmed. Switching to Creditcoin to open your line…")}
             </p>
           )}
         </div>

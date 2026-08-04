@@ -11,6 +11,7 @@ import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodePaymentProof, formatEth } from "@/lib/format";
+import { buildAttestcoinProof } from "@/lib/usc";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
@@ -21,6 +22,7 @@ export default function RepayPage() {
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
+  const [statusNote, setStatusNote] = useState<string | null>(null);
   const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
@@ -82,6 +84,7 @@ export default function RepayPage() {
 
   async function onProveRepay() {
     setError(null);
+    setStatusNote(null);
     if (!address || !txHash) return;
     try {
       setStep(3);
@@ -89,7 +92,14 @@ export default function RepayPage() {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
       const amountWei = parseEther(amount || "0.008");
-      const proof = encodePaymentProof({ txHash, payer: address, amountWei, kind: 2 });
+      let proof: Hex;
+      if (config.attestcoin) {
+        setStatusNote("Waiting for Attestcoin attestation, then building USC proof…");
+        proof = await buildAttestcoinProof(txHash);
+        setStatusNote("USC proof ready. Updating credit on Creditcoin…");
+      } else {
+        proof = encodePaymentProof({ txHash, payer: address, amountWei, kind: 2 });
+      }
       const repayHash = await writeContractAsync({
         address: config.creditLineAddress,
         abi: creditLineAbi,
@@ -106,9 +116,11 @@ export default function RepayPage() {
         kind: "repay",
         href: `${config.explorerCreditcoin}/tx/${repayHash}`,
       });
+      setStatusNote(null);
       setStep(4);
     } catch (e) {
       setError(friendlyError(e));
+      setStatusNote(null);
       setStep(2);
       autoVerifyStarted.current = false;
     }
@@ -184,7 +196,12 @@ export default function RepayPage() {
             </button>
           )}
           {verifying && step < 4 && (
-            <p className="text-center text-[12px] text-muted">Payment confirmed. Updating credit on Creditcoin…</p>
+            <p className="text-center text-[12px] text-muted">
+              {statusNote ||
+                (config.attestcoin
+                  ? "Payment confirmed. Waiting for Attestcoin / USC proof…"
+                  : "Payment confirmed. Updating credit on Creditcoin…")}
+            </p>
           )}
         </div>
         {txHash && (
