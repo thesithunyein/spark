@@ -8,6 +8,8 @@ export const config = {
     "0x0000000000000000000000000000000000000000") as `0x${string}`,
   creditLineAddress: (process.env.NEXT_PUBLIC_CREDITLINE_ADDRESS ??
     "0x0000000000000000000000000000000000000000") as `0x${string}`,
+  creditTokenAddress: (process.env.NEXT_PUBLIC_CREDIT_TOKEN_ADDRESS ??
+    "0x03bE0d28A26Dca214461D1BC4f04b6b04C3B1b20") as `0x${string}`,
   verifierAddress: (process.env.NEXT_PUBLIC_VERIFIER_ADDRESS ??
     "0x0000000000000000000000000000000000000000") as `0x${string}`,
   proverUrl: process.env.NEXT_PUBLIC_PROVER_URL ?? "",

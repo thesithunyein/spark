@@ -29,12 +29,20 @@ export function friendlyError(err: unknown): string {
     return "Wrong network. Switch to Sepolia to pay, or Creditcoin to open credit.";
   }
 
+  if (
+    msg.includes("unsupported chain") ||
+    (msg.includes("chain id") && msg.includes("support")) ||
+    msg.includes("selected network is not supported")
+  ) {
+    return "This wallet doesn’t support Sepolia or Creditcoin testnet. Use MetaMask.";
+  }
+
   if (msg.includes("switch") && msg.includes("chain")) {
     return "Please approve the network switch in your wallet.";
   }
 
   if (msg.includes("connector not found") || msg.includes("no provider") || msg.includes("provider not found")) {
-    return "No wallet found. Install MetaMask or connect with WalletConnect.";
+    return "No wallet found. Install the MetaMask browser extension.";
   }
 
   if (msg.includes("contract not") || msg.includes("0x000000")) {

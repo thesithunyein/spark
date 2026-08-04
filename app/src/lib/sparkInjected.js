@@ -2,16 +2,76 @@ import { createConnector } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { getAddress, numberToHex, SwitchChainError } from "viem";
 
-/** Minimal injected connector — avoids wagmi/connectors barrel (Coinbase/x402). */
+const DISCONNECT_KEY = "spark.wallet.disconnected";
+
+/** Provider chosen from Connect modal (MetaMask). */
+let selectedProvider = undefined;
+
+export function setSparkInjectedProvider(provider) {
+  selectedProvider = provider;
+}
+
+export function clearSparkInjectedProvider() {
+  selectedProvider = undefined;
+}
+
+function wasUserDisconnected() {
+  if (typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(DISCONNECT_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markDisconnected() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(DISCONNECT_KEY, "1");
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearDisconnectedFlag() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.removeItem(DISCONNECT_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+function findMetaMaskProvider() {
+  if (typeof window === "undefined") return undefined;
+  const eth = window.ethereum;
+  if (!eth) return undefined;
+
+  const list = Array.isArray(eth.providers) && eth.providers.length > 0 ? eth.providers : [eth];
+  const metamask = list.find((p) => p?.isMetaMask && !p?.isRabby && !p?.isPhantom);
+  return metamask || (eth.isMetaMask ? eth : undefined);
+}
+
+function resolveProvider() {
+  if (selectedProvider) return selectedProvider;
+  return findMetaMaskProvider();
+}
+
+/** MetaMask-only injected connector — avoids wagmi/connectors barrel (Coinbase/x402). */
 export function sparkInjected() {
   return createConnector((config) => ({
     id: "spark-injected",
-    name: "Browser wallet",
+    name: "MetaMask",
     type: "injected",
     async setup() {},
     async connect({ chainId } = {}) {
-      const provider = typeof window !== "undefined" ? window.ethereum : undefined;
-      if (!provider) throw new Error("No browser wallet found. Install MetaMask.");
+      const provider = resolveProvider();
+      if (!provider) {
+        throw new Error("MetaMask not found. Install the MetaMask browser extension.");
+      }
+      selectedProvider = provider;
+      clearDisconnectedFlag();
+
       const accounts = await provider.request({ method: "eth_requestAccounts" });
       let currentChainId = Number(await provider.request({ method: "eth_chainId" }));
       if (chainId && currentChainId !== chainId) {
@@ -30,27 +90,43 @@ export function sparkInjected() {
         chainId: currentChainId,
       };
     },
-    async disconnect() {},
+    async disconnect() {
+      markDisconnected();
+      const provider = resolveProvider();
+      selectedProvider = undefined;
+      try {
+        if (provider?.request) {
+          await provider.request({
+            method: "wallet_revokePermissions",
+            params: [{ eth_accounts: {} }],
+          });
+        }
+      } catch {
+        // MetaMask may not support revoke on all versions — flag still blocks reconnect.
+      }
+    },
     async getAccounts() {
-      const provider = typeof window !== "undefined" ? window.ethereum : undefined;
+      if (wasUserDisconnected()) return [];
+      const provider = resolveProvider();
       if (!provider) return [];
       const accounts = await provider.request({ method: "eth_accounts" });
       return accounts.map((a) => getAddress(a));
     },
     async getChainId() {
-      const provider = typeof window !== "undefined" ? window.ethereum : undefined;
+      const provider = resolveProvider();
       if (!provider) return sepolia.id;
       return Number(await provider.request({ method: "eth_chainId" }));
     },
     async getProvider() {
-      return typeof window !== "undefined" ? window.ethereum : undefined;
+      return resolveProvider();
     },
     async isAuthorized() {
+      if (wasUserDisconnected()) return false;
       const accounts = await this.getAccounts();
       return accounts.length > 0;
     },
     async switchChain({ chainId }) {
-      const provider = typeof window !== "undefined" ? window.ethereum : undefined;
+      const provider = resolveProvider();
       if (!provider) throw new SwitchChainError(new Error("No provider"));
       const chain = config.chains.find((c) => c.id === chainId);
       if (!chain) throw new SwitchChainError(new Error("Unknown chain"));
@@ -82,16 +158,23 @@ export function sparkInjected() {
       return chain;
     },
     onAccountsChanged(accounts) {
-      if (accounts.length === 0) config.emitter.emit("disconnect");
-      else
+      if (accounts.length === 0) {
+        markDisconnected();
+        selectedProvider = undefined;
+        config.emitter.emit("disconnect");
+      } else {
+        clearDisconnectedFlag();
         config.emitter.emit("change", {
           accounts: accounts.map((a) => getAddress(a)),
         });
+      }
     },
     onChainChanged(chain) {
       config.emitter.emit("change", { chainId: Number(chain) });
     },
     onDisconnect() {
+      markDisconnected();
+      selectedProvider = undefined;
       config.emitter.emit("disconnect");
     },
   }));

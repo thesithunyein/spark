@@ -53,14 +53,13 @@ export default function HelpPage() {
 
         <Block title="Who is Spark for?">
           <p>
-            Spark is for people who want credit tied to a payment they already made. Today this
+            Spark is for people who want credit tied to a payment they already made.
             This version runs on test networks only, so it is best for trying the flow before anything goes
             live with real money.
           </p>
           <p>
-            You will need a crypto wallet app (MetaMask, Rabby, or a mobile wallet through
-            WalletConnect). If you have never used one, follow the steps below and use the free
-            test tokens linked in this page.
+            You will need the MetaMask browser extension. If you have never used one, follow the steps
+            below and use the free test tokens linked in this page.
           </p>
         </Block>
 
@@ -81,17 +80,30 @@ export default function HelpPage() {
               title="Credit opens"
               body="After confirmation, your credit line opens on Creditcoin testnet. You can see balance and status on Overview."
             />
+            <Step
+              n="4"
+              title="Withdraw to your wallet"
+              body="Withdraw sends available credit to your wallet as sCREDIT (testnet credit units). Debt goes up by what you take."
+            />
           </ol>
           <p className="pt-2">
-            To finish, go to Repay, pay back on the payment network, and your line closes.
+            To finish, go to Repay, pay back what you withdrew on the payment network, and your line closes.
           </p>
         </Block>
 
         <Block title="Before you start">
           <ul className="list-inside list-disc space-y-2">
             <li>
-              <span className="text-text">A wallet.</span> Connect from the top right. This is your
-              account in Spark.
+              <span className="text-text">MetaMask.</span> Install the{" "}
+              <a
+                href="https://metamask.io/download/"
+                target="_blank"
+                rel="noreferrer"
+                className="text-brand hover:underline"
+              >
+                MetaMask browser extension
+              </a>
+              , then connect from the top right. That wallet is your Spark account.
             </li>
             <li>
               <span className="text-text">Test payment tokens.</span> You need a little Sepolia ETH
@@ -127,13 +139,16 @@ export default function HelpPage() {
 
         <Block title="Step-by-step guide">
           <ol className="list-inside list-decimal space-y-2">
-            <li>Connect your wallet (top right).</li>
+            <li>Connect MetaMask (top right).</li>
             <li>Open Overview and follow the Get started checklist if you see it.</li>
             <li>Go to Pay deposit. Enter an amount (0.01 ETH is a typical starting amount).</li>
-            <li>Confirm in your wallet. Wait until Spark shows payment confirmed.</li>
-            <li>Spark will switch networks and confirm credit for you, or tap the button if asked.</li>
-            <li>Check Overview for credit available and deposit locked.</li>
-            <li>When done testing, use Repay to close the line.</li>
+            <li>
+              Confirm in MetaMask. Wait for Attestcoin attestation (~8–10 min on Sepolia) until credit
+              opens.
+            </li>
+            <li>Optional: Withdraw sCREDIT to your wallet, then Send &amp; Receive if you want to move it.</li>
+            <li>Check Overview for credit available, debt, and deposit locked.</li>
+            <li>When done testing, use Repay to clear debt and close the line.</li>
           </ol>
           <p className="pt-2">
             Payment history is under{" "}
@@ -163,12 +178,20 @@ export default function HelpPage() {
               a="Usually you need more test tokens for fees, or you rejected the request in your wallet. Spark shows a short message when that happens."
             />
             <Faq
+              q="Why does verifying take so long?"
+              a="Attestcoin waits ~8–10 minutes after a Sepolia payment so the block is safe from reorgs. That is protocol security, not Spark being stuck."
+            />
+            <Faq
+              q="What is sCREDIT?"
+              a="Testnet credit units minted to your MetaMask when you withdraw. Not real money. You can send them to another address on Creditcoin testnet."
+            />
+            <Faq
               q="Does Spark hold my money?"
-              a="No. Your wallet stays in your control. Smart contracts move funds only when you approve each step."
+              a="No. Your MetaMask stays in your control. Smart contracts move funds only when you approve each step."
             />
             <Faq
               q="Where can I see my past payments?"
-              a="Open Payments in the sidebar. Deposits and repayments for your connected wallet appear there."
+              a="Open Payments in the sidebar. Deposits, withdraws, sends, and repayments for your connected wallet appear there."
             />
           </div>
         </Block>
@@ -177,19 +200,23 @@ export default function HelpPage() {
           <dl className="space-y-3">
             <div>
               <dt className="text-text">Wallet</dt>
-              <dd className="mt-0.5">Your digital account. Spark uses it to know who you are and to send transactions.</dd>
+              <dd className="mt-0.5">MetaMask — your digital account for Spark.</dd>
             </div>
             <div>
               <dt className="text-text">Deposit</dt>
-              <dd className="mt-0.5">Money you pay upfront. It backs the credit line.</dd>
+              <dd className="mt-0.5">Money you pay upfront on Sepolia. It backs the credit line.</dd>
             </div>
             <div>
               <dt className="text-text">Credit line</dt>
-              <dd className="mt-0.5">Borrowing room opened after your deposit is confirmed.</dd>
+              <dd className="mt-0.5">Borrowing room opened after Attestcoin verifies your deposit.</dd>
+            </div>
+            <div>
+              <dt className="text-text">Withdraw</dt>
+              <dd className="mt-0.5">Send available credit to your wallet as sCREDIT (testnet units).</dd>
             </div>
             <div>
               <dt className="text-text">Repay</dt>
-              <dd className="mt-0.5">Pay back on the payment network to close the line.</dd>
+              <dd className="mt-0.5">Pay back on Sepolia to clear debt and close the line.</dd>
             </div>
           </dl>
         </Block>
@@ -221,7 +248,7 @@ export default function HelpPage() {
 
         <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center">
           <p className="text-[15px] font-medium text-text">Ready to try it?</p>
-          <p className="mt-2 text-[13px] text-muted">Connect a wallet and pay a small test deposit.</p>
+          <p className="mt-2 text-[13px] text-muted">Connect MetaMask and pay a small test deposit.</p>
           <Link
             href="/pay"
             className="mt-5 inline-flex rounded-full bg-brand px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-accent2"

@@ -34,6 +34,7 @@ export default function OverviewPage() {
   const credit = position ? position.credit : 0n;
   const deposit = position ? position.deposit : 0n;
   const debt = position ? position.debt : 0n;
+  const available = status === 1 && credit > debt ? credit - debt : 0n;
   const activity = recent.slice(0, 5);
 
   return (
@@ -47,6 +48,12 @@ export default function OverviewPage() {
             className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2"
           >
             Pay deposit
+          </Link>
+          <Link
+            href="/withdraw"
+            className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+          >
+            Withdraw
           </Link>
           <Link
             href="/repay"
@@ -85,14 +92,14 @@ export default function OverviewPage() {
       <div className="grid gap-3 md:grid-cols-3">
         <MetricCard
           label="Credit available"
-          value={`${formatEth(credit)} ETH`}
-          hint={status === 1 ? "Active" : status === 2 ? "Closed" : "—"}
+          value={`${formatEth(available)} sCREDIT`}
+          hint={status === 1 ? "Ready to withdraw" : status === 2 ? "Closed" : "—"}
         />
         <MetricCard label="Deposit locked" value={`${formatEth(deposit)} ETH`} />
         <MetricCard
           label="Status"
           value={statusLabel(status)}
-          hint={debt > 0n ? `Debt ${formatEth(debt)} ETH` : undefined}
+          hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT` : undefined}
         />
       </div>
 
@@ -114,6 +121,12 @@ export default function OverviewPage() {
               className="flex-1 rounded-full bg-brand px-3 py-2.5 text-center text-[13px] font-medium text-white"
             >
               Pay deposit
+            </Link>
+            <Link
+              href="/withdraw"
+              className="flex-1 rounded-full border border-border px-3 py-2.5 text-center text-[13px] font-medium"
+            >
+              Withdraw
             </Link>
             <Link
               href="/repay"

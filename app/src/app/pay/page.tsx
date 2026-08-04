@@ -7,11 +7,16 @@ import { parseEther, keccak256, toBytes, type Hex } from "viem";
 import { sepolia } from "wagmi/chains";
 import { AppShell } from "@/components/AppShell";
 import { ConfirmingStages } from "@/components/ConfirmingStages";
+import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
 import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodePaymentProof, formatEth } from "@/lib/format";
-import { buildAttestcoinProof } from "@/lib/usc";
+import {
+  buildAttestcoinProof,
+  type AttestcoinPhase,
+  type AttestcoinProofMeta,
+} from "@/lib/usc";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
@@ -21,8 +26,13 @@ export default function PayPage() {
   const [amount, setAmount] = useState("0.01");
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
+  const [creditTx, setCreditTx] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [statusNote, setStatusNote] = useState<string | null>(null);
+  const [attestPhase, setAttestPhase] = useState<AttestcoinPhase | "submitting" | "done" | null>(
+    null,
+  );
+  const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
   const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending } = useWriteContract();
@@ -31,6 +41,9 @@ export default function PayPage() {
   async function onPay() {
     setError(null);
     autoVerifyStarted.current = false;
+    setAttestPhase(null);
+    setAttestMeta(null);
+    setCreditTx(undefined);
     if (!address) {
       setError("Connect a wallet first.");
       return;
@@ -73,6 +86,7 @@ export default function PayPage() {
   async function onProveAndOpen() {
     setError(null);
     setStatusNote(null);
+    setCreditTx(undefined);
     if (!address || !txHash) return;
     if (config.creditLineAddress.endsWith("0000")) {
       setError("CreditLine not configured yet.");
@@ -87,8 +101,16 @@ export default function PayPage() {
 
       let proof: Hex;
       if (config.attestcoin) {
+        setAttestPhase("finding_tx");
+        setAttestMeta(null);
         setStatusNote("Waiting for Attestcoin attestation on Creditcoin, then building USC proof…");
-        proof = await buildAttestcoinProof(txHash);
+        const built = await buildAttestcoinProof(txHash, (phase, meta) => {
+          setAttestPhase(phase);
+          if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
+        });
+        proof = built.proof;
+        setAttestMeta(built.meta);
+        setAttestPhase("submitting");
         setStatusNote("USC proof ready. Opening credit on Creditcoin…");
       } else {
         proof = encodePaymentProof({
@@ -114,6 +136,7 @@ export default function PayPage() {
         ],
         chainId: creditcoinTestnet.id,
       });
+      setCreditTx(openHash);
       journalActivity(address, {
         id: `${openHash}-open`,
         type: "Credit opened",
@@ -124,10 +147,12 @@ export default function PayPage() {
         href: `${config.explorerCreditcoin}/tx/${openHash}`,
       });
       setStatusNote(null);
+      if (config.attestcoin) setAttestPhase("done");
       setStep(4);
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
+      setAttestPhase(null);
       setStep(2);
       autoVerifyStarted.current = false;
     }
@@ -202,17 +227,28 @@ export default function PayPage() {
               Verify payment & open credit
             </button>
           )}
-          {verifying && step < 4 && (
+          {verifying && step < 4 && !config.attestcoin && (
             <p className="text-center text-[12px] text-muted">
-              {statusNote ||
-                (config.attestcoin
-                  ? "Payment confirmed. Waiting for Attestcoin / USC proof…"
-                  : "Payment confirmed. Switching to Creditcoin to open your line…")}
+              {statusNote || "Payment confirmed. Switching to Creditcoin to open your line…"}
             </p>
           )}
         </div>
 
-        {txHash && (
+        {config.attestcoin && attestPhase && address && (
+          <AttestcoinProofPanel
+            phase={attestPhase}
+            meta={attestMeta}
+            paymentTx={txHash}
+            creditTx={creditTx}
+            claim={{
+              payer: address,
+              amountLabel: amount || "0.01",
+              kind: "deposit",
+            }}
+          />
+        )}
+
+        {txHash && !attestPhase && (
           <p className="mt-5 break-all text-[12px] text-muted">
             Payment tx:{" "}
             <a className="text-text/80 hover:underline" href={`${config.explorerSepolia}/tx/${txHash}`} target="_blank" rel="noreferrer">
@@ -226,7 +262,10 @@ export default function PayPage() {
             <p className="text-[15px] font-medium text-text">Credit ready</p>
             <p className="mt-1 text-[13px] text-muted">Your line is open on Creditcoin.</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link href="/overview" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
+              <Link href="/withdraw" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
+                Withdraw credit
+              </Link>
+              <Link href="/overview" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
                 View credit
               </Link>
               <Link href="/activity" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">

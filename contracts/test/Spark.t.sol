@@ -43,7 +43,27 @@ contract SparkTest is Test {
         assertEq(uint256(pos.status), uint256(CreditLine.Status.Active));
         assertEq(pos.deposit, 1 ether);
         assertEq(pos.credit, 0.8 ether);
-        assertEq(pos.debt, 0.8 ether);
+        assertEq(pos.debt, 0);
+        assertEq(line.availableCredit(user), 0.8 ether);
+    }
+
+    function testWithdrawMintsCredit() public {
+        _open(user, keccak256("dep-w"), 1 ether);
+
+        vm.prank(user);
+        line.withdraw(0.5 ether);
+
+        CreditLine.Position memory pos = line.getPosition(user);
+        assertEq(pos.debt, 0.5 ether);
+        assertEq(line.availableCredit(user), 0.3 ether);
+        assertEq(line.creditToken().balanceOf(user), 0.5 ether);
+    }
+
+    function testWithdrawExceedsReverts() public {
+        _open(user, keccak256("dep-x"), 1 ether);
+        vm.prank(user);
+        vm.expectRevert(CreditLine.ExceedsAvailable.selector);
+        line.withdraw(0.81 ether);
     }
 
     function testReplayRejected() public {
@@ -59,8 +79,9 @@ contract SparkTest is Test {
         vm.prank(user);
         line.openCredit(claim, proof);
 
-        // close via repay first so we can try reuse — actually AlreadyOpen; use new user path
-        // Attempt same txHash from same user after close
+        vm.prank(user);
+        line.withdraw(0.8 ether);
+
         bytes32 repayHash = keccak256("repay-tx");
         IPaymentVerifier.PaymentClaim memory repay = IPaymentVerifier.PaymentClaim({
             txHash: repayHash,
@@ -75,6 +96,13 @@ contract SparkTest is Test {
         vm.prank(user);
         vm.expectRevert(CreditLine.TxAlreadyUsed.selector);
         line.openCredit(claim, proof);
+    }
+
+    function testCloseUnused() public {
+        _open(user, keccak256("dep-c"), 1 ether);
+        vm.prank(user);
+        line.closeUnused();
+        assertEq(uint256(line.getPosition(user).status), uint256(CreditLine.Status.Closed));
     }
 
     function testWrongPayerReverts() public {
@@ -100,10 +128,22 @@ contract SparkTest is Test {
             amount: 1 ether,
             kind: 1
         });
-        bytes memory proof = abi.encode(txHash, user, uint256(2 ether), uint8(1)); // amount mismatch
+        bytes memory proof = abi.encode(txHash, user, uint256(2 ether), uint8(1));
 
         vm.prank(user);
         vm.expectRevert(CreditLine.ProofFailed.selector);
+        line.openCredit(claim, proof);
+    }
+
+    function _open(address who, bytes32 txHash, uint256 amount) internal {
+        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
+            txHash: txHash,
+            payer: who,
+            amount: amount,
+            kind: 1
+        });
+        bytes memory proof = abi.encode(txHash, who, amount, uint8(1));
+        vm.prank(who);
         line.openCredit(claim, proof);
     }
 }
