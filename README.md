@@ -24,13 +24,15 @@
   <a href="https://spark-defi.vercel.app"><strong>spark-defi.vercel.app</strong></a>
   ·
   <a href="https://github.com/thesithunyein/spark">GitHub</a>
+  ·
+  <a href="LICENSE">MIT License</a>
 </p>
 
 ## What it is
 
 Other credit apps cannot trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies the payment, then unlocks or clears credit on **Creditcoin**.
 
-- Track: **DeFi** (BUIDL CTC 2026 Fall)
+- DeFi credit on Creditcoin (BUIDL CTC 2026 Fall)
 - Rules, proofs, and on-chain balances only
 - Runs on testnets today (Sepolia + Creditcoin testnet)
 - Live app uses **MockPaymentVerifier**; contracts include an **Attestcoin** verifier path for USC proofs when wired
@@ -77,13 +79,23 @@ Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app)
 
 Details: [docs/addresses.md](docs/addresses.md)
 
-- Contracts: `forge script` (see `contracts/script/Deploy.s.sol`) → fill [docs/addresses.md](docs/addresses.md)
+## Deploy
+
+- Contracts: Foundry (`contracts/script/Deploy.s.sol`) → update [docs/addresses.md](docs/addresses.md)
 - App: Vercel — [docs/deploy-vercel.md](docs/deploy-vercel.md) (Root Directory = `app`)
+
+## Roadmap
+
+| Phase | Focus |
+|---|---|
+| **Now** | Testnet demo: pay → verify → credit → repay on Creditcoin |
+| **Next** | Wire live Attestcoin USC proofs (replace mock verifier path) |
+| **Later** | Mainnet readiness, audit, clearer single-network UX |
 
 ## Security
 
-Not audited. See [SECURITY.md](SECURITY.md). No private keys on Vercel.
+Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Vercel.
 
-## Hackathon
+## License
 
-DoraHacks sector: **DeFi**. Attestcoin integration summary: [docs/attestcoin.md](docs/attestcoin.md).
+MIT. See [LICENSE](LICENSE).
