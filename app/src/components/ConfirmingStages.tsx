@@ -1,24 +1,21 @@
 export function ConfirmingStages({ step }: { step: 0 | 1 | 2 | 3 | 4 }) {
-  const stages = ["Submitted", "Confirming payment", "Verifying", "Credit ready"];
+  const stages = ["Submitted", "Confirming", "Verifying", "Ready"];
   return (
-    <ol className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:gap-3">
+    <ol className="grid grid-cols-2 gap-3 sm:grid-cols-4">
       {stages.map((label, i) => {
         const n = i + 1;
         const done = step > n;
         const current = step === n;
         return (
-          <li key={label} className="flex items-center gap-2 text-xs">
-            <span
+          <li key={label} className="flex flex-col gap-2">
+            <div
               className={
-                done || current
-                  ? "flex h-6 w-6 items-center justify-center rounded-full bg-brand text-[11px] font-semibold text-white"
-                  : "flex h-6 w-6 items-center justify-center rounded-full border border-border text-muted"
+                done || current ? "h-0.5 rounded-full bg-brand" : "h-0.5 rounded-full bg-white/[0.08]"
               }
-            >
-              {done ? "✓" : n}
+            />
+            <span className={`text-[12px] ${current || done ? "text-text" : "text-muted"}`}>
+              {label}
             </span>
-            <span className={current || done ? "text-text" : "text-muted"}>{label}</span>
-            {i < stages.length - 1 && <span className="hidden text-border sm:inline">—</span>}
           </li>
         );
       })}

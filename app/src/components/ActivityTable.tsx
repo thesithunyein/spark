@@ -4,31 +4,31 @@ import type { ActivityItem } from "@/lib/format";
 export function ActivityTable({ items }: { items: ActivityItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-border bg-panel/50 px-5 py-10 text-center text-sm text-muted">
-        No payments yet. Pay a deposit to start.
+      <div className="rounded-2xl border border-dashed border-border px-5 py-10 text-center text-[13px] text-muted">
+        No payments yet
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border border-border bg-panel">
+    <div className="overflow-hidden rounded-2xl border border-border bg-panel/80 shadow-soft">
       <ul className="divide-y divide-border">
         {items.map((item) => (
-          <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3 text-sm">
-            <div>
-              <p className="font-medium text-text">{item.type}</p>
-              <p className="text-xs text-muted">{item.at}</p>
+          <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3.5 text-[13px]">
+            <div className="min-w-0">
+              <p className="truncate font-medium text-text">{item.type}</p>
+              <p className="mt-0.5 text-[12px] text-muted">{item.at}</p>
             </div>
-            <div className="text-right">
-              {item.amount && <p className="font-mono tabular-nums">{item.amount}</p>}
+            <div className="shrink-0 text-right">
+              {item.amount && <p className="tabular-nums text-text">{item.amount}</p>}
               <span
                 className={clsx(
-                  "mt-1 inline-flex rounded-full px-2 py-0.5 text-[11px] font-medium",
+                  "mt-1 inline-flex text-[11px]",
                   item.status === "Completed" || item.status === "Confirmed"
-                    ? "bg-success/15 text-success"
+                    ? "text-success"
                     : item.status === "Pending" || item.status === "Confirming"
-                      ? "bg-brand/15 text-brand"
-                      : "bg-white/5 text-muted",
+                      ? "text-brand"
+                      : "text-muted",
                 )}
               >
                 {item.status}

@@ -19,15 +19,16 @@ export function ConnectButton() {
         type="button"
         disabled={!injected || isPending}
         onClick={() => injected && connect({ connector: injected })}
-        className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white hover:bg-accent2 disabled:opacity-50"
+        className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
       >
-        {isPending ? "Connecting…" : "Connect wallet"}
+        {isPending ? "Connecting…" : "Connect"}
       </button>
     );
   }
 
   const onCredit = chainId === creditcoinTestnet.id;
   const onSepolia = chainId === sepolia.id;
+  const network = onSepolia ? "Sepolia" : onCredit ? "Creditcoin" : "Wrong network";
 
   return (
     <div className="flex items-center gap-2">
@@ -35,18 +36,18 @@ export function ConnectButton() {
         <button
           type="button"
           onClick={() => switchChain({ chainId: sepolia.id })}
-          className="rounded-lg border border-warn/40 px-2 py-1.5 text-[11px] text-warn"
+          className="rounded-full border border-warn/30 px-3 py-1.5 text-[12px] text-warn"
         >
           Switch network
         </button>
       )}
-      <span className="hidden rounded-lg border border-border bg-panel2 px-2.5 py-1.5 font-mono text-[11px] text-muted sm:inline">
-        {onSepolia ? "Sepolia" : onCredit ? "Creditcoin" : `Chain ${chainId}`}
+      <span className="hidden rounded-full border border-border px-3 py-1.5 text-[12px] text-muted sm:inline">
+        {network}
       </span>
       <button
         type="button"
         onClick={() => disconnect()}
-        className="rounded-lg border border-border px-2.5 py-1.5 font-mono text-[11px] text-text hover:border-brand/40"
+        className="rounded-full border border-border px-3 py-1.5 font-mono text-[12px] text-text transition hover:bg-white/[0.03]"
         title="Disconnect"
       >
         {shortHash(address ?? "")}

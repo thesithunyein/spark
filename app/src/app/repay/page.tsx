@@ -92,49 +92,49 @@ export default function RepayPage() {
   }
 
   return (
-    <AppShell title="Repay" subtitle="Pay on Sepolia, verify the payment, clear debt on Creditcoin.">
-      <div className="mx-auto max-w-lg rounded-xl border border-border bg-panel p-6">
+    <AppShell title="Repay" subtitle="Pay on Sepolia, verify, clear debt on Creditcoin.">
+      <div className="mx-auto max-w-md rounded-2xl border border-border bg-panel/80 p-7 shadow-soft">
         {!isConnected && (
-          <div className="mb-5 rounded-xl border border-border bg-panel2 px-4 py-4">
-            <p className="text-sm font-medium text-text">Connect a wallet to repay</p>
-            <div className="mt-3">
+          <div className="mb-6">
+            <p className="text-[15px] font-medium text-text">Connect a wallet to repay</p>
+            <div className="mt-4">
               <ConnectButton />
             </div>
           </div>
         )}
 
         {isConnected && !hasActiveLine && (
-          <div className="mb-5 rounded-xl border border-border bg-panel2 px-4 py-4">
-            <p className="text-sm font-medium text-text">No active credit line</p>
-            <p className="mt-1 text-xs text-muted">Open credit with a deposit before you can repay.</p>
-            <Link href="/pay" className="mt-3 inline-flex rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">
+          <div className="mb-6">
+            <p className="text-[15px] font-medium text-text">No active credit line</p>
+            <p className="mt-1 text-[13px] text-muted">Open credit with a deposit before you can repay.</p>
+            <Link href="/pay" className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
               Pay deposit
             </Link>
           </div>
         )}
 
         {hasActiveLine && (
-          <p className="mb-4 text-sm text-muted">
-            Outstanding debt: <span className="font-mono text-text">{formatEth(debt)} ETH</span>
+          <p className="mb-5 text-[13px] text-muted">
+            Outstanding debt: <span className="tabular-nums text-text">{formatEth(debt)} ETH</span>
           </p>
         )}
 
-        <label className="text-xs font-medium uppercase tracking-wide text-muted">Repay amount (ETH)</label>
+        <label className="text-[11px] font-medium uppercase tracking-label text-muted">Repay amount (ETH)</label>
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           disabled={!hasActiveLine}
-          className="mt-2 w-full rounded-lg border border-border bg-panel2 px-3 py-3 font-mono text-lg outline-none ring-accent focus:ring-1 disabled:opacity-50"
+          className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
         />
-        <div className="mt-6">
+        <div className="mt-8">
           <ConfirmingStages step={step} />
         </div>
-        <div className="mt-6 flex flex-col gap-2">
+        <div className="mt-8 flex flex-col gap-2">
           <button
             type="button"
             onClick={onRepayPay}
             disabled={!hasActiveLine || isPending || waiting}
-            className="rounded-xl bg-brand px-4 py-3 text-sm font-semibold text-white hover:bg-accent2 disabled:opacity-50"
+            className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
           >
             {isPending || waiting ? "Confirm in wallet…" : "Make repayment"}
           </button>
@@ -142,24 +142,24 @@ export default function RepayPage() {
             <button
               type="button"
               onClick={onProveRepay}
-              className="rounded-xl border border-brand/50 bg-brand/10 px-4 py-3 text-sm font-semibold"
+              className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03]"
             >
               Verify repayment & update credit
             </button>
           )}
         </div>
         {txHash && (
-          <p className="mt-4 break-all text-xs text-muted">
-            <a className="text-accent" href={`${config.explorerSepolia}/tx/${txHash}`} target="_blank" rel="noreferrer">
+          <p className="mt-5 break-all text-[12px] text-muted">
+            <a className="hover:underline" href={`${config.explorerSepolia}/tx/${txHash}`} target="_blank" rel="noreferrer">
               {txHash}
             </a>
           </p>
         )}
-        {error && <p className="mt-3 text-sm text-red-400">{error}</p>}
+        {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
         {step === 4 && (
-          <div className="mt-4 rounded-xl border border-success/30 bg-success/10 px-4 py-3">
-            <p className="text-sm font-medium text-success">Loan updated</p>
-            <Link href="/overview" className="mt-3 inline-flex rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">
+          <div className="mt-6 border-t border-border pt-5">
+            <p className="text-[15px] font-medium text-text">Loan updated</p>
+            <Link href="/overview" className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
               Back to overview
             </Link>
           </div>

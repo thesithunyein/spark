@@ -20,8 +20,8 @@ export default function ActivityPage() {
   const { items, loading, empty } = usePaymentActivity(filter);
 
   return (
-    <AppShell title="Payments" subtitle="On-chain deposits and repayments for your wallet.">
-      <div className="mb-4 flex gap-2 text-xs">
+    <AppShell title="Payments" subtitle="Deposits and repayments for your wallet.">
+      <div className="mb-6 flex gap-1">
         {filters.map((t) => (
           <button
             key={t.id}
@@ -29,8 +29,8 @@ export default function ActivityPage() {
             onClick={() => setFilter(t.id)}
             className={
               filter === t.id
-                ? "rounded-full border border-brand/40 bg-brand/10 px-3 py-1 text-brand"
-                : "rounded-full border border-border px-3 py-1 text-muted hover:border-brand/30"
+                ? "rounded-full bg-white/[0.08] px-3.5 py-1.5 text-[13px] font-medium text-text"
+                : "rounded-full px-3.5 py-1.5 text-[13px] text-muted transition hover:text-text"
             }
           >
             {t.label}
@@ -39,15 +39,13 @@ export default function ActivityPage() {
       </div>
 
       {!isConnected && (
-        <div className="rounded-xl border border-dashed border-border bg-panel/40 px-4 py-8 text-center">
-          <p className="text-sm text-muted">Connect a wallet to load payment history.</p>
-        </div>
+        <p className="text-[13px] text-muted">Connect a wallet to load payment history.</p>
       )}
 
       {isConnected && !isConfigured() && (
-        <div className="rounded-xl border border-dashed border-border bg-panel/40 px-4 py-8 text-center">
-          <p className="text-sm text-muted">Contracts not configured — history appears after deploy.</p>
-          <Link href="/pay" className="mt-3 inline-flex text-sm font-semibold text-brand hover:underline">
+        <div>
+          <p className="text-[13px] text-muted">Contracts not configured — history appears after deploy.</p>
+          <Link href="/pay" className="mt-3 inline-flex text-[13px] font-medium text-brand hover:underline">
             Explore Pay deposit →
           </Link>
         </div>
@@ -55,14 +53,14 @@ export default function ActivityPage() {
 
       {isConnected && isConfigured() && (
         <>
-          {loading && <p className="mb-3 text-xs text-muted">Loading on-chain activity…</p>}
+          {loading && <p className="mb-3 text-[12px] text-muted">Loading…</p>}
           <ActivityTable items={items} />
           {empty && (
-            <div className="mt-4 rounded-xl border border-dashed border-border bg-panel/40 px-4 py-5 text-center">
-              <p className="text-sm text-muted">No payments yet — that’s expected for a new account.</p>
+            <div className="mt-6 text-center">
+              <p className="text-[13px] text-muted">No payments yet.</p>
               <Link
                 href="/pay"
-                className="mt-3 inline-flex rounded-lg bg-brand px-4 py-2 text-xs font-semibold text-white"
+                className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
               >
                 Make your first deposit
               </Link>

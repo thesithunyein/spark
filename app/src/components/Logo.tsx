@@ -29,7 +29,7 @@ export function Logo({ variant = "wordmark", className, href = "/" }: Props) {
           priority
           className="rounded-lg"
         />
-        <span className="text-[17px] font-semibold tracking-tight text-text">Spark</span>
+        <span className="text-[15px] font-medium tracking-tight text-text">Spark</span>
       </span>
     );
 

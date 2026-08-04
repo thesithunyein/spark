@@ -4,24 +4,28 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#0C0B0A",
-        panel: "#161311",
-        panel2: "#1E1A17",
-        border: "#2F2924",
-        muted: "#A39A92",
-        text: "#FFF8F3",
+        bg: "#09090B",
+        panel: "#111113",
+        panel2: "#18181B",
+        border: "rgba(255,255,255,0.08)",
+        muted: "#A1A1AA",
+        text: "#FAFAFA",
         accent: "#FF6600",
         accent2: "#FF8533",
         brand: "#FF6600",
-        success: "#22C55E",
-        warn: "#F59E0B",
+        success: "#3DDC97",
+        warn: "#F5A524",
       },
       boxShadow: {
-        glow: "0 0 48px rgba(255, 102, 0, 0.28)",
+        glow: "0 0 40px rgba(255, 102, 0, 0.18)",
+        soft: "0 1px 0 rgba(255,255,255,0.04) inset",
       },
       fontFamily: {
         sans: ["var(--font-geist)", "Segoe UI", "system-ui", "sans-serif"],
         mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+      },
+      letterSpacing: {
+        label: "0.08em",
       },
     },
   },

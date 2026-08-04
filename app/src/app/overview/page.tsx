@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useAccount, useReadContract } from "wagmi";
 import { AppShell } from "@/components/AppShell";
 import { MetricCard } from "@/components/MetricCard";
-import { SimpleChart } from "@/components/SimpleChart";
+import { PositionSnapshot } from "@/components/PositionSnapshot";
 import { ActivityTable } from "@/components/ActivityTable";
 import { config } from "@/lib/config";
 import { creditLineAbi } from "@/lib/abi";
@@ -33,29 +33,36 @@ export default function OverviewPage() {
   const credit = position ? position.credit : 0n;
   const deposit = position ? position.deposit : 0n;
   const debt = position ? position.debt : 0n;
-  const chart =
+
+  const fallbackActivity =
     status === 0
-      ? [0, 0, 0, 0, 0]
+      ? []
       : [
-          0,
-          Number(deposit) / 1e18,
-          Number(credit) / 1e18,
-          Number(debt) / 1e18,
-          Number(credit - debt) / 1e18,
+          {
+            id: "position",
+            type: status === 2 ? "Credit closed" : "Credit opened",
+            amount: `${formatEth(credit)} ETH`,
+            status: "Completed",
+            at: "Creditcoin",
+          },
         ];
+  const activity = recent.length > 0 ? recent.slice(0, 5) : fallbackActivity;
 
   return (
     <AppShell
-      title="Your credit"
-      subtitle="See status and take the next step. Payments are verified before credit moves."
+      title="Overview"
+      subtitle="Your credit line after verified payment."
       actions={
         <div className="hidden gap-2 sm:flex">
-          <Link href="/pay" className="rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white">
+          <Link
+            href="/pay"
+            className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2"
+          >
             Pay deposit
           </Link>
           <Link
             href="/repay"
-            className="rounded-lg border border-border px-3 py-2 text-xs font-semibold text-text hover:border-brand/40"
+            className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
           >
             Repay
           </Link>
@@ -63,34 +70,33 @@ export default function OverviewPage() {
       }
     >
       {!isConnected && (
-        <div className="mb-4 rounded-xl border border-border bg-panel px-4 py-4 text-sm text-muted">
-          <p className="font-medium text-text">Connect your wallet to see your credit line.</p>
-          <p className="mt-1">New here? Start by paying a small demo deposit.</p>
-          <Link href="/pay" className="mt-3 inline-flex text-sm font-semibold text-brand hover:underline">
+        <div className="mb-8 max-w-lg">
+          <p className="text-[15px] font-medium text-text">Connect a wallet to view credit</p>
+          <p className="mt-1 text-[13px] text-muted">Start with a small deposit to open a line.</p>
+          <Link href="/pay" className="mt-4 inline-flex text-[13px] font-medium text-brand hover:underline">
             Go to Pay deposit →
           </Link>
         </div>
       )}
 
       {isConnected && status === 0 && (
-        <div className="mb-4 rounded-xl border border-brand/30 bg-brand/10 px-4 py-4 text-sm">
-          <p className="font-medium text-text">No credit line yet</p>
-          <p className="mt-1 text-muted">Pay a deposit, verify the payment, then your credit unlocks.</p>
+        <div className="mb-8 max-w-lg">
+          <p className="text-[15px] font-medium text-text">No credit line yet</p>
+          <p className="mt-1 text-[13px] text-muted">Pay a deposit, verify it, then credit unlocks.</p>
           <Link
             href="/pay"
-            className="mt-3 inline-flex rounded-lg bg-brand px-3 py-2 text-xs font-semibold text-white"
+            className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
           >
             Pay deposit
           </Link>
         </div>
       )}
 
-      <div className="grid gap-4 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-3">
         <MetricCard
           label="Credit available"
           value={`${formatEth(credit)} ETH`}
-          hint={status === 1 ? "Active line" : status === 2 ? "Closed" : "No line yet"}
-          glow
+          hint={status === 1 ? "Active" : status === 2 ? "Closed" : "—"}
         />
         <MetricCard label="Deposit locked" value={`${formatEth(deposit)} ETH`} />
         <MetricCard
@@ -100,26 +106,28 @@ export default function OverviewPage() {
         />
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-5">
+      <div className="mt-3 grid gap-3 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <SimpleChart points={chart} />
+          <PositionSnapshot deposit={deposit} credit={credit} debt={debt} empty={status === 0} />
         </div>
         <div className="lg:col-span-2">
-          <p className="mb-3 text-xs font-medium uppercase tracking-wide text-muted">Recent activity</p>
-          <ActivityTable items={recent.slice(0, 5)} />
-          {recent.length === 0 && isConnected && (
-            <p className="mt-2 text-xs text-muted">No on-chain activity yet.</p>
-          )}
-          <Link href="/activity" className="mt-2 inline-flex text-xs font-semibold text-brand hover:underline">
-            View all payments →
-          </Link>
-          <div className="mt-3 flex gap-2 sm:hidden">
-            <Link href="/pay" className="flex-1 rounded-lg bg-brand px-3 py-2 text-center text-xs font-semibold text-white">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-medium uppercase tracking-label text-muted">Activity</p>
+            <Link href="/activity" className="text-[12px] text-muted transition hover:text-text">
+              View all
+            </Link>
+          </div>
+          <ActivityTable items={activity} />
+          <div className="mt-4 flex gap-2 sm:hidden">
+            <Link
+              href="/pay"
+              className="flex-1 rounded-full bg-brand px-3 py-2.5 text-center text-[13px] font-medium text-white"
+            >
               Pay deposit
             </Link>
             <Link
               href="/repay"
-              className="flex-1 rounded-lg border border-border px-3 py-2 text-center text-xs font-semibold"
+              className="flex-1 rounded-full border border-border px-3 py-2.5 text-center text-[13px] font-medium"
             >
               Repay
             </Link>
