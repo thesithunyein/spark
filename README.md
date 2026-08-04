@@ -67,7 +67,7 @@ Open [http://localhost:3000](http://localhost:3000). In-app **Help** explains th
 
 Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app)
 
-**Hackathon:** paste-ready BUIDL text in [docs/submission.md](docs/submission.md). Demo script in [docs/demo-script.md](docs/demo-script.md).
+**Hackathon:** demo script in [docs/demo-script.md](docs/demo-script.md).
 
 ## Deployed contracts (testnet)
 

@@ -18,3 +18,4 @@ typechain-types/
 lib/forge-std/
 contracts/lib/
 .env*
+docs/submission.md
