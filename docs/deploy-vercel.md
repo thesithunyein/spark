@@ -20,5 +20,3 @@ If strangers see a Vercel login page instead of Spark:
 1. Open [Vercel Dashboard](https://vercel.com) → project **spark** → **Settings** → **Deployment Protection**
 2. Under **Vercel Authentication**, turn it **off** for Production, or set protection to **Preview only**
 3. Save and test https://spark-defi.vercel.app in a logged-out browser
-
-Hackathon demo script: [docs/demo-script.md](demo-script.md).

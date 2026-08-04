@@ -19,3 +19,4 @@ lib/forge-std/
 contracts/lib/
 .env*
 docs/submission.md
+docs/demo-script.md
