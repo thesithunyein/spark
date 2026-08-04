@@ -67,7 +67,17 @@ Open [http://localhost:3000](http://localhost:3000). In-app **Help** explains th
 
 Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app)
 
-## Deploy
+**Hackathon:** paste-ready BUIDL text in [docs/submission.md](docs/submission.md). Demo script in [docs/demo-script.md](docs/demo-script.md).
+
+## Deployed contracts (testnet)
+
+| Contract | Network | Address |
+|---|---|---|
+| SepoliaPayment | Sepolia | `0xfe6D6efD09D2Da22656AA197713A4dEdd064E14F` |
+| MockPaymentVerifier | Creditcoin testnet | `0xfe6D6efD09D2Da22656AA197713A4dEdd064E14F` |
+| CreditLine | Creditcoin testnet | `0x4B137F56A0b5A8633D079d2d6b34d6aC5CdD22E9` |
+
+Details: [docs/addresses.md](docs/addresses.md)
 
 - Contracts: `forge script` (see `contracts/script/Deploy.s.sol`) → fill [docs/addresses.md](docs/addresses.md)
 - App: Vercel — [docs/deploy-vercel.md](docs/deploy-vercel.md) (Root Directory = `app`)
