@@ -40,12 +40,6 @@ export default function HomePage() {
         >
           Overview
         </Link>
-        <Link
-          href="/help"
-          className="inline-flex rounded-full border border-border px-7 py-3 text-[14px] font-medium text-muted transition hover:bg-white/[0.03] hover:text-text"
-        >
-          Help
-        </Link>
       </div>
 
       <ol className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[13px] text-muted">
@@ -61,6 +55,13 @@ export default function HomePage() {
           </li>
         ))}
       </ol>
+
+      <p className="mt-10 text-[13px] text-muted">
+        New here?{" "}
+        <Link href="/help" className="text-text/80 underline-offset-4 transition hover:text-brand hover:underline">
+          How Spark works
+        </Link>
+      </p>
     </div>
   );
 }
