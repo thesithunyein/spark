@@ -7,7 +7,7 @@
 <p align="center"><strong>Pay once. Unlock credit.</strong></p>
 
 <p align="center">
-  We verify your payment so credit can open—no paperwork chase.
+  We verify your payment so credit can open. No paperwork chase.
 </p>
 
 <p align="center">
@@ -17,23 +17,23 @@
   <img alt="ui" src="https://img.shields.io/badge/UI-Next.js-black" />
   <img alt="contracts" src="https://img.shields.io/badge/contracts-Foundry-grey" />
   <img alt="status" src="https://img.shields.io/badge/status-testnet-yellow" />
-  <img alt="demo" src="https://img.shields.io/badge/demo-spark--defi.vercel.app-22c55e" />
+  <img alt="live" src="https://img.shields.io/badge/live-spark--defi.vercel.app-22c55e" />
 </p>
 
 <p align="center">
-  <a href="https://spark-defi.vercel.app"><strong>Live demo → spark-defi.vercel.app</strong></a>
+  <a href="https://spark-defi.vercel.app"><strong>spark-defi.vercel.app</strong></a>
   ·
   <a href="https://github.com/thesithunyein/spark">GitHub</a>
 </p>
 
 ## What it is
 
-Other credit apps can’t trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies the payment, then unlocks or clears credit on **Creditcoin**.
+Other credit apps cannot trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies the payment, then unlocks or clears credit on **Creditcoin**.
 
 - Track: **DeFi** (BUIDL CTC 2026 Fall)
-- No AI demo — rules, proofs, balances only
-- Demo funds on testnets
-- Live UI uses **MockVerifier** today; contracts include an **Attestcoin** verifier path for USC proofs when wired
+- Rules, proofs, and on-chain balances only
+- Runs on testnets today (Sepolia + Creditcoin testnet)
+- Live app uses **MockPaymentVerifier**; contracts include an **Attestcoin** verifier path for USC proofs when wired
 
 ## Architecture
 
@@ -63,14 +63,14 @@ pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) — you should understand Spark in **3 seconds**: *Pay once. Unlock credit.*
+Open [http://localhost:3000](http://localhost:3000). In-app **Help** explains the flow for new users.
 
 Live: [https://spark-defi.vercel.app](https://spark-defi.vercel.app)
 
 ## Deploy
 
 - Contracts: `forge script` (see `contracts/script/Deploy.s.sol`) → fill [docs/addresses.md](docs/addresses.md)
-- App: free Vercel — [docs/deploy-vercel.md](docs/deploy-vercel.md) (Root Directory = `app`)
+- App: Vercel — [docs/deploy-vercel.md](docs/deploy-vercel.md) (Root Directory = `app`)
 
 ## Security
 

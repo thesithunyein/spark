@@ -60,7 +60,7 @@ export function AccountMenu() {
           <div className="border-b border-border px-3 py-3">
             <p className="text-[11px] font-medium uppercase tracking-label text-muted">Account</p>
             <p className="mt-1 break-all font-mono text-[12px] text-text">{address}</p>
-            <p className="mt-1 text-[11px] text-muted">Wallet is your identity — no password stored.</p>
+            <p className="mt-1 text-[11px] text-muted">Wallet is your identity. No password stored.</p>
           </div>
 
           <ul className="py-1">

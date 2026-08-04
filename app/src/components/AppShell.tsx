@@ -25,7 +25,7 @@ export function AppShell({
       <div className="flex min-w-0 flex-1 flex-col">
         {!isConfigured() && (
           <div className="border-b border-warn/20 bg-warn/5 px-6 py-2.5 text-center text-xs text-warn">
-            Contracts not configured — set payment and credit addresses to enable pay.
+            Contracts not configured. Set payment and credit addresses to enable pay.
           </div>
         )}
         <header className="flex items-center justify-between gap-4 border-b border-border px-5 py-5 sm:px-8">

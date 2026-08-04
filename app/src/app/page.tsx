@@ -24,7 +24,7 @@ export default function HomePage() {
       </h1>
 
       <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-muted">
-        We verify your payment so credit can open—no paperwork chase.
+        We verify your payment so credit can open. No paperwork chase.
       </p>
 
       <div className="mt-9 flex flex-wrap items-center justify-center gap-3">
@@ -39,6 +39,12 @@ export default function HomePage() {
           className="inline-flex rounded-full border border-border px-7 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03]"
         >
           Overview
+        </Link>
+        <Link
+          href="/help"
+          className="inline-flex rounded-full border border-border px-7 py-3 text-[14px] font-medium text-muted transition hover:bg-white/[0.03] hover:text-text"
+        >
+          Help
         </Link>
       </div>
 

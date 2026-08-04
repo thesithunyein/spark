@@ -1,34 +1,34 @@
 "use client";
 
+import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { config, isConfigured } from "@/lib/config";
 
 export default function AdvancedPage() {
   return (
-    <AppShell title="Advanced" subtitle="Explorer links, contracts, and Attestcoin notes for judges.">
-      <div className="space-y-4">
-        <section className="rounded-xl border border-border bg-panel p-5" id="settings">
-          <h2 className="text-sm font-semibold">Settings / networks</h2>
-          <ul className="mt-3 space-y-2 text-sm text-muted">
+    <AppShell title="Developers" subtitle="Networks, contracts, and Attestcoin integration notes.">
+      <div className="mx-auto max-w-2xl space-y-3">
+        <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+          <h2 className="text-[15px] font-medium text-text">Networks</h2>
+          <ul className="mt-4 space-y-2 text-[13px] text-muted">
             <li>Payment chain ID: {config.paymentChainId} (Sepolia)</li>
             <li>Credit chain ID: {config.creditChainId} (Creditcoin testnet)</li>
-            <li>Configured: {isConfigured() ? "yes" : "no — set env after deploy"}</li>
-            <li>Demo banner: {config.demoBanner ? "on" : "off"}</li>
+            <li>Configured: {isConfigured() ? "yes" : "no"}</li>
           </ul>
         </section>
 
-        <section className="rounded-xl border border-border bg-panel p-5">
-          <h2 className="text-sm font-semibold">Contracts</h2>
-          <ul className="mt-3 space-y-2 break-all font-mono text-xs text-muted">
+        <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+          <h2 className="text-[15px] font-medium text-text">Contracts</h2>
+          <ul className="mt-4 space-y-2 break-all font-mono text-[11px] text-muted">
             <li>
               SepoliaPayment:{" "}
-              <a className="text-accent" href={`${config.explorerSepolia}/address/${config.paymentAddress}`}>
+              <a className="text-brand hover:underline" href={`${config.explorerSepolia}/address/${config.paymentAddress}`}>
                 {config.paymentAddress}
               </a>
             </li>
             <li>
               CreditLine:{" "}
-              <a className="text-accent" href={`${config.explorerCreditcoin}/address/${config.creditLineAddress}`}>
+              <a className="text-brand hover:underline" href={`${config.explorerCreditcoin}/address/${config.creditLineAddress}`}>
                 {config.creditLineAddress}
               </a>
             </li>
@@ -37,14 +37,27 @@ export default function AdvancedPage() {
           </ul>
         </section>
 
-        <section className="rounded-xl border border-border bg-panel p-5">
-          <h2 className="text-sm font-semibold">Attestcoin</h2>
-          <p className="mt-2 text-sm text-muted">
+        <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+          <h2 className="text-[15px] font-medium text-text">Attestcoin</h2>
+          <p className="mt-4 text-[13px] text-muted">
             Credit cannot open or repay unless payment verification succeeds. See{" "}
-            <code className="text-text">docs/attestcoin.md</code> in the repo for the integration summary used on
-            DoraHacks.
+            <a
+              href="https://github.com/thesithunyein/spark/blob/master/docs/attestcoin.md"
+              target="_blank"
+              rel="noreferrer"
+              className="text-brand hover:underline"
+            >
+              docs/attestcoin.md
+            </a>{" "}
+            in the repo.
           </p>
         </section>
+
+        <p className="text-center text-[12px] text-muted">
+          <Link href="/settings" className="text-brand hover:underline">
+            Back to Settings
+          </Link>
+        </p>
       </div>
     </AppShell>
   );

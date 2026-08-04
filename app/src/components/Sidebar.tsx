@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LayoutDashboard, ArrowDownToLine, Undo2, List, Settings, X } from "lucide-react";
+import { LayoutDashboard, ArrowDownToLine, Undo2, List, CircleHelp, Settings, X } from "lucide-react";
 import { Logo } from "./Logo";
 
 const items = [
@@ -11,6 +11,7 @@ const items = [
   { href: "/pay", label: "Pay deposit", icon: ArrowDownToLine },
   { href: "/repay", label: "Repay", icon: Undo2 },
   { href: "/activity", label: "Payments", icon: List },
+  { href: "/help", label: "Help", icon: CircleHelp },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
 

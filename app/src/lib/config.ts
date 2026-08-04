@@ -1,6 +1,5 @@
 export const config = {
   appUrl: process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000",
-  demoBanner: process.env.NEXT_PUBLIC_DEMO_BANNER === "true",
   sepoliaRpc: process.env.NEXT_PUBLIC_SEPOLIA_RPC ?? "",
   creditcoinRpc: process.env.NEXT_PUBLIC_CREDITCOIN_RPC ?? "",
   paymentChainId: Number(process.env.NEXT_PUBLIC_CHAIN_PAYMENT_ID ?? 11155111),

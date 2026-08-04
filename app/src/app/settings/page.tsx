@@ -59,7 +59,7 @@ export default function SettingsPage() {
 
         <Section title="Security">
           <ul className="list-inside list-disc space-y-2">
-            <li>Non-custodial — Spark never holds your keys or funds.</li>
+            <li>Non-custodial. Spark never holds your keys or funds.</li>
             <li>Credit only moves after payment verification on chain.</li>
             <li>Each payment tx can only unlock credit once (replay protected).</li>
             <li>Transactions always require your wallet signature.</li>
@@ -130,9 +130,9 @@ export default function SettingsPage() {
         </Section>
 
         <p className="pt-2 text-center text-[12px] text-muted">
-          Attestcoin integration details for judges →{" "}
+          Developer docs and Attestcoin notes →{" "}
           <Link href="/advanced" className="text-brand hover:underline">
-            Advanced
+            Developers
           </Link>
         </p>
       </div>

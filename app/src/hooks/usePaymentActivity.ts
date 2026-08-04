@@ -15,7 +15,8 @@ export type ActivityItem = TableItem & {
 
 export type ActivityFilter = "all" | "deposit" | "repay";
 
-const LOOKBACK = 120_000n; // public RPCs reject full-history eth_getLogs
+const LOOKBACK = 30_000n; // smaller window — public RPCs are slow on wide ranges
+const LOG_TIMEOUT_MS = 8_000;
 
 const depositPaid = parseAbiItem(
   "event DepositPaid(address indexed payer, uint256 amount, bytes32 indexed ref)",
@@ -31,6 +32,7 @@ const creditRepaid = parseAbiItem(
 );
 
 const JOURNAL_KEY = "spark.activity.v1";
+const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 type JournalEntry = ActivityItem;
 
@@ -59,19 +61,84 @@ export function journalActivity(address: string, entry: JournalEntry) {
   }
 }
 
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error("rpc timeout")), ms);
+    }),
+  ]);
+}
+
 async function fromBlock(client: { getBlockNumber: () => Promise<bigint> }) {
-  const latest = await client.getBlockNumber();
+  const latest = await withTimeout(client.getBlockNumber(), LOG_TIMEOUT_MS);
   return latest > LOOKBACK ? latest - LOOKBACK : 0n;
+}
+
+function mergeItems(sources: ActivityItem[][]): ActivityItem[] {
+  const seen = new Set<string>();
+  const next: ActivityItem[] = [];
+  for (const source of sources) {
+    for (const item of source) {
+      if (seen.has(item.id)) continue;
+      seen.add(item.id);
+      next.push(item);
+    }
+  }
+  return next;
+}
+
+function itemsFromPosition(
+  position:
+    | {
+        status: number;
+        deposit: bigint;
+        credit: bigint;
+        openTxHash: `0x${string}`;
+        closeTxHash: `0x${string}`;
+      }
+    | undefined,
+): ActivityItem[] {
+  if (!position || Number(position.status) === 0) return [];
+
+  const items: ActivityItem[] = [];
+  const openHash = position.openTxHash;
+  if (openHash && openHash !== ZERO_HASH) {
+    items.push({
+      id: `${openHash}-dep`,
+      type: "Deposit paid",
+      amount: `${formatEth(position.deposit)} ETH`,
+      status: "Confirmed",
+      at: "Sepolia",
+      kind: "deposit",
+      href: `${config.explorerSepolia}/tx/${openHash}`,
+    });
+  }
+
+  const closeHash = position.closeTxHash;
+  if (Number(position.status) === 2 && closeHash && closeHash !== ZERO_HASH) {
+    items.push({
+      id: `${closeHash}-rep`,
+      type: "Repayment paid",
+      amount: `${formatEth(position.deposit)} ETH`,
+      status: "Confirmed",
+      at: "Sepolia",
+      kind: "repay",
+      href: `${config.explorerSepolia}/tx/${closeHash}`,
+    });
+  }
+
+  return items;
 }
 
 export function usePaymentActivity(filter: ActivityFilter = "all") {
   const { address } = useAccount();
   const sepoliaClient = usePublicClient({ chainId: sepolia.id });
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
-  const [items, setItems] = useState<ActivityItem[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [logItems, setLogItems] = useState<ActivityItem[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
 
-  const { data: position } = useReadContract({
+  const { data: position, isPending: positionPending } = useReadContract({
     address: config.creditLineAddress,
     abi: creditLineAbi,
     functionName: "getPosition",
@@ -82,33 +149,40 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
     },
   });
 
+  const journalItems = useMemo(
+    () => (address ? readJournal(address) : []),
+    [address],
+  );
+
+  const positionItems = useMemo(() => itemsFromPosition(position), [position]);
+
+  const openTxHash = position?.openTxHash;
+  const closeTxHash = position?.closeTxHash;
+  const positionStatus = position ? Number(position.status) : 0;
+
   useEffect(() => {
     if (!address || !isConfigured()) {
-      setItems([]);
+      setLogItems([]);
+      setLoadingLogs(false);
       return;
     }
 
     let cancelled = false;
 
-    async function load() {
-      setLoading(true);
-      try {
-        const next: ActivityItem[] = [];
-        const seen = new Set<string>();
+    async function loadLogs() {
+      setLoadingLogs(true);
+      const next: ActivityItem[] = [];
 
-        const push = (item: ActivityItem) => {
-          if (seen.has(item.id)) return;
-          seen.add(item.id);
-          next.push(item);
-        };
+      const push = (item: ActivityItem) => {
+        if (next.some((n) => n.id === item.id)) return;
+        next.push(item);
+      };
 
-        // Local journal (survives RPC log failures)
-        for (const j of readJournal(address!)) push(j);
-
-        if (sepoliaClient) {
-          try {
-            const start = await fromBlock(sepoliaClient);
-            const [deposits, repayments] = await Promise.all([
+      if (sepoliaClient) {
+        try {
+          const start = await fromBlock(sepoliaClient);
+          const [deposits, repayments] = await withTimeout(
+            Promise.all([
               sepoliaClient.getLogs({
                 address: config.paymentAddress,
                 event: depositPaid,
@@ -123,39 +197,42 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
                 fromBlock: start,
                 toBlock: "latest",
               }),
-            ]);
+            ]),
+            LOG_TIMEOUT_MS,
+          );
 
-            for (const log of deposits) {
-              push({
-                id: `${log.transactionHash}-dep`,
-                type: "Deposit paid",
-                amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
-                status: "Confirmed",
-                at: "Sepolia",
-                kind: "deposit",
-                href: `${config.explorerSepolia}/tx/${log.transactionHash}`,
-              });
-            }
-            for (const log of repayments) {
-              push({
-                id: `${log.transactionHash}-rep`,
-                type: "Repayment paid",
-                amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
-                status: "Confirmed",
-                at: "Sepolia",
-                kind: "repay",
-                href: `${config.explorerSepolia}/tx/${log.transactionHash}`,
-              });
-            }
-          } catch {
-            /* RPC range / archive limits */
+          for (const log of deposits) {
+            push({
+              id: `${log.transactionHash}-dep`,
+              type: "Deposit paid",
+              amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
+              status: "Confirmed",
+              at: "Sepolia",
+              kind: "deposit",
+              href: `${config.explorerSepolia}/tx/${log.transactionHash}`,
+            });
           }
+          for (const log of repayments) {
+            push({
+              id: `${log.transactionHash}-rep`,
+              type: "Repayment paid",
+              amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
+              status: "Confirmed",
+              at: "Sepolia",
+              kind: "repay",
+              href: `${config.explorerSepolia}/tx/${log.transactionHash}`,
+            });
+          }
+        } catch {
+          /* timeout or RPC range limits */
         }
+      }
 
-        if (creditClient) {
-          try {
-            const start = await fromBlock(creditClient);
-            const [opened, repaid] = await Promise.all([
+      if (creditClient && !cancelled) {
+        try {
+          const start = await fromBlock(creditClient);
+          const [opened, repaid] = await withTimeout(
+            Promise.all([
               creditClient.getLogs({
                 address: config.creditLineAddress,
                 event: creditOpened,
@@ -170,94 +247,65 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
                 fromBlock: start,
                 toBlock: "latest",
               }),
-            ]);
+            ]),
+            LOG_TIMEOUT_MS,
+          );
 
-            for (const log of opened) {
-              push({
-                id: `${log.transactionHash}-open`,
-                type: "Credit opened",
-                amount: `${formatEther(log.args.credit ?? 0n)} ETH`,
-                status: "Completed",
-                at: "Creditcoin",
-                kind: "deposit",
-                href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
-              });
-            }
-            for (const log of repaid) {
-              push({
-                id: `${log.transactionHash}-crepay`,
-                type: "Credit repaid",
-                amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
-                status: "Completed",
-                at: "Creditcoin",
-                kind: "repay",
-                href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
-              });
-            }
-          } catch {
-            /* RPC range / archive limits */
-          }
-        }
-
-        // Position-backed fallback when eth_getLogs fails (public RPC range limits).
-        // openTxHash / closeTxHash store the Sepolia payment hash used as the claim.
-        if (position && Number(position.status) !== 0) {
-          const openHash = position.openTxHash;
-          if (openHash && openHash !== "0x0000000000000000000000000000000000000000000000000000000000000000") {
+          for (const log of opened) {
             push({
-              id: `${openHash}-dep`,
-              type: "Deposit paid",
-              amount: `${formatEth(position.deposit)} ETH`,
-              status: "Confirmed",
-              at: "Sepolia",
-              kind: "deposit",
-              href: `${config.explorerSepolia}/tx/${openHash}`,
-            });
-            push({
-              id: `${openHash}-open`,
+              id: `${log.transactionHash}-open`,
               type: "Credit opened",
-              amount: `${formatEth(position.credit)} ETH`,
+              amount: `${formatEther(log.args.credit ?? 0n)} ETH`,
               status: "Completed",
               at: "Creditcoin",
               kind: "deposit",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
             });
           }
-          const closeHash = position.closeTxHash;
-          if (
-            Number(position.status) === 2 &&
-            closeHash &&
-            closeHash !== "0x0000000000000000000000000000000000000000000000000000000000000000"
-          ) {
+          for (const log of repaid) {
             push({
-              id: `${closeHash}-rep`,
-              type: "Repayment paid",
-              amount: `${formatEth(position.deposit)} ETH`,
-              status: "Confirmed",
-              at: "Sepolia",
+              id: `${log.transactionHash}-crepay`,
+              type: "Credit repaid",
+              amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
+              status: "Completed",
+              at: "Creditcoin",
               kind: "repay",
-              href: `${config.explorerSepolia}/tx/${closeHash}`,
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
             });
           }
+        } catch {
+          /* timeout or RPC range limits */
         }
+      }
 
-        if (!cancelled) setItems(next);
-      } catch {
-        if (!cancelled) setItems([]);
-      } finally {
-        if (!cancelled) setLoading(false);
+      if (!cancelled) {
+        setLogItems(next);
+        setLoadingLogs(false);
       }
     }
 
-    void load();
+    void loadLogs();
     return () => {
       cancelled = true;
     };
-  }, [address, sepoliaClient, creditClient, position]);
+  }, [address, sepoliaClient, creditClient, openTxHash, closeTxHash, positionStatus]);
+
+  const items = useMemo(
+    () => mergeItems([journalItems, positionItems, logItems]),
+    [journalItems, positionItems, logItems],
+  );
 
   const filtered = useMemo(() => {
     if (filter === "all") return items;
     return items.filter((i) => i.kind === filter);
   }, [items, filter]);
+
+  const hasFastData = journalItems.length > 0 || positionItems.length > 0;
+  const loading =
+    Boolean(address) &&
+    isConfigured() &&
+    !hasFastData &&
+    (positionPending || loadingLogs);
 
   return { items: filtered, loading, empty: !loading && filtered.length === 0 };
 }

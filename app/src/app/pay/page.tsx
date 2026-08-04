@@ -10,7 +10,7 @@ import { ConfirmingStages } from "@/components/ConfirmingStages";
 import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
-import { encodeMockProof, formatEth } from "@/lib/format";
+import { encodePaymentProof, formatEth } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
@@ -81,7 +81,7 @@ export default function PayPage() {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
       const amountWei = parseEther(amount || "0.01");
-      const proof = encodeMockProof({
+      const proof = encodePaymentProof({
         txHash,
         payer: address,
         amountWei,
@@ -190,7 +190,7 @@ export default function PayPage() {
           )}
           {verifying && step < 4 && (
             <p className="text-center text-[12px] text-muted">
-              Payment confirmed — switching to Creditcoin to open your line…
+              Payment confirmed. Switching to Creditcoin to open your line…
             </p>
           )}
         </div>

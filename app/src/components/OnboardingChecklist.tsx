@@ -87,7 +87,7 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
         <div>
           <p className="text-[15px] font-medium text-text">Get started</p>
           <p className="mt-1 text-[13px] text-muted">
-            {doneCount}/{steps.length} complete — pay on Sepolia, unlock credit on Creditcoin.
+            {doneCount}/{steps.length} complete. Pay on Sepolia, unlock credit on Creditcoin.
           </p>
         </div>
         <button type="button" onClick={dismiss} className="text-[12px] text-muted hover:text-text">

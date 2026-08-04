@@ -1,4 +1,4 @@
-import { encodeAbiParameters, parseEther, type Hex } from "viem";
+import { encodeAbiParameters, type Hex } from "viem";
 
 export type PaymentKind = 1 | 2;
 
@@ -21,8 +21,8 @@ export function shortHash(h: string) {
   return `${h.slice(0, 6)}…${h.slice(-4)}`;
 }
 
-/** Mock / structured proof matching MockPaymentVerifier abi.encode layout */
-export function encodeMockProof(params: {
+/** Structured proof matching PaymentVerifier abi.encode layout */
+export function encodePaymentProof(params: {
   txHash: Hex;
   payer: `0x${string}`;
   amountWei: bigint;
@@ -37,10 +37,6 @@ export function encodeMockProof(params: {
     ],
     [params.txHash, params.payer, params.amountWei, params.kind],
   );
-}
-
-export function defaultDemoAmount() {
-  return parseEther("0.01");
 }
 
 export type ActivityItem = {

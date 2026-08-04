@@ -5,7 +5,7 @@
 Spark is a **testnet** product for BUIDL CTC / CEIP diligence.
 
 - **Not audited**
-- **Demo funds only** — do not send mainnet value
+- **Testnet only.** Do not send mainnet value
 - No deployer or admin private keys are stored in the Vercel app
 
 ## What we protect

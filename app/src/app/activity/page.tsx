@@ -44,7 +44,7 @@ export default function ActivityPage() {
 
       {isConnected && !isConfigured() && (
         <div>
-          <p className="text-[13px] text-muted">Contracts not configured — history appears after deploy.</p>
+          <p className="text-[13px] text-muted">Contracts not configured. History appears after deploy.</p>
           <Link href="/pay" className="mt-3 inline-flex text-[13px] font-medium text-brand hover:underline">
             Explore Pay deposit →
           </Link>
