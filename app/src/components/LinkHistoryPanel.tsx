@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Link from "next/link";
 import {
   useAccount,
   usePublicClient,
@@ -17,6 +18,8 @@ import { buildAttestcoinProof, type AttestcoinPhase } from "@/lib/usc";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
+import { SuccessBanner } from "@/components/SuccessBanner";
+import { PaymentHistoryStrip } from "@/components/PaymentHistoryStrip";
 import { encodePaymentProof } from "@/lib/format";
 
 type HistoryPayment = {
@@ -65,6 +68,7 @@ export function LinkHistoryPanel() {
     null,
   );
   const [currentTx, setCurrentTx] = useState<Hex | undefined>();
+  const [justLinked, setJustLinked] = useState(false);
 
   const enabled =
     Boolean(address) &&
@@ -101,6 +105,7 @@ export function LinkHistoryPanel() {
     setError(null);
     setStatus(null);
     setFound([]);
+    setJustLinked(false);
     if (!address || !sepoliaClient || !creditClient) {
       setError("Connect a wallet first.");
       return;
@@ -233,6 +238,7 @@ export function LinkHistoryPanel() {
         });
       }
       setAttestPhase("done");
+      setJustLinked(true);
       setStatus("History linked. Score and LTV bonus updated.");
       setFound([]);
       await Promise.all([refetchHistory(), refetchScore(), refetchBonus()]);
@@ -248,6 +254,7 @@ export function LinkHistoryPanel() {
   const volume = hist ? hist.volume : 0n;
   const scoreN = score != null ? Number(score) : 650;
   const bonus = bonusBps != null ? Number(bonusBps) : 0;
+  const allLinked = count > 0 && found.length === 0 && !scanning && !linking;
 
   return (
     <div className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
@@ -258,6 +265,31 @@ export function LinkHistoryPanel() {
         Prove past Sepolia deposits/repays via Attestcoin. They raise your credit score and can add
         up to +5% LTV when you open a line. Use separate txs from the openCredit deposit.
       </p>
+
+      {(justLinked || allLinked) && count > 0 && (
+        <div className="mt-5">
+          <SuccessBanner
+            title={
+              justLinked
+                ? `${count} payment${count === 1 ? "" : "s"} linked on Creditcoin`
+                : "Payment history up to date"
+            }
+            description={
+              justLinked
+                ? `Score ${scoreN} · LTV bonus +${(bonus / 100).toFixed(2)}%. Open credit with a new deposit to apply the boost.`
+                : `Score ${scoreN} · ${count} attested payment${count === 1 ? "" : "s"} · +${(bonus / 100).toFixed(2)}% LTV bonus active.`
+            }
+            actions={
+              <Link
+                href="/pay"
+                className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+              >
+                Pay deposit to open credit
+              </Link>
+            }
+          />
+        </div>
+      )}
 
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <div>
@@ -328,6 +360,10 @@ export function LinkHistoryPanel() {
 
       {status && <p className="mt-4 text-[13px] text-muted">{status}</p>}
       {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
+
+      {isConnected && count > 0 && (
+        <PaymentHistoryStrip limit={3} title="Linked payment history" />
+      )}
     </div>
   );
 }

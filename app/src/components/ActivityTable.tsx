@@ -1,5 +1,31 @@
 import clsx from "clsx";
+import { Check, Clock, Loader2 } from "lucide-react";
 import type { ActivityItem } from "@/lib/format";
+
+function StatusBadge({ status }: { status: string }) {
+  const ok = status === "Completed" || status === "Confirmed";
+  const pending = status === "Pending" || status === "Confirming";
+
+  return (
+    <span
+      className={clsx(
+        "inline-flex items-center gap-1 text-[11px] font-medium",
+        ok && "text-success",
+        pending && "text-brand",
+        !ok && !pending && "text-muted",
+      )}
+    >
+      {ok ? (
+        <Check className="h-3 w-3" strokeWidth={2.5} />
+      ) : pending ? (
+        <Loader2 className="h-3 w-3 animate-spin" />
+      ) : (
+        <Clock className="h-3 w-3" />
+      )}
+      {status}
+    </span>
+  );
+}
 
 export function ActivityTable({ items }: { items: ActivityItem[] }) {
   if (items.length === 0) {
@@ -22,18 +48,7 @@ export function ActivityTable({ items }: { items: ActivityItem[] }) {
             <div className="shrink-0 text-right">
               {item.amount && <p className="tabular-nums text-text">{item.amount}</p>}
               <div className="mt-1 flex flex-col items-end gap-0.5">
-                <span
-                  className={clsx(
-                    "text-[11px]",
-                    item.status === "Completed" || item.status === "Confirmed"
-                      ? "text-success"
-                      : item.status === "Pending" || item.status === "Confirming"
-                        ? "text-brand"
-                        : "text-muted",
-                  )}
-                >
-                  {item.status}
-                </span>
+                <StatusBadge status={item.status} />
                 {item.href && (
                   <a
                     href={item.href}

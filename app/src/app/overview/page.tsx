@@ -7,6 +7,7 @@ import { MetricCard } from "@/components/MetricCard";
 import { PositionSnapshot } from "@/components/PositionSnapshot";
 import { ActivityTable } from "@/components/ActivityTable";
 import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { SuccessBanner } from "@/components/SuccessBanner";
 import { config } from "@/lib/config";
 import { creditLineAbi } from "@/lib/abi";
 import { formatEth, statusLabel } from "@/lib/format";
@@ -103,6 +104,20 @@ export default function OverviewPage() {
         </div>
       )}
 
+      {isConnected && histCount > 0 && status === 0 && (
+        <div className="mb-8">
+          <SuccessBanner
+            title={`Credit score ${scoreN ?? 650} · +${histCount >= 3 ? "5.00" : "2.50"}% LTV bonus`}
+            description={`${histCount} attested payment${histCount === 1 ? "" : "s"} on file. Ready to open credit with a new deposit.`}
+            actions={
+              <Link href="/pay" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
+                Pay deposit
+              </Link>
+            }
+          />
+        </div>
+      )}
+
       <OnboardingChecklist hasCreditLine={status === 1 || status === 2} />
 
       {isConnected && status === 0 && (
@@ -143,7 +158,7 @@ export default function OverviewPage() {
         />
       </div>
 
-      {isConnected && (
+      {isConnected && histCount === 0 && status === 0 && (
         <p className="mt-3 text-[13px] text-muted">
           <Link href="/score" className="text-brand hover:underline">
             Link payment history

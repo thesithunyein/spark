@@ -21,6 +21,8 @@ import { AppShell } from "@/components/AppShell";
 import { ConfirmingStages } from "@/components/ConfirmingStages";
 import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
 import { ConnectButton } from "@/components/ConnectButton";
+import { SuccessBanner } from "@/components/SuccessBanner";
+import { PaymentHistoryStrip } from "@/components/PaymentHistoryStrip";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodePaymentProof, formatEth } from "@/lib/format";
@@ -293,6 +295,46 @@ export default function PayPage() {
           </div>
         )}
 
+        {sepoliaTx.confirmed && step >= 2 && step < 4 && txHash && (
+          <div className="mb-6">
+            <SuccessBanner
+              title="Deposit confirmed on Sepolia"
+              description={`${amount || "0.01"} ETH received. Attestcoin proofs are building — this usually takes 8–10 minutes.`}
+              href={`${config.explorerSepolia}/tx/${txHash}`}
+              hrefLabel="View Sepolia payment"
+            />
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="mb-6">
+            <SuccessBanner
+              title="Credit line opened"
+              description={`Deposit verified and credit unlocked on Creditcoin${attestedBalanceWei != null ? ` with ${formatEth(attestedBalanceWei)} ETH attested balance` : ""}.`}
+              href={creditTx ? `${config.explorerCreditcoin}/tx/${creditTx}` : undefined}
+              hrefLabel="View Creditcoin tx"
+              actions={
+                <>
+                  <Link
+                    href="/withdraw"
+                    className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                  >
+                    Withdraw credit
+                  </Link>
+                  <Link
+                    href="/overview"
+                    className="rounded-full border border-border px-4 py-2 text-[13px] font-medium"
+                  >
+                    View overview
+                  </Link>
+                </>
+              }
+            />
+          </div>
+        )}
+
+        {step < 4 && (
+          <>
         <label className="text-[11px] font-medium uppercase tracking-label text-muted">Amount (ETH)</label>
         <input
           value={amount}
@@ -364,8 +406,10 @@ export default function PayPage() {
             </p>
           )}
         </div>
+          </>
+        )}
 
-        {config.attestcoin && attestPhase && address && (
+        {config.attestcoin && attestPhase && address && step < 4 && (
           <AttestcoinProofPanel
             phase={attestPhase}
             meta={attestMeta}
@@ -382,7 +426,7 @@ export default function PayPage() {
           />
         )}
 
-        {txHash && !attestPhase && (
+        {txHash && !attestPhase && step < 4 && (
           <p className="mt-5 break-all text-[12px] text-muted">
             Payment tx:{" "}
             <a
@@ -396,23 +440,8 @@ export default function PayPage() {
           </p>
         )}
         {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
-        {step === 4 && (
-          <div className="mt-6 border-t border-border pt-5">
-            <p className="text-[15px] font-medium text-text">Credit ready</p>
-            <p className="mt-1 text-[13px] text-muted">
-              Opened with attested deposit
-              {attestedBalanceWei != null ? ` + ${formatEth(attestedBalanceWei)} ETH balance` : ""}.
-            </p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Link href="/withdraw" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
-                Withdraw credit
-              </Link>
-              <Link href="/overview" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
-                View credit
-              </Link>
-            </div>
-          </div>
-        )}
+
+        {isConnected && <PaymentHistoryStrip limit={4} title="Your payment history" />}
       </div>
     </AppShell>
   );
