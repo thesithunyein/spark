@@ -295,8 +295,12 @@ export default function PayPage() {
           className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
         />
         <p className="mt-2 text-[12px] text-muted">
-          Credit LTV rises when your attested Sepolia balance covers the deposit (85%) or 2× (90%). Debt accrues
-          10% APR.
+          Credit LTV rises with attested Sepolia balance (85%/90%) and linked payment history (+2.5% /
+          +5%). Debt accrues 10% APR.{" "}
+          <a href="/score" className="text-brand hover:underline">
+            Link history first
+          </a>{" "}
+          for the bonus — use a fresh deposit tx to open.
         </p>
         <p className="mt-2 text-[12px] text-muted">
           Faucet:{" "}

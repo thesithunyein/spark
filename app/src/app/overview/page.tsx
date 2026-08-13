@@ -30,6 +30,32 @@ export default function OverviewPage() {
     },
   });
 
+  const { data: score } = useReadContract({
+    address: config.creditLineAddress,
+    abi: creditLineAbi,
+    functionName: "creditScore",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: {
+      enabled:
+        Boolean(address) &&
+        config.creditLineAddress !== "0x0000000000000000000000000000000000000000",
+    },
+  });
+
+  const { data: hist } = useReadContract({
+    address: config.creditLineAddress,
+    abi: creditLineAbi,
+    functionName: "getHistory",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: {
+      enabled:
+        Boolean(address) &&
+        config.creditLineAddress !== "0x0000000000000000000000000000000000000000",
+    },
+  });
+
   const status = position ? Number(position.status) : 0;
   const credit = position ? position.credit : 0n;
   const deposit = position ? position.deposit : 0n;
@@ -37,6 +63,8 @@ export default function OverviewPage() {
   const attestedBalance = position ? position.attestedBalance : 0n;
   const available = status === 1 && credit > debt ? credit - debt : 0n;
   const activity = recent.slice(0, 5);
+  const scoreN = score != null ? Number(score) : null;
+  const histCount = hist ? Number(hist.count) : 0;
 
   return (
     <AppShell
@@ -90,7 +118,7 @@ export default function OverviewPage() {
         </div>
       )}
 
-      <div className="grid gap-3 md:grid-cols-3">
+      <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Credit available"
           value={`${formatEth(available)} sCREDIT`}
@@ -104,11 +132,25 @@ export default function OverviewPage() {
           }
         />
         <MetricCard
+          label="Credit score"
+          value={scoreN != null ? String(scoreN) : "—"}
+          hint={histCount > 0 ? `${histCount} attested payment${histCount === 1 ? "" : "s"}` : "Link history to raise"}
+        />
+        <MetricCard
           label="Status"
           value={statusLabel(status)}
           hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT (accruing)` : undefined}
         />
       </div>
+
+      {isConnected && (
+        <p className="mt-3 text-[13px] text-muted">
+          <Link href="/score" className="text-brand hover:underline">
+            Link payment history
+          </Link>{" "}
+          to raise score and LTV before opening credit.
+        </p>
+      )}
 
       <div className="mt-3 grid gap-3 lg:grid-cols-5">
         <div className="lg:col-span-3">

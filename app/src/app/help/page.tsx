@@ -141,19 +141,33 @@ export default function HelpPage() {
           <ol className="list-inside list-decimal space-y-2">
             <li>Connect MetaMask (top right).</li>
             <li>Open Overview and follow the Get started checklist if you see it.</li>
-            <li>Go to Pay deposit. Enter an amount (0.01 ETH is a typical starting amount).</li>
+            <li>
+              Optional: make 2–3 tiny Sepolia deposits, then{" "}
+              <Link href="/score" className="text-brand hover:underline">
+                Credit score
+              </Link>{" "}
+              → link history (raises score and LTV bonus).
+            </li>
+            <li>
+              Go to Pay deposit with a <em>fresh</em> tx (not one you already linked). Enter an amount
+              (0.01 ETH is typical).
+            </li>
             <li>
               Confirm in MetaMask. Spark then attests your Sepolia ETH balance and waits for
               Attestcoin (~8–10 min per proof) until credit opens.
             </li>
             <li>Optional: Withdraw sCREDIT to your wallet, redeem against debt, or Send &amp; Receive.</li>
-            <li>Check Overview for credit available, debt, and deposit locked.</li>
+            <li>Check Overview for credit available, debt, deposit locked, and score.</li>
             <li>When done testing, use Repay to clear debt and close the line.</li>
           </ol>
           <p className="pt-2">
-            Payment history is under{" "}
+            Activity is under{" "}
             <Link href="/activity" className="text-brand hover:underline">
               Payments
+            </Link>
+            . Score and linked history are under{" "}
+            <Link href="/score" className="text-brand hover:underline">
+              Credit score
             </Link>
             .
           </p>
@@ -184,6 +198,10 @@ export default function HelpPage() {
             <Faq
               q="What is sCREDIT?"
               a="Testnet credit units minted when you withdraw. Debt accrues 10% APR. Redeem burns sCREDIT against debt; attested Sepolia repayment closes the line."
+            />
+            <Faq
+              q="What is the credit score?"
+              a="650 base + 40 per attested Sepolia deposit/repay (cap 850). Linked history also adds +2.5% LTV (≥1 payment) or +5% (≥3), on top of balance-based LTV. No oracle — only Attestcoin-proven payments."
             />
             <Faq
               q="Does Spark hold my money?"

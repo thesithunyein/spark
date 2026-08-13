@@ -62,6 +62,13 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
       done: hasCtcGas,
     },
     {
+      id: "score",
+      title: "Link payment history",
+      hint: "Optional — raises score & LTV",
+      href: "/score",
+      done: false,
+    },
+    {
       id: "pay",
       title: "Pay a deposit",
       hint: "Then verify to unlock credit",

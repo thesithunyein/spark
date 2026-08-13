@@ -182,6 +182,102 @@ contract SparkTest is Test {
         line.openCredit(claim, proof, balClaim, balProof);
     }
 
+    function testSubmitAttestedPaymentUpdatesHistory() public {
+        assertEq(line.creditScore(user), 650);
+        _link(user, keccak256("hist-1"), 0.001 ether, 1);
+        CreditLine.PaymentHistory memory h = line.getHistory(user);
+        assertEq(h.count, 1);
+        assertEq(h.volume, 0.001 ether);
+        assertEq(line.creditScore(user), 690);
+        assertEq(line.historyBonusBps(user), 250);
+
+        _link(user, keccak256("hist-2"), 0.002 ether, 2);
+        _link(user, keccak256("hist-3"), 0.003 ether, 1);
+        h = line.getHistory(user);
+        assertEq(h.count, 3);
+        assertEq(h.volume, 0.006 ether);
+        assertEq(line.historyBonusBps(user), 500);
+        assertEq(line.creditScore(user), 770);
+    }
+
+    function testSubmitAttestedPaymentReplayRejected() public {
+        bytes32 txHash = keccak256("hist-replay");
+        _link(user, txHash, 0.001 ether, 1);
+        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
+            txHash: txHash,
+            payer: user,
+            amount: 0.001 ether,
+            kind: 1
+        });
+        bytes memory proof = abi.encode(txHash, user, uint256(0.001 ether), uint8(1));
+        vm.prank(user);
+        vm.expectRevert(CreditLine.TxAlreadyUsed.selector);
+        line.submitAttestedPayment(claim, proof);
+    }
+
+    function testHistoryBonusTiersOnOpen() public {
+        // 1 linked payment → +250bps on top of 90% balance factor → 9250
+        _link(user, keccak256("bonus-1"), 0.001 ether, 1);
+        _open(user, keccak256("dep-b1"), keccak256("bal-b1"), 1 ether, 2 ether);
+        CreditLine.Position memory pos = line.getPosition(user);
+        assertEq(pos.credit, 0.925 ether);
+        // opening deposit also recorded → count 2, score 730
+        assertEq(line.getHistory(user).count, 2);
+        assertEq(line.creditScore(user), 730);
+    }
+
+    function testHistoryBonusThreePayments() public {
+        _link(user, keccak256("t1"), 0.001 ether, 1);
+        _link(user, keccak256("t2"), 0.001 ether, 1);
+        _link(user, keccak256("t3"), 0.001 ether, 2);
+        // 9000 + 500 = 9500 cap path (exactly at max)
+        _open(user, keccak256("dep-t"), keccak256("bal-t"), 1 ether, 2 ether);
+        assertEq(line.getPosition(user).credit, 0.95 ether);
+        assertEq(line.creditScore(user), 810); // 650 + 40*4 (3 linked + open deposit)
+    }
+
+    function testCreditScoreCapsAt850() public {
+        for (uint256 i = 0; i < 6; i++) {
+            _link(user, keccak256(abi.encodePacked("cap", i)), 0.001 ether, 1);
+        }
+        assertEq(line.getHistory(user).count, 6);
+        assertEq(line.creditScore(user), 850);
+    }
+
+    function testOpenDepositCannotReuseLinkedHistoryTx() public {
+        bytes32 shared = keccak256("shared-dep");
+        _link(user, shared, 1 ether, 1);
+        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
+            txHash: shared,
+            payer: user,
+            amount: 1 ether,
+            kind: 1
+        });
+        IPaymentVerifier.PaymentClaim memory balClaim = IPaymentVerifier.PaymentClaim({
+            txHash: keccak256("bal-shared"),
+            payer: user,
+            amount: 2 ether,
+            kind: 3
+        });
+        bytes memory proof = abi.encode(shared, user, uint256(1 ether), uint8(1));
+        bytes memory balProof = abi.encode(balClaim.txHash, user, uint256(2 ether), uint8(3));
+        vm.prank(user);
+        vm.expectRevert(CreditLine.TxAlreadyUsed.selector);
+        line.openCredit(claim, proof, balClaim, balProof);
+    }
+
+    function _link(address who, bytes32 txHash, uint256 amount, uint8 kind) internal {
+        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
+            txHash: txHash,
+            payer: who,
+            amount: amount,
+            kind: kind
+        });
+        bytes memory proof = abi.encode(txHash, who, amount, kind);
+        vm.prank(who);
+        line.submitAttestedPayment(claim, proof);
+    }
+
     function _open(address who, bytes32 depTx, bytes32 balTx, uint256 deposit, uint256 balance)
         internal
     {

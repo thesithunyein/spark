@@ -9,8 +9,10 @@ import {SparkCredit} from "./SparkCredit.sol";
  * @notice Spark credit on Creditcoin.
  *         Open requires TWO Attestcoin proofs:
  *           1) Sepolia deposit payment
- *           2) Sepolia ETH balance attestation (second data type — sizes LTV)
- *         Debt accrues interest. Redeem burns sCREDIT against debt (local unwind).
+ *           2) Sepolia ETH balance attestation (sizes LTV)
+ *         Attested payment history (deposit/repay) adds an LTV bonus and a credit score —
+ *         no oracle; only BlockProver-verified Sepolia facts.
+ *         Debt accrues interest. Redeem burns sCREDIT against debt.
  *         Full close still requires attested Sepolia repayment when debt remains.
  */
 contract CreditLine {
@@ -32,6 +34,11 @@ contract CreditLine {
         bytes32 closeTxHash;
     }
 
+    struct PaymentHistory {
+        uint256 count;
+        uint256 volume;
+    }
+
     IPaymentVerifier public immutable verifier;
     /// @notice Base LTV in bps when attested Sepolia balance < deposit (e.g. 8000 = 80%).
     uint256 public immutable collateralFactorBps;
@@ -39,7 +46,15 @@ contract CreditLine {
     uint256 public immutable interestPerYearBps;
     SparkCredit public immutable creditToken;
 
+    uint256 public constant HISTORY_BONUS_1_BPS = 250; // ≥1 attested payment
+    uint256 public constant HISTORY_BONUS_3_BPS = 500; // ≥3 attested payments
+    uint256 public constant MAX_FACTOR_BPS = 9_500;
+    uint256 public constant SCORE_BASE = 650;
+    uint256 public constant SCORE_PER_PAYMENT = 40;
+    uint256 public constant SCORE_CAP = 850;
+
     mapping(address => Position) public positions;
+    mapping(address => PaymentHistory) public history;
     mapping(bytes32 => bool) public usedTx;
 
     event CreditOpened(
@@ -50,6 +65,14 @@ contract CreditLine {
         uint256 factorBps,
         bytes32 indexed depositTxHash,
         bytes32 balanceTxHash
+    );
+    event AttestedPaymentLinked(
+        address indexed user,
+        bytes32 indexed txHash,
+        uint8 kind,
+        uint256 amount,
+        uint256 count,
+        uint256 volume
     );
     event CreditWithdrawn(address indexed user, uint256 amount, uint256 debt);
     event CreditRedeemed(address indexed user, uint256 amount, uint256 debt);
@@ -79,8 +102,29 @@ contract CreditLine {
     }
 
     /**
+     * @notice Link a past Sepolia deposit/repay into on-chain payment history via Attestcoin.
+     *         Kinds 1 (deposit) and 2 (repayment) only. Does not open credit by itself.
+     *         Use separate txs from the openCredit deposit (shared usedTx map).
+     */
+    function submitAttestedPayment(IPaymentVerifier.PaymentClaim calldata claim, bytes calldata proof)
+        external
+    {
+        if (claim.kind != 1 && claim.kind != 2) revert BadKind();
+        if (claim.payer != msg.sender) revert BadPayer();
+        if (claim.amount == 0) revert BadAmount();
+        if (usedTx[claim.txHash]) revert TxAlreadyUsed();
+
+        bool ok = verifier.verifyPayment(claim, proof);
+        if (!ok) revert ProofFailed();
+
+        usedTx[claim.txHash] = true;
+        _recordHistory(msg.sender, claim.amount, claim.txHash, claim.kind);
+    }
+
+    /**
      * @notice Open a line after proving (1) deposit payment and (2) Sepolia ETH balance.
      *         Attested balance raises LTV: >=2x deposit → 90%, >=1x → 85%, else base factor.
+     *         Linked payment history adds +250bps (≥1) or +500bps (≥3), capped at 95%.
      */
     function openCredit(
         IPaymentVerifier.PaymentClaim calldata depositClaim,
@@ -104,8 +148,11 @@ contract CreditLine {
         usedTx[depositClaim.txHash] = true;
         usedTx[balanceClaim.txHash] = true;
 
-        uint256 factorBps = _factorFor(depositClaim.amount, balanceClaim.amount);
+        uint256 factorBps = _factorFor(depositClaim.amount, balanceClaim.amount, msg.sender);
         uint256 credit = (depositClaim.amount * factorBps) / 10_000;
+
+        // Opening deposit itself becomes part of attested payment history.
+        _recordHistory(msg.sender, depositClaim.amount, depositClaim.txHash, 1);
 
         positions[msg.sender] = Position({
             deposit: depositClaim.amount,
@@ -146,7 +193,6 @@ contract CreditLine {
 
     /**
      * @notice Burn sCREDIT to reduce debt (local redemption / unwind of mint).
-     *         Interest still accrues on remaining debt — attested Sepolia repay closes the loop.
      */
     function redeem(uint256 amount) external {
         Position storage pos = positions[msg.sender];
@@ -174,6 +220,7 @@ contract CreditLine {
         if (!ok) revert ProofFailed();
 
         usedTx[claim.txHash] = true;
+        _recordHistory(msg.sender, claim.amount, claim.txHash, 2);
 
         uint256 pay = claim.amount > pos.debt ? pos.debt : claim.amount;
         pos.debt -= pay;
@@ -225,10 +272,44 @@ contract CreditLine {
         return pos;
     }
 
-    function _factorFor(uint256 deposit, uint256 attestedBalance) internal view returns (uint256) {
-        if (attestedBalance >= deposit * 2) return 9_000;
-        if (attestedBalance >= deposit) return 8_500;
-        return collateralFactorBps;
+    function getHistory(address user) external view returns (PaymentHistory memory) {
+        return history[user];
+    }
+
+    /// @notice Attested-payment credit score: 650 base + 40 per linked payment, capped at 850.
+    function creditScore(address user) external view returns (uint256) {
+        uint256 score = SCORE_BASE + history[user].count * SCORE_PER_PAYMENT;
+        if (score > SCORE_CAP) return SCORE_CAP;
+        return score;
+    }
+
+    function historyBonusBps(address user) public view returns (uint256) {
+        uint256 count = history[user].count;
+        if (count >= 3) return HISTORY_BONUS_3_BPS;
+        if (count >= 1) return HISTORY_BONUS_1_BPS;
+        return 0;
+    }
+
+    function _recordHistory(address user, uint256 amount, bytes32 txHash, uint8 kind) internal {
+        PaymentHistory storage h = history[user];
+        h.count += 1;
+        h.volume += amount;
+        emit AttestedPaymentLinked(user, txHash, kind, amount, h.count, h.volume);
+    }
+
+    function _factorFor(uint256 deposit, uint256 attestedBalance, address user)
+        internal
+        view
+        returns (uint256)
+    {
+        uint256 base;
+        if (attestedBalance >= deposit * 2) base = 9_000;
+        else if (attestedBalance >= deposit) base = 8_500;
+        else base = collateralFactorBps;
+
+        uint256 withBonus = base + historyBonusBps(user);
+        if (withBonus > MAX_FACTOR_BPS) return MAX_FACTOR_BPS;
+        return withBonus;
     }
 
     function _accrue(Position storage pos, address user) internal {

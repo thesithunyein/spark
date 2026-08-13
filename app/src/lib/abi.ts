@@ -88,6 +88,53 @@ export const creditLineAbi = [
   },
   {
     type: "function",
+    name: "submitAttestedPayment",
+    stateMutability: "nonpayable",
+    inputs: [
+      { name: "claim", type: "tuple", components: paymentClaimComponents },
+      { name: "proof", type: "bytes" },
+    ],
+    outputs: [],
+  },
+  {
+    type: "function",
+    name: "getHistory",
+    stateMutability: "view",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        components: [
+          { name: "count", type: "uint256" },
+          { name: "volume", type: "uint256" },
+        ],
+      },
+    ],
+  },
+  {
+    type: "function",
+    name: "creditScore",
+    stateMutability: "view",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "historyBonusBps",
+    stateMutability: "view",
+    inputs: [{ name: "user", type: "address" }],
+    outputs: [{ name: "", type: "uint256" }],
+  },
+  {
+    type: "function",
+    name: "usedTx",
+    stateMutability: "view",
+    inputs: [{ name: "", type: "bytes32" }],
+    outputs: [{ name: "", type: "bool" }],
+  },
+  {
+    type: "function",
     name: "getPosition",
     stateMutability: "view",
     inputs: [{ name: "user", type: "address" }],
