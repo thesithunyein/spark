@@ -3,12 +3,15 @@ pragma solidity ^0.8.24;
 
 /**
  * @title SepoliaPayment
- * @notice Payment rail for Spark deposits and repayments on Ethereum Sepolia.
- *         Emits clear events that Attestcoin can prove on Creditcoin.
+ * @notice Payment + solvency rail for Spark on Ethereum Sepolia.
+ *         Emits events Attestcoin proves on Creditcoin:
+ *         - DepositPaid / RepaymentPaid (payment)
+ *         - BalanceAttested (on-chain ETH balance — second attested data type)
  */
 contract SepoliaPayment {
     event DepositPaid(address indexed payer, uint256 amount, bytes32 indexed ref);
     event RepaymentPaid(address indexed payer, uint256 amount, bytes32 indexed ref);
+    event BalanceAttested(address indexed user, uint256 ethBalance, bytes32 indexed ref);
     event Withdrawn(address indexed to, uint256 amount);
 
     address public immutable treasury;
@@ -35,6 +38,14 @@ contract SepoliaPayment {
         if (msg.value == 0) revert ZeroAmount();
         repayments[msg.sender] += msg.value;
         emit RepaymentPaid(msg.sender, msg.value, ref);
+    }
+
+    /**
+     * @notice Snapshot caller's Sepolia ETH balance for Attestcoin.
+     *         CreditLine uses this as a second attested input to size the credit line.
+     */
+    function attestBalance(bytes32 ref) external {
+        emit BalanceAttested(msg.sender, msg.sender.balance, ref);
     }
 
     function withdraw(uint256 amount) external {

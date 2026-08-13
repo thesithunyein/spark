@@ -3,8 +3,8 @@ pragma solidity ^0.8.24;
 
 /**
  * @title SparkCredit
- * @notice Testnet credit units minted when a user withdraws from an open CreditLine.
- *         Not real money. Used so withdraw works without a funded liquidity pool.
+ * @notice Testnet credit units minted on withdraw; burned on redeem.
+ *         Not real money — stands in until a funded pool exists.
  */
 contract SparkCredit {
     string public constant name = "Spark Credit";
@@ -33,6 +33,15 @@ contract SparkCredit {
         totalSupply += amount;
         balanceOf[to] += amount;
         emit Transfer(address(0), to, amount);
+    }
+
+    function burn(address from, uint256 amount) external {
+        if (msg.sender != minter) revert NotMinter();
+        if (amount == 0) revert BadAmount();
+        require(balanceOf[from] >= amount, "balance");
+        balanceOf[from] -= amount;
+        totalSupply -= amount;
+        emit Transfer(from, address(0), amount);
     }
 
     function approve(address spender, uint256 amount) external returns (bool) {

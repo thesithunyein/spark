@@ -58,12 +58,15 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         keccak256("DepositPaid(address,uint256,bytes32)");
     bytes32 public constant REPAYMENT_PAID_TOPIC =
         keccak256("RepaymentPaid(address,uint256,bytes32)");
+    bytes32 public constant BALANCE_ATTESTED_TOPIC =
+        keccak256("BalanceAttested(address,uint256,bytes32)");
 
     error BadProof();
     error ProofFailed();
     error BadChain();
     error BadTxHash();
     error PaymentNotFound();
+    error BadKind();
 
     constructor(address blockProver_, address expectedPaymentContract_, uint64 chainKey_) {
         require(blockProver_ != address(0), "prover");
@@ -99,8 +102,13 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         // Payment contract must appear in the proven transaction payload.
         if (!_containsAddress(encodedTransaction, expectedPaymentContract)) revert PaymentNotFound();
 
-        // Event topic for deposit (kind=1) or repayment (kind=2) must appear in proven bytes.
-        bytes32 topic = claim.kind == 1 ? DEPOSIT_PAID_TOPIC : REPAYMENT_PAID_TOPIC;
+        // Event topic by attested data type:
+        //   1 = deposit payment, 2 = repayment, 3 = on-chain ETH balance
+        bytes32 topic;
+        if (claim.kind == 1) topic = DEPOSIT_PAID_TOPIC;
+        else if (claim.kind == 2) topic = REPAYMENT_PAID_TOPIC;
+        else if (claim.kind == 3) topic = BALANCE_ATTESTED_TOPIC;
+        else revert BadKind();
         if (!_containsBytes32(encodedTransaction, topic)) revert PaymentNotFound();
         if (!_containsAddress(encodedTransaction, claim.payer)) revert PaymentNotFound();
 

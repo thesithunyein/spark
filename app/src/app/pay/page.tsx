@@ -2,8 +2,21 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain } from "wagmi";
-import { parseEther, keccak256, toBytes, type Hex } from "viem";
+import {
+  useAccount,
+  usePublicClient,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+  useSwitchChain,
+} from "wagmi";
+import {
+  parseEther,
+  keccak256,
+  toBytes,
+  decodeEventLog,
+  type Hex,
+  type Log,
+} from "viem";
 import { sepolia } from "wagmi/chains";
 import { AppShell } from "@/components/AppShell";
 import { ConfirmingStages } from "@/components/ConfirmingStages";
@@ -21,14 +34,37 @@ import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
 
+function readAttestedBalance(logs: Log[], payment: `0x${string}`): bigint | null {
+  for (const log of logs) {
+    if (log.address.toLowerCase() !== payment.toLowerCase()) continue;
+    try {
+      const decoded = decodeEventLog({
+        abi: sepoliaPaymentAbi,
+        data: log.data,
+        topics: log.topics,
+      });
+      if (decoded.eventName === "BalanceAttested") {
+        return decoded.args.ethBalance as bigint;
+      }
+    } catch {
+      /* skip */
+    }
+  }
+  return null;
+}
+
 export default function PayPage() {
   const { address, chainId, isConnected } = useAccount();
+  const publicClient = usePublicClient({ chainId: sepolia.id });
   const [amount, setAmount] = useState("0.01");
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
+  const [balanceTxHash, setBalanceTxHash] = useState<Hex | undefined>();
+  const [attestedBalanceWei, setAttestedBalanceWei] = useState<bigint | null>(null);
   const [creditTx, setCreditTx] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [statusNote, setStatusNote] = useState<string | null>(null);
+  const [proofLabel, setProofLabel] = useState("deposit");
   const [attestPhase, setAttestPhase] = useState<AttestcoinPhase | "submitting" | "done" | null>(
     null,
   );
@@ -44,6 +80,8 @@ export default function PayPage() {
     setAttestPhase(null);
     setAttestMeta(null);
     setCreditTx(undefined);
+    setBalanceTxHash(undefined);
+    setAttestedBalanceWei(null);
     if (!address) {
       setError("Connect a wallet first.");
       return;
@@ -83,6 +121,36 @@ export default function PayPage() {
     }
   }
 
+  async function attestSepoliaBalance(): Promise<{ hash: Hex; balanceWei: bigint }> {
+    if (!address || !publicClient) throw new Error("Wallet / RPC not ready.");
+    if (chainId !== sepolia.id) {
+      await switchChainAsync({ chainId: sepolia.id });
+    }
+    const ref = keccak256(toBytes(`spark-bal-${address}-${Date.now()}`));
+    const hash = await writeContractAsync({
+      address: config.paymentAddress,
+      abi: sepoliaPaymentAbi,
+      functionName: "attestBalance",
+      args: [ref],
+      chainId: sepolia.id,
+    });
+    const receipt = await publicClient.waitForTransactionReceipt({ hash });
+    const balanceWei = readAttestedBalance(receipt.logs, config.paymentAddress);
+    if (balanceWei == null) {
+      throw new Error("BalanceAttested event missing from receipt.");
+    }
+    journalActivity(address, {
+      id: `${hash}-bal`,
+      type: "Balance attested",
+      amount: `${formatEth(balanceWei)} ETH`,
+      status: "Confirmed",
+      at: "Sepolia",
+      kind: "deposit",
+      href: `${config.explorerSepolia}/tx/${hash}`,
+    });
+    return { hash, balanceWei };
+  }
+
   async function onProveAndOpen() {
     setError(null);
     setStatusNote(null);
@@ -94,30 +162,57 @@ export default function PayPage() {
     }
     try {
       setStep(3);
+      const amountWei = parseEther(amount || "0.01");
+
+      setStatusNote("Attesting Sepolia ETH balance (second Attestcoin data type)…");
+      setProofLabel("balance");
+      const { hash: balHash, balanceWei } = balanceTxHash && attestedBalanceWei != null
+        ? { hash: balanceTxHash, balanceWei: attestedBalanceWei }
+        : await attestSepoliaBalance();
+      setBalanceTxHash(balHash);
+      setAttestedBalanceWei(balanceWei);
+
       if (chainId !== creditcoinTestnet.id) {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
-      const amountWei = parseEther(amount || "0.01");
 
-      let proof: Hex;
+      let depositProof: Hex;
+      let balanceProof: Hex;
+
       if (config.attestcoin) {
+        setProofLabel("deposit");
         setAttestPhase("finding_tx");
         setAttestMeta(null);
-        setStatusNote("Waiting for Attestcoin attestation on Creditcoin, then building USC proof…");
-        const built = await buildAttestcoinProof(txHash, (phase, meta) => {
+        setStatusNote("Attestcoin proof 1/2 — deposit payment…");
+        const depBuilt = await buildAttestcoinProof(txHash, (phase, meta) => {
           setAttestPhase(phase);
           if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
         });
-        proof = built.proof;
-        setAttestMeta(built.meta);
+        depositProof = depBuilt.proof;
+
+        setProofLabel("balance");
+        setAttestPhase("finding_tx");
+        setStatusNote("Attestcoin proof 2/2 — Sepolia ETH balance…");
+        const balBuilt = await buildAttestcoinProof(balHash, (phase, meta) => {
+          setAttestPhase(phase);
+          if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
+        });
+        balanceProof = balBuilt.proof;
+        setAttestMeta(balBuilt.meta);
         setAttestPhase("submitting");
-        setStatusNote("USC proof ready. Opening credit on Creditcoin…");
+        setStatusNote("Both USC proofs ready. Opening credit on Creditcoin…");
       } else {
-        proof = encodePaymentProof({
+        depositProof = encodePaymentProof({
           txHash,
           payer: address,
           amountWei,
           kind: 1,
+        });
+        balanceProof = encodePaymentProof({
+          txHash: balHash,
+          payer: address,
+          amountWei: balanceWei,
+          kind: 3,
         });
       }
 
@@ -132,7 +227,14 @@ export default function PayPage() {
             amount: amountWei,
             kind: 1,
           },
-          proof,
+          depositProof,
+          {
+            txHash: balHash,
+            payer: address,
+            amount: balanceWei,
+            kind: 3,
+          },
+          balanceProof,
         ],
         chainId: creditcoinTestnet.id,
       });
@@ -158,7 +260,6 @@ export default function PayPage() {
     }
   }
 
-  // Auto-advance to verify once Sepolia payment confirms
   useEffect(() => {
     if (!isSuccess || step !== 2 || autoVerifyStarted.current || !txHash) return;
     autoVerifyStarted.current = true;
@@ -170,12 +271,17 @@ export default function PayPage() {
   const verifying = step === 3 || (isSuccess && step === 2 && autoVerifyStarted.current);
 
   return (
-    <AppShell title="Pay deposit" subtitle="Pay on Sepolia. We verify, then unlock credit on Creditcoin.">
+    <AppShell
+      title="Pay deposit"
+      subtitle="Prove deposit + Sepolia balance via Attestcoin, then unlock credit on Creditcoin."
+    >
       <div className="mx-auto max-w-md rounded-2xl border border-border bg-panel/80 p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet to pay</p>
-            <p className="mt-1 text-[13px] text-muted">You’ll pay on Sepolia, then unlock credit on Creditcoin.</p>
+            <p className="mt-1 text-[13px] text-muted">
+              You’ll pay on Sepolia, attest your ETH balance, then unlock credit on Creditcoin.
+            </p>
             <div className="mt-4">
               <ConnectButton />
             </div>
@@ -189,12 +295,26 @@ export default function PayPage() {
           className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
         />
         <p className="mt-2 text-[12px] text-muted">
+          Credit LTV rises when your attested Sepolia balance covers the deposit (85%) or 2× (90%). Debt accrues
+          10% APR.
+        </p>
+        <p className="mt-2 text-[12px] text-muted">
           Faucet:{" "}
-          <a className="text-text/80 underline-offset-2 hover:underline" href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia" target="_blank" rel="noreferrer">
+          <a
+            className="text-text/80 underline-offset-2 hover:underline"
+            href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
+            target="_blank"
+            rel="noreferrer"
+          >
             Sepolia ETH
           </a>
           {" · "}
-          <a className="text-text/80 underline-offset-2 hover:underline" href="https://discord.com/invite/creditcoin" target="_blank" rel="noreferrer">
+          <a
+            className="text-text/80 underline-offset-2 hover:underline"
+            href="https://discord.com/invite/creditcoin"
+            target="_blank"
+            rel="noreferrer"
+          >
             Creditcoin faucet
           </a>
         </p>
@@ -213,7 +333,7 @@ export default function PayPage() {
             {isPending || waiting
               ? "Confirm in wallet…"
               : verifying
-                ? "Verifying & opening credit…"
+                ? "Verifying deposit + balance…"
                 : step === 4
                   ? "Credit ready"
                   : "Pay deposit"}
@@ -224,12 +344,12 @@ export default function PayPage() {
               onClick={onProveAndOpen}
               className="rounded-full border border-border px-4 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03]"
             >
-              Verify payment & open credit
+              Verify & open credit
             </button>
           )}
-          {verifying && step < 4 && !config.attestcoin && (
+          {verifying && step < 4 && (
             <p className="text-center text-[12px] text-muted">
-              {statusNote || "Payment confirmed. Switching to Creditcoin to open your line…"}
+              {statusNote || "Building Attestcoin proofs for deposit and balance…"}
             </p>
           )}
         </div>
@@ -238,12 +358,15 @@ export default function PayPage() {
           <AttestcoinProofPanel
             phase={attestPhase}
             meta={attestMeta}
-            paymentTx={txHash}
+            paymentTx={proofLabel === "balance" ? balanceTxHash : txHash}
             creditTx={creditTx}
             claim={{
               payer: address,
-              amountLabel: amount || "0.01",
-              kind: "deposit",
+              amountLabel:
+                proofLabel === "balance" && attestedBalanceWei != null
+                  ? formatEth(attestedBalanceWei)
+                  : amount || "0.01",
+              kind: proofLabel === "balance" ? "balance" : "deposit",
             }}
           />
         )}
@@ -251,7 +374,12 @@ export default function PayPage() {
         {txHash && !attestPhase && (
           <p className="mt-5 break-all text-[12px] text-muted">
             Payment tx:{" "}
-            <a className="text-text/80 hover:underline" href={`${config.explorerSepolia}/tx/${txHash}`} target="_blank" rel="noreferrer">
+            <a
+              className="text-text/80 hover:underline"
+              href={`${config.explorerSepolia}/tx/${txHash}`}
+              target="_blank"
+              rel="noreferrer"
+            >
               {txHash}
             </a>
           </p>
@@ -260,16 +388,16 @@ export default function PayPage() {
         {step === 4 && (
           <div className="mt-6 border-t border-border pt-5">
             <p className="text-[15px] font-medium text-text">Credit ready</p>
-            <p className="mt-1 text-[13px] text-muted">Your line is open on Creditcoin.</p>
+            <p className="mt-1 text-[13px] text-muted">
+              Opened with attested deposit
+              {attestedBalanceWei != null ? ` + ${formatEth(attestedBalanceWei)} ETH balance` : ""}.
+            </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link href="/withdraw" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
                 Withdraw credit
               </Link>
               <Link href="/overview" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
                 View credit
-              </Link>
-              <Link href="/activity" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
-                See payments
               </Link>
             </div>
           </div>

@@ -143,10 +143,10 @@ export default function HelpPage() {
             <li>Open Overview and follow the Get started checklist if you see it.</li>
             <li>Go to Pay deposit. Enter an amount (0.01 ETH is a typical starting amount).</li>
             <li>
-              Confirm in MetaMask. Wait for Attestcoin attestation (~8–10 min on Sepolia) until credit
-              opens.
+              Confirm in MetaMask. Spark then attests your Sepolia ETH balance and waits for
+              Attestcoin (~8–10 min per proof) until credit opens.
             </li>
-            <li>Optional: Withdraw sCREDIT to your wallet, then Send &amp; Receive if you want to move it.</li>
+            <li>Optional: Withdraw sCREDIT to your wallet, redeem against debt, or Send &amp; Receive.</li>
             <li>Check Overview for credit available, debt, and deposit locked.</li>
             <li>When done testing, use Repay to clear debt and close the line.</li>
           </ol>
@@ -179,11 +179,11 @@ export default function HelpPage() {
             />
             <Faq
               q="Why does verifying take so long?"
-              a="Attestcoin waits ~8–10 minutes after a Sepolia payment so the block is safe from reorgs. That is protocol security, not Spark being stuck."
+              a="Spark proves two Sepolia facts with Attestcoin (deposit payment + ETH balance). Each wait is ~8–10 minutes for reorg safety — protocol security, not Spark being stuck."
             />
             <Faq
               q="What is sCREDIT?"
-              a="Testnet credit units minted to your MetaMask when you withdraw. Not real money. You can send them to another address on Creditcoin testnet."
+              a="Testnet credit units minted when you withdraw. Debt accrues 10% APR. Redeem burns sCREDIT against debt; attested Sepolia repayment closes the line."
             />
             <Faq
               q="Does Spark hold my money?"
@@ -208,7 +208,7 @@ export default function HelpPage() {
             </div>
             <div>
               <dt className="text-text">Credit line</dt>
-              <dd className="mt-0.5">Borrowing room opened after Attestcoin verifies your deposit.</dd>
+              <dd className="mt-0.5">Borrowing room opened after Attestcoin verifies your deposit and Sepolia ETH balance.</dd>
             </div>
             <div>
               <dt className="text-text">Withdraw</dt>

@@ -3,47 +3,41 @@ pragma solidity ^0.8.24;
 
 import {Script, console2} from "forge-std/Script.sol";
 import {SepoliaPayment} from "../src/SepoliaPayment.sol";
-import {CreditLine} from "../src/CreditLine.sol";
-import {MockPaymentVerifier} from "../src/MockPaymentVerifier.sol";
 import {AttestcoinPaymentVerifier} from "../src/AttestcoinPaymentVerifier.sol";
+import {CreditLine} from "../src/CreditLine.sol";
 
-contract DeploySpark is Script {
+/**
+ * @dev Deploy Spark stack for BUIDL CTC Fall 2026.
+ *      Sepolia: forge script script/Deploy.s.sol:DeploySepolia --rpc-url $SEPOLIA_RPC --broadcast
+ *      Creditcoin: forge script script/Deploy.s.sol:DeployCreditcoin --rpc-url $CC_RPC --broadcast
+ *      Set PAYMENT_ADDRESS when deploying Creditcoin contracts.
+ */
+contract DeploySepolia is Script {
     function run() external {
         uint256 pk = vm.envUint("PRIVATE_KEY");
-        address treasury = vm.envOr("TREASURY", address(this));
-        bool useMock = vm.envOr("USE_MOCK_VERIFIER", true);
-        address paymentOnSepolia = vm.envOr("PAYMENT_ADDRESS", address(0));
-
-        vm.startBroadcast(pk);
-
-        address verifier;
-        if (useMock) {
-            MockPaymentVerifier mock = new MockPaymentVerifier(msg.sender, false);
-            verifier = address(mock);
-            console2.log("MockPaymentVerifier", verifier);
-        } else {
-            address blockProver = vm.envAddress("BLOCK_PROVER");
-            uint64 chainKey = uint64(vm.envUint("CHAIN_KEY"));
-            AttestcoinPaymentVerifier v =
-                new AttestcoinPaymentVerifier(blockProver, paymentOnSepolia, chainKey);
-            verifier = address(v);
-            console2.log("AttestcoinPaymentVerifier", verifier);
-        }
-
-        // Deploy payment on Sepolia in a separate broadcast with SEPOLIA_RPC
-        // Here we deploy CreditLine for Creditcoin.
-        CreditLine line = new CreditLine(verifier, 8000);
-        console2.log("CreditLine", address(line));
-
-        vm.stopBroadcast();
-    }
-
-    function deployPayment() external {
-        uint256 pk = vm.envUint("PRIVATE_KEY");
-        address treasury = vm.envAddress("TREASURY");
+        address treasury = vm.addr(pk);
         vm.startBroadcast(pk);
         SepoliaPayment payment = new SepoliaPayment(treasury);
         console2.log("SepoliaPayment", address(payment));
+        vm.stopBroadcast();
+    }
+}
+
+contract DeployCreditcoin is Script {
+    address constant BLOCK_PROVER = 0x0000000000000000000000000000000000000FD2;
+
+    function run() external {
+        uint256 pk = vm.envUint("PRIVATE_KEY");
+        address payment = vm.envAddress("PAYMENT_ADDRESS");
+        uint64 chainKey = uint64(vm.envOr("CHAIN_KEY", uint256(1)));
+        vm.startBroadcast(pk);
+        AttestcoinPaymentVerifier verifier =
+            new AttestcoinPaymentVerifier(BLOCK_PROVER, payment, chainKey);
+        // 80% base LTV, 10% APR
+        CreditLine line = new CreditLine(address(verifier), 8000, 1000);
+        console2.log("AttestcoinPaymentVerifier", address(verifier));
+        console2.log("CreditLine", address(line));
+        console2.log("SparkCredit", address(line.creditToken()));
         vm.stopBroadcast();
     }
 }

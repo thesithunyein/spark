@@ -1,6 +1,6 @@
 import { encodeAbiParameters, type Hex } from "viem";
 
-export type PaymentKind = 1 | 2;
+export type PaymentKind = 1 | 2 | 3;
 
 export function statusLabel(status: number) {
   if (status === 1) return "Active";

@@ -115,6 +115,44 @@ export default function WithdrawPage() {
     }
   }
 
+  async function onRedeem() {
+    setError(null);
+    if (!address) return setError("Connect a wallet first.");
+    if (!hasActiveLine) return setError("No active credit line.");
+    const debt = position?.debt ?? 0n;
+    if (debt === 0n) return setError("No debt to redeem against.");
+    try {
+      if (chainId !== creditcoinTestnet.id) {
+        await switchChainAsync({ chainId: creditcoinTestnet.id });
+      }
+      const value = parseEther(amount || "0");
+      if (value === 0n) return setError("Enter an amount greater than 0.");
+      const wallet = walletCredit ?? 0n;
+      if (value > wallet) return setError("Amount exceeds wallet sCREDIT.");
+      if (value > debt) return setError("Amount exceeds current debt.");
+
+      const hash = await writeContractAsync({
+        address: config.creditLineAddress,
+        abi: creditLineAbi,
+        functionName: "redeem",
+        args: [value],
+        chainId: creditcoinTestnet.id,
+      });
+      setTxHash(hash);
+      journalActivity(address, {
+        id: `${hash}-rd`,
+        type: "Credit redeemed",
+        amount: `${formatEth(value)} sCREDIT`,
+        status: "Completed",
+        at: "Creditcoin",
+        kind: "repay",
+        href: `${config.explorerCreditcoin}/tx/${hash}`,
+      });
+    } catch (e) {
+      setError(friendlyError(e));
+    }
+  }
+
   async function onMax() {
     setAmount(formatEther(availableWei));
   }
@@ -122,7 +160,7 @@ export default function WithdrawPage() {
   return (
     <AppShell
       title="Withdraw"
-      subtitle="Send available credit to your wallet as sCREDIT (testnet units)."
+      subtitle="Mint sCREDIT from your line, or redeem sCREDIT against accruing debt."
     >
       <div className="mx-auto max-w-md rounded-2xl border border-border bg-panel/80 p-7 shadow-soft">
         {!isConnected && (
@@ -160,7 +198,9 @@ export default function WithdrawPage() {
               <span className="tabular-nums text-text">{formatEth(walletCredit ?? 0n)} sCREDIT</span>
             </p>
             <p>
-              Debt after withdraw rises — repay later to clear the line.
+              Debt:{" "}
+              <span className="tabular-nums text-text">{formatEth(position?.debt ?? 0n)} sCREDIT</span>
+              <span className="text-muted"> · 10% APR</span>
             </p>
           </div>
         )}
@@ -175,34 +215,44 @@ export default function WithdrawPage() {
               onClick={onMax}
               className="text-[12px] font-medium text-brand hover:underline"
             >
-              Max
+              Max available
             </button>
           )}
         </div>
         <input
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
-          disabled={!hasActiveLine || availableWei === 0n}
+          disabled={!hasActiveLine}
           className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
         />
 
         <p className="mt-3 text-[12px] text-muted">
-          sCREDIT is a testnet credit unit minted to your wallet. Not real money. No liquidity pool
-          needed — withdraw still proves the credit line works.
+          Withdraw mints sCREDIT and raises debt. Redeem burns sCREDIT to cut debt. Attested Sepolia
+          repayment still closes the line.
         </p>
 
         <div className="mt-8 flex flex-col gap-2">
           <button
             type="button"
             onClick={onWithdraw}
-            disabled={!hasActiveLine || isPending || waiting || availableWei === 0n || isSuccess}
+            disabled={!hasActiveLine || isPending || waiting || availableWei === 0n}
             className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
           >
-            {isPending || waiting
-              ? "Confirm in wallet…"
-              : isSuccess
-                ? "Withdrawn"
-                : "Withdraw to wallet"}
+            {isPending || waiting ? "Confirm in wallet…" : "Withdraw to wallet"}
+          </button>
+          <button
+            type="button"
+            onClick={onRedeem}
+            disabled={
+              !hasActiveLine ||
+              isPending ||
+              waiting ||
+              (walletCredit ?? 0n) === 0n ||
+              (position?.debt ?? 0n) === 0n
+            }
+            className="rounded-full border border-border px-4 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03] disabled:opacity-50"
+          >
+            Redeem against debt
           </button>
         </div>
 
@@ -221,10 +271,7 @@ export default function WithdrawPage() {
         {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
         {isSuccess && (
           <div className="mt-6 border-t border-border pt-5">
-            <p className="text-[15px] font-medium text-text">Credit in your wallet</p>
-            <p className="mt-1 text-[13px] text-muted">
-              sCREDIT was minted to your address on Creditcoin.
-            </p>
+            <p className="text-[15px] font-medium text-text">Done</p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Link
                 href="/overview"
@@ -242,7 +289,7 @@ export default function WithdrawPage() {
                 href="/repay"
                 className="rounded-full border border-border px-4 py-2 text-[13px] font-medium"
               >
-                Repay later
+                Repay on Sepolia
               </Link>
             </div>
           </div>

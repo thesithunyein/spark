@@ -16,7 +16,8 @@ contract SparkTest is Test {
     function setUp() public {
         payment = new SepoliaPayment(address(this));
         verifier = new MockPaymentVerifier(address(this), false);
-        line = new CreditLine(address(verifier), 8000);
+        // 80% base LTV, 10% APR
+        line = new CreditLine(address(verifier), 8000, 1000);
         vm.deal(user, 100 ether);
     }
 
@@ -26,58 +27,77 @@ contract SparkTest is Test {
         assertEq(payment.deposits(user), 1 ether);
     }
 
-    function testOpenCreditRequiresValidProof() public {
-        bytes32 txHash = keccak256("deposit-tx");
-        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
-            txHash: txHash,
-            payer: user,
-            amount: 1 ether,
-            kind: 1
-        });
-        bytes memory proof = abi.encode(txHash, user, uint256(1 ether), uint8(1));
-
+    function testAttestBalanceEmits() public {
         vm.prank(user);
-        line.openCredit(claim, proof);
+        payment.attestBalance(keccak256("bal1"));
+    }
+
+    function testOpenCreditRequiresDualProofs() public {
+        _open(user, keccak256("deposit-tx"), keccak256("balance-tx"), 1 ether, 5 ether);
 
         CreditLine.Position memory pos = line.getPosition(user);
         assertEq(uint256(pos.status), uint256(CreditLine.Status.Active));
         assertEq(pos.deposit, 1 ether);
-        assertEq(pos.credit, 0.8 ether);
+        assertEq(pos.attestedBalance, 5 ether);
+        // balance >= 2x deposit → 90% LTV
+        assertEq(pos.credit, 0.9 ether);
         assertEq(pos.debt, 0);
-        assertEq(line.availableCredit(user), 0.8 ether);
+        assertEq(line.availableCredit(user), 0.9 ether);
+    }
+
+    function testOpenCreditBaseFactorWhenLowBalance() public {
+        _open(user, keccak256("d-low"), keccak256("b-low"), 1 ether, 0.5 ether);
+        CreditLine.Position memory pos = line.getPosition(user);
+        assertEq(pos.credit, 0.8 ether);
     }
 
     function testWithdrawMintsCredit() public {
-        _open(user, keccak256("dep-w"), 1 ether);
+        _open(user, keccak256("dep-w"), keccak256("bal-w"), 1 ether, 2 ether);
 
         vm.prank(user);
         line.withdraw(0.5 ether);
 
         CreditLine.Position memory pos = line.getPosition(user);
         assertEq(pos.debt, 0.5 ether);
-        assertEq(line.availableCredit(user), 0.3 ether);
+        assertEq(line.availableCredit(user), 0.4 ether); // 0.9 credit - 0.5 debt
         assertEq(line.creditToken().balanceOf(user), 0.5 ether);
     }
 
+    function testRedeemBurnsAgainstDebt() public {
+        _open(user, keccak256("dep-r"), keccak256("bal-r"), 1 ether, 2 ether);
+        vm.prank(user);
+        line.withdraw(0.5 ether);
+
+        vm.prank(user);
+        line.redeem(0.2 ether);
+
+        assertEq(line.creditToken().balanceOf(user), 0.3 ether);
+        assertEq(line.currentDebt(user), 0.3 ether);
+    }
+
+    function testInterestAccrues() public {
+        _open(user, keccak256("dep-i"), keccak256("bal-i"), 1 ether, 2 ether);
+        vm.prank(user);
+        line.withdraw(0.5 ether);
+
+        vm.warp(block.timestamp + 365 days);
+        uint256 debt = line.currentDebt(user);
+        // ~10% of 0.5 ether
+        assertGt(debt, 0.5 ether);
+        assertApproxEqRel(debt, 0.55 ether, 0.01e18);
+    }
+
     function testWithdrawExceedsReverts() public {
-        _open(user, keccak256("dep-x"), 1 ether);
+        _open(user, keccak256("dep-x"), keccak256("bal-x"), 1 ether, 2 ether);
         vm.prank(user);
         vm.expectRevert(CreditLine.ExceedsAvailable.selector);
-        line.withdraw(0.81 ether);
+        line.withdraw(0.91 ether);
     }
 
     function testReplayRejected() public {
-        bytes32 txHash = keccak256("deposit-tx-2");
-        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
-            txHash: txHash,
-            payer: user,
-            amount: 1 ether,
-            kind: 1
-        });
-        bytes memory proof = abi.encode(txHash, user, uint256(1 ether), uint8(1));
-
-        vm.prank(user);
-        line.openCredit(claim, proof);
+        bytes32 dep = keccak256("deposit-tx-2");
+        bytes32 bal = keccak256("balance-tx-2");
+        _open(user, dep, bal, 1 ether, 2 ether);
 
         vm.prank(user);
         line.withdraw(0.8 ether);
@@ -93,57 +113,93 @@ contract SparkTest is Test {
         vm.prank(user);
         line.repayCredit(repay, repayProof);
 
+        IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
+            txHash: dep,
+            payer: user,
+            amount: 1 ether,
+            kind: 1
+        });
+        IPaymentVerifier.PaymentClaim memory balClaim = IPaymentVerifier.PaymentClaim({
+            txHash: bal,
+            payer: user,
+            amount: 2 ether,
+            kind: 3
+        });
+        bytes memory proof = abi.encode(dep, user, uint256(1 ether), uint8(1));
+        bytes memory balProof = abi.encode(bal, user, uint256(2 ether), uint8(3));
+
         vm.prank(user);
         vm.expectRevert(CreditLine.TxAlreadyUsed.selector);
-        line.openCredit(claim, proof);
+        line.openCredit(claim, proof, balClaim, balProof);
     }
 
     function testCloseUnused() public {
-        _open(user, keccak256("dep-c"), 1 ether);
+        _open(user, keccak256("dep-c"), keccak256("bal-c"), 1 ether, 2 ether);
         vm.prank(user);
         line.closeUnused();
         assertEq(uint256(line.getPosition(user).status), uint256(CreditLine.Status.Closed));
     }
 
     function testWrongPayerReverts() public {
-        bytes32 txHash = keccak256("deposit-tx-3");
         IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
-            txHash: txHash,
+            txHash: keccak256("deposit-tx-3"),
             payer: address(0xCAFE),
             amount: 1 ether,
             kind: 1
         });
-        bytes memory proof = abi.encode(txHash, address(0xCAFE), uint256(1 ether), uint8(1));
+        IPaymentVerifier.PaymentClaim memory balClaim = IPaymentVerifier.PaymentClaim({
+            txHash: keccak256("balance-tx-3"),
+            payer: address(0xCAFE),
+            amount: 2 ether,
+            kind: 3
+        });
+        bytes memory proof = abi.encode(claim.txHash, address(0xCAFE), uint256(1 ether), uint8(1));
+        bytes memory balProof = abi.encode(balClaim.txHash, address(0xCAFE), uint256(2 ether), uint8(3));
 
         vm.prank(user);
         vm.expectRevert(CreditLine.BadPayer.selector);
-        line.openCredit(claim, proof);
+        line.openCredit(claim, proof, balClaim, balProof);
     }
 
     function testBadProofReverts() public {
-        bytes32 txHash = keccak256("deposit-tx-4");
         IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
-            txHash: txHash,
+            txHash: keccak256("deposit-tx-4"),
             payer: user,
             amount: 1 ether,
             kind: 1
         });
-        bytes memory proof = abi.encode(txHash, user, uint256(2 ether), uint8(1));
+        IPaymentVerifier.PaymentClaim memory balClaim = IPaymentVerifier.PaymentClaim({
+            txHash: keccak256("balance-tx-4"),
+            payer: user,
+            amount: 2 ether,
+            kind: 3
+        });
+        bytes memory proof = abi.encode(claim.txHash, user, uint256(2 ether), uint8(1));
+        bytes memory balProof = abi.encode(balClaim.txHash, user, uint256(2 ether), uint8(3));
 
         vm.prank(user);
         vm.expectRevert(CreditLine.ProofFailed.selector);
-        line.openCredit(claim, proof);
+        line.openCredit(claim, proof, balClaim, balProof);
     }
 
-    function _open(address who, bytes32 txHash, uint256 amount) internal {
+    function _open(address who, bytes32 depTx, bytes32 balTx, uint256 deposit, uint256 balance)
+        internal
+    {
         IPaymentVerifier.PaymentClaim memory claim = IPaymentVerifier.PaymentClaim({
-            txHash: txHash,
+            txHash: depTx,
             payer: who,
-            amount: amount,
+            amount: deposit,
             kind: 1
         });
-        bytes memory proof = abi.encode(txHash, who, amount, uint8(1));
+        IPaymentVerifier.PaymentClaim memory balClaim = IPaymentVerifier.PaymentClaim({
+            txHash: balTx,
+            payer: who,
+            amount: balance,
+            kind: 3
+        });
+        bytes memory proof = abi.encode(depTx, who, deposit, uint8(1));
+        bytes memory balProof = abi.encode(balTx, who, balance, uint8(3));
         vm.prank(who);
-        line.openCredit(claim, proof);
+        line.openCredit(claim, proof, balClaim, balProof);
     }
 }

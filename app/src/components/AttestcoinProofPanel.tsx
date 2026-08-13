@@ -38,7 +38,7 @@ type Props = {
   claim?: {
     payer: string;
     amountLabel: string;
-    kind: "deposit" | "repay";
+    kind: "deposit" | "repay" | "balance";
   };
 };
 
@@ -70,6 +70,13 @@ export function AttestcoinProofPanel({ phase, meta, paymentTx, creditTx, claim }
     <div className="mt-5 rounded-xl border border-border bg-white/[0.02] p-4">
       <p className="text-[11px] font-medium uppercase tracking-label text-muted">
         Attestcoin proof
+        {claim?.kind === "balance"
+          ? " · balance"
+          : claim?.kind === "deposit"
+            ? " · deposit"
+            : claim?.kind === "repay"
+              ? " · repay"
+              : ""}
       </p>
 
       {waiting && (

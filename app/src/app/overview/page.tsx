@@ -34,6 +34,7 @@ export default function OverviewPage() {
   const credit = position ? position.credit : 0n;
   const deposit = position ? position.deposit : 0n;
   const debt = position ? position.debt : 0n;
+  const attestedBalance = position ? position.attestedBalance : 0n;
   const available = status === 1 && credit > debt ? credit - debt : 0n;
   const activity = recent.slice(0, 5);
 
@@ -93,13 +94,19 @@ export default function OverviewPage() {
         <MetricCard
           label="Credit available"
           value={`${formatEth(available)} sCREDIT`}
-          hint={status === 1 ? "Ready to withdraw" : status === 2 ? "Closed" : "—"}
+          hint={status === 1 ? "Ready to withdraw · 10% APR on debt" : status === 2 ? "Closed" : "—"}
         />
-        <MetricCard label="Deposit locked" value={`${formatEth(deposit)} ETH`} />
+        <MetricCard
+          label="Deposit locked"
+          value={`${formatEth(deposit)} ETH`}
+          hint={
+            attestedBalance > 0n ? `Attested Sepolia bal ${formatEth(attestedBalance)} ETH` : undefined
+          }
+        />
         <MetricCard
           label="Status"
           value={statusLabel(status)}
-          hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT` : undefined}
+          hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT (accruing)` : undefined}
         />
       </div>
 
