@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Spark — Pitch Deck</title>
+  <style>
+    @page { size: landscape; margin: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: #0a0a0a;
+      color: #fafafa;
+    }
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      padding: 7vh 8vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      page-break-after: always;
+      background:
+        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(255, 102, 0, 0.18), transparent 55%),
+        #0a0a0a;
+      position: relative;
+    }
+    .slide:last-child { page-break-after: auto; }
+    .brand { color: #ff6600; font-weight: 600; letter-spacing: 0.04em; font-size: 14px; }
+    h1 { font-size: clamp(36px, 5.5vw, 64px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+    h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 600; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
+    p, li { font-size: clamp(16px, 1.6vw, 22px); line-height: 1.5; color: #a1a1aa; }
+    .lead { color: #e4e4e7; max-width: 36em; }
+    ul { list-style: none; display: grid; gap: 0.85rem; margin-top: 1rem; }
+    li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff6600; margin-right: 12px; vertical-align: middle; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-top: 2rem; }
+    .step { border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.25rem; background: rgba(17,17,19,0.8); }
+    .step .n { font-family: ui-monospace, monospace; color: #ff6600; font-size: 13px; margin-bottom: 0.5rem; }
+    .step .t { color: #fafafa; font-size: 18px; font-weight: 500; }
+    .meta { margin-top: 2rem; font-size: 14px; color: #71717a; }
+    a { color: #ff6600; text-decoration: none; }
+    .logo { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 1.5rem; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 15px; }
+    td, th { text-align: left; padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); color: #a1a1aa; }
+    th { color: #fafafa; font-weight: 500; }
+    .footer {
+      position: absolute; bottom: 4vh; left: 8vw; right: 8vw;
+      display: flex; justify-content: space-between; font-size: 12px; color: #52525b;
+    }
+    @media print {
+      .slide { width: 11in; height: 8.5in; }
+      body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+  <section class="slide">
+    <img class="logo" src="brand/logo.png" alt="Spark" />
+    <p class="brand">SPARK</p>
+    <h1 style="margin-top:0.75rem">Pay once.<br />Unlock credit.</h1>
+    <p class="lead" style="margin-top:1.25rem">Collateralized credit on Creditcoin, gated by Attestcoin Protocol payment proofs.</p>
+    <p class="meta">DeFi · BUIDL CTC 2026 Fall · Creditcoin &amp; Credit Labs</p>
+    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 7</span></div>
+  </section>
+
+  <section class="slide">
+    <p class="brand">PROBLEM</p>
+    <h2>Credit cannot trust a payment that happened somewhere else</h2>
+    <p class="lead">Without paperwork, delays, or a middleman, most credit systems cannot verify that a deposit or repayment occurred on another chain.</p>
+    <ul>
+      <li>Manual reconciliation is slow and opaque</li>
+      <li>Centralized oracles and bridges add trust risk</li>
+      <li>Cross-chain DeFi needs cryptographic proof, not receipts</li>
+    </ul>
+    <div class="footer"><span>Spark</span><span>2 / 7</span></div>
+  </section>
+
+  <section class="slide">
+    <p class="brand">SOLUTION</p>
+    <h2>Verify payment. Then open credit on Creditcoin.</h2>
+    <p class="lead">Spark uses the Attestcoin Protocol (formerly USC) so a Sepolia payment can unlock or clear a credit line on Creditcoin without a centralized oracle.</p>
+    <ul>
+      <li>Deposit on Sepolia → Attestcoin proves the tx → credit opens</li>
+      <li>Repay the same way → line closes</li>
+      <li>No valid proof means no state change</li>
+    </ul>
+    <div class="footer"><span>Spark</span><span>3 / 7</span></div>
+  </section>
+
+  <section class="slide">
+    <p class="brand">HOW IT WORKS</p>
+    <h2>Four steps. Fully on-chain.</h2>
+    <div class="steps">
+      <div class="step"><div class="n">01</div><div class="t">Pay deposit on Sepolia</div></div>
+      <div class="step"><div class="n">02</div><div class="t">Attestcoin proves the payment</div></div>
+      <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin</div></div>
+      <div class="step"><div class="n">04</div><div class="t">Repay → credit closes</div></div>
+    </div>
+    <p class="meta" style="margin-top:2rem">Live testnet: Sepolia + Creditcoin CC3</p>
+    <div class="footer"><span>Spark</span><span>4 / 7</span></div>
+  </section>
+
+  <section class="slide">
+    <p class="brand">ATTESTCOIN PROTOCOL</p>
+    <h2>Payment verification is required, not optional</h2>
+    <div class="row">
+      <div>
+        <ul>
+          <li><code>openCredit</code> and <code>repayCredit</code> call the verifier</li>
+          <li>One-time <code>txHash</code> (replay protected)</li>
+          <li>Payer must match <code>msg.sender</code></li>
+          <li>Amounts come from the verified claim</li>
+        </ul>
+      </div>
+      <div>
+        <table>
+          <tr><th>Component</th><th>Role</th></tr>
+          <tr><td>SepoliaPayment</td><td>Payment events</td></tr>
+          <tr><td>Attestcoin / USC</td><td>Cross-chain proof</td></tr>
+          <tr><td>CreditLine</td><td>Credit on Creditcoin</td></tr>
+          <tr><td>BlockProver 0xFD2</td><td>On-chain verify</td></tr>
+        </table>
+      </div>
+    </div>
+    <div class="footer"><span>Spark</span><span>5 / 7</span></div>
+  </section>
+
+  <section class="slide">
+    <p class="brand">PRODUCT</p>
+    <h2>Live testnet product, not a slideware demo</h2>
+    <ul>
+      <li>App: <a href="https://spark.sithunyein.com">spark.sithunyein.com</a></li>
+      <li>Repo: <a href="https://github.com/thesithunyein/spark-ctc">github.com/thesithunyein/spark-ctc</a></li>
+      <li>Help, Overview, Pay, Repay, Payments, Settings</li>
+      <li>Contracts deployed on Sepolia + Creditcoin testnet</li>
+      <li>Testnet only. Not audited.</li>
+    </ul>
+    <div class="footer"><span>Spark</span><span>6 / 7</span></div>
+  </section>
+
+  <section class="slide">
+    <p class="brand">ROADMAP &amp; ASK</p>
+    <h2>Grow Spark on Creditcoin</h2>
+    <ul>
+      <li><strong style="color:#fafafa">Now:</strong> Live Attestcoin USC proofs on Creditcoin testnet</li>
+      <li><strong style="color:#fafafa">Next:</strong> Faster attestation UX and deeper receipt decoding</li>
+      <li><strong style="color:#fafafa">Later:</strong> Mainnet readiness, audit, simpler UX</li>
+    </ul>
+    <p class="lead" style="margin-top:2rem">Seeking Grand Prize / CEIP fast-track to deepen Attestcoin integration and ship credit that Creditcoin can power for the real world.</p>
+    <p class="meta">MIT License · Contact via GitHub</p>
+    <div class="footer"><span>spark.sithunyein.com</span><span>7 / 7</span></div>
+  </section>
+</body>
+</html>

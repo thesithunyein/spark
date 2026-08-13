@@ -1,0 +1,142 @@
+"use client";
+
+import Link from "next/link";
+import { useAccount, useReadContract } from "wagmi";
+import { AppShell } from "@/components/AppShell";
+import { MetricCard } from "@/components/MetricCard";
+import { PositionSnapshot } from "@/components/PositionSnapshot";
+import { ActivityTable } from "@/components/ActivityTable";
+import { OnboardingChecklist } from "@/components/OnboardingChecklist";
+import { config } from "@/lib/config";
+import { creditLineAbi } from "@/lib/abi";
+import { formatEth, statusLabel } from "@/lib/format";
+import { creditcoinTestnet } from "@/lib/wagmi";
+import { usePaymentActivity } from "@/hooks/usePaymentActivity";
+
+export default function OverviewPage() {
+  const { address, isConnected } = useAccount();
+  const { items: recent } = usePaymentActivity("all");
+
+  const { data: position } = useReadContract({
+    address: config.creditLineAddress,
+    abi: creditLineAbi,
+    functionName: "getPosition",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: {
+      enabled:
+        Boolean(address) &&
+        config.creditLineAddress !== "0x0000000000000000000000000000000000000000",
+    },
+  });
+
+  const status = position ? Number(position.status) : 0;
+  const credit = position ? position.credit : 0n;
+  const deposit = position ? position.deposit : 0n;
+  const debt = position ? position.debt : 0n;
+  const available = status === 1 && credit > debt ? credit - debt : 0n;
+  const activity = recent.slice(0, 5);
+
+  return (
+    <AppShell
+      title="Overview"
+      subtitle="Your credit line after verified payment."
+      actions={
+        <div className="hidden gap-2 sm:flex">
+          <Link
+            href="/pay"
+            className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2"
+          >
+            Pay deposit
+          </Link>
+          <Link
+            href="/withdraw"
+            className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+          >
+            Withdraw
+          </Link>
+          <Link
+            href="/repay"
+            className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+          >
+            Repay
+          </Link>
+        </div>
+      }
+    >
+      {!isConnected && (
+        <div className="mb-8 max-w-lg">
+          <p className="text-[15px] font-medium text-text">Connect a wallet to view credit</p>
+          <p className="mt-1 text-[13px] text-muted">Start with a small deposit to open a line.</p>
+          <Link href="/pay" className="mt-4 inline-flex text-[13px] font-medium text-brand hover:underline">
+            Go to Pay deposit →
+          </Link>
+        </div>
+      )}
+
+      <OnboardingChecklist hasCreditLine={status === 1 || status === 2} />
+
+      {isConnected && status === 0 && (
+        <div className="mb-8 max-w-lg">
+          <p className="text-[15px] font-medium text-text">No credit line yet</p>
+          <p className="mt-1 text-[13px] text-muted">Pay a deposit, verify it, then credit unlocks.</p>
+          <Link
+            href="/pay"
+            className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+          >
+            Pay deposit
+          </Link>
+        </div>
+      )}
+
+      <div className="grid gap-3 md:grid-cols-3">
+        <MetricCard
+          label="Credit available"
+          value={`${formatEth(available)} sCREDIT`}
+          hint={status === 1 ? "Ready to withdraw" : status === 2 ? "Closed" : "—"}
+        />
+        <MetricCard label="Deposit locked" value={`${formatEth(deposit)} ETH`} />
+        <MetricCard
+          label="Status"
+          value={statusLabel(status)}
+          hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT` : undefined}
+        />
+      </div>
+
+      <div className="mt-3 grid gap-3 lg:grid-cols-5">
+        <div className="lg:col-span-3">
+          <PositionSnapshot deposit={deposit} credit={credit} debt={debt} empty={status === 0} />
+        </div>
+        <div className="lg:col-span-2">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-medium uppercase tracking-label text-muted">Activity</p>
+            <Link href="/activity" className="text-[12px] text-muted transition hover:text-text">
+              View all
+            </Link>
+          </div>
+          <ActivityTable items={activity} />
+          <div className="mt-4 flex gap-2 sm:hidden">
+            <Link
+              href="/pay"
+              className="flex-1 rounded-full bg-brand px-3 py-2.5 text-center text-[13px] font-medium text-white"
+            >
+              Pay deposit
+            </Link>
+            <Link
+              href="/withdraw"
+              className="flex-1 rounded-full border border-border px-3 py-2.5 text-center text-[13px] font-medium"
+            >
+              Withdraw
+            </Link>
+            <Link
+              href="/repay"
+              className="flex-1 rounded-full border border-border px-3 py-2.5 text-center text-[13px] font-medium"
+            >
+              Repay
+            </Link>
+          </div>
+        </div>
+      </div>
+    </AppShell>
+  );
+}
