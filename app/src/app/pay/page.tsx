@@ -22,12 +22,11 @@ import { ConfirmingStages } from "@/components/ConfirmingStages";
 import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
 import { ConnectButton } from "@/components/ConnectButton";
 import { SuccessBanner } from "@/components/SuccessBanner";
-import { PaymentHistoryStrip } from "@/components/PaymentHistoryStrip";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
 import { encodePaymentProof, formatEth } from "@/lib/format";
 import {
-  buildAttestcoinProof,
+  buildAttestcoinProofPair,
   type AttestcoinPhase,
   type AttestcoinProofMeta,
 } from "@/lib/usc";
@@ -66,11 +65,11 @@ export default function PayPage() {
   const [creditTx, setCreditTx] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [statusNote, setStatusNote] = useState<string | null>(null);
-  const [proofLabel, setProofLabel] = useState("deposit");
   const [attestPhase, setAttestPhase] = useState<AttestcoinPhase | "submitting" | "done" | null>(
     null,
   );
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
+  const [verifyStartedAt, setVerifyStartedAt] = useState<number | null>(null);
   const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending: isSigning } = useWriteContract();
@@ -166,10 +165,10 @@ export default function PayPage() {
     }
     try {
       setStep(3);
+      setVerifyStartedAt(Date.now());
       const amountWei = parseEther(amount || "0.01");
 
-      setStatusNote("Attesting Sepolia ETH balance (second Attestcoin data type)…");
-      setProofLabel("balance");
+      setStatusNote("Recording Sepolia ETH balance on-chain…");
       const { hash: balHash, balanceWei } = balanceTxHash && attestedBalanceWei != null
         ? { hash: balanceTxHash, balanceWei: attestedBalanceWei }
         : await attestSepoliaBalance();
@@ -184,27 +183,28 @@ export default function PayPage() {
       let balanceProof: Hex;
 
       if (config.attestcoin) {
-        setProofLabel("deposit");
         setAttestPhase("finding_tx");
         setAttestMeta(null);
-        setStatusNote("Attestcoin proof 1/2 — deposit payment…");
-        const depBuilt = await buildAttestcoinProof(txHash, (phase, meta) => {
+        setStatusNote("Attestcoin proofs — waiting for Sepolia attestation (both in parallel)…");
+        const pair = await buildAttestcoinProofPair(txHash, balHash, ({ phase, meta, parallel }) => {
           setAttestPhase(phase);
           if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
+          if (phase === "waiting_attestation") {
+            setStatusNote(
+              parallel
+                ? "Attestcoin attestation for deposit + balance (~8–10 min once, parallel)…"
+                : "Attestcoin attestation (~8–10 min)…",
+            );
+          }
+          if (phase === "building_proof") {
+            setStatusNote("Building USC proofs…");
+          }
         });
-        depositProof = depBuilt.proof;
-
-        setProofLabel("balance");
-        setAttestPhase("finding_tx");
-        setStatusNote("Attestcoin proof 2/2 — Sepolia ETH balance…");
-        const balBuilt = await buildAttestcoinProof(balHash, (phase, meta) => {
-          setAttestPhase(phase);
-          if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
-        });
-        balanceProof = balBuilt.proof;
-        setAttestMeta(balBuilt.meta);
+        depositProof = pair.deposit.proof;
+        balanceProof = pair.balance.proof;
+        setAttestMeta(pair.balance.meta);
         setAttestPhase("submitting");
-        setStatusNote("Both USC proofs ready. Opening credit on Creditcoin…");
+        setStatusNote("Both proofs ready. Opening credit on Creditcoin…");
       } else {
         depositProof = encodePaymentProof({
           txHash,
@@ -255,10 +255,12 @@ export default function PayPage() {
       setStatusNote(null);
       if (config.attestcoin) setAttestPhase("done");
       setStep(4);
+      setVerifyStartedAt(null);
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
       setAttestPhase(null);
+      setVerifyStartedAt(null);
       setStep(2);
       autoVerifyStarted.current = false;
     }
@@ -413,15 +415,14 @@ export default function PayPage() {
           <AttestcoinProofPanel
             phase={attestPhase}
             meta={attestMeta}
-            paymentTx={proofLabel === "balance" ? balanceTxHash : txHash}
+            dualProof
+            verifyStartedAt={verifyStartedAt ?? undefined}
+            paymentTx={txHash}
             creditTx={creditTx}
             claim={{
               payer: address,
-              amountLabel:
-                proofLabel === "balance" && attestedBalanceWei != null
-                  ? formatEth(attestedBalanceWei)
-                  : amount || "0.01",
-              kind: proofLabel === "balance" ? "balance" : "deposit",
+              amountLabel: amount || "0.01",
+              kind: "deposit",
             }}
           />
         )}
@@ -440,8 +441,6 @@ export default function PayPage() {
           </p>
         )}
         {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
-
-        {isConnected && <PaymentHistoryStrip limit={4} title="Your payment history" />}
       </div>
     </AppShell>
   );

@@ -35,6 +35,8 @@ type Props = {
   meta: Partial<AttestcoinProofMeta> | null;
   paymentTx?: Hex;
   creditTx?: Hex;
+  dualProof?: boolean;
+  verifyStartedAt?: number;
   claim?: {
     payer: string;
     amountLabel: string;
@@ -42,22 +44,29 @@ type Props = {
   };
 };
 
-export function AttestcoinProofPanel({ phase, meta, paymentTx, creditTx, claim }: Props) {
+export function AttestcoinProofPanel({
+  phase,
+  meta,
+  paymentTx,
+  creditTx,
+  dualProof,
+  verifyStartedAt,
+  claim,
+}: Props) {
   const [elapsed, setElapsed] = useState(0);
   const waiting = phase === "waiting_attestation";
 
   useEffect(() => {
-    if (!waiting) {
+    if (!waiting && !verifyStartedAt) {
       setElapsed(0);
       return;
     }
-    setElapsed(0);
-    const started = Date.now();
-    const id = window.setInterval(() => {
-      setElapsed(Math.floor((Date.now() - started) / 1000));
-    }, 1000);
+    const started = verifyStartedAt ?? Date.now();
+    const tick = () => setElapsed(Math.floor((Date.now() - started) / 1000));
+    tick();
+    const id = window.setInterval(tick, 1000);
     return () => window.clearInterval(id);
-  }, [waiting]);
+  }, [waiting, verifyStartedAt, phase]);
 
   if (!phase) return null;
 
@@ -70,19 +79,24 @@ export function AttestcoinProofPanel({ phase, meta, paymentTx, creditTx, claim }
     <div className="mt-5 rounded-xl border border-border bg-white/[0.02] p-4">
       <p className="text-[11px] font-medium uppercase tracking-label text-muted">
         Attestcoin proof
-        {claim?.kind === "balance"
-          ? " · balance"
-          : claim?.kind === "deposit"
-            ? " · deposit"
-            : claim?.kind === "repay"
-              ? " · repay"
-              : ""}
+        {dualProof
+          ? " · deposit + balance"
+          : claim?.kind === "balance"
+            ? " · balance"
+            : claim?.kind === "deposit"
+              ? " · deposit"
+              : claim?.kind === "repay"
+                ? " · repay"
+                : ""}
       </p>
 
-      {waiting && (
+      {(waiting || verifyStartedAt) && (
         <p className="mt-2 text-[13px] text-text/85">
-          Usually ~8–10 min on Sepolia
+          {dualProof
+            ? "Waiting for Sepolia attestation (both proofs in parallel"
+            : "Usually ~8–10 min on Sepolia"}
           <span className="text-muted"> · elapsed {formatElapsed(elapsed)}</span>
+          {dualProof ? ")" : ""}
         </p>
       )}
 
@@ -103,7 +117,9 @@ export function AttestcoinProofPanel({ phase, meta, paymentTx, creditTx, claim }
               />
               <span className={done || current ? "text-text" : "text-muted"}>
                 {item.id === "waiting_attestation"
-                  ? "Wait for Attestcoin attestation (~8–10 min on Sepolia)"
+                  ? dualProof
+                    ? "Wait for Attestcoin attestation (parallel for both txs)"
+                    : "Wait for Attestcoin attestation (~8–10 min on Sepolia)"
                   : item.label}
               </span>
             </li>
