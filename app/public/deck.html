@@ -79,10 +79,10 @@
   <section class="slide">
     <p class="brand">SOLUTION</p>
     <h2>Verify payment. Then open credit on Creditcoin.</h2>
-    <p class="lead">Spark uses the Attestcoin Protocol (formerly USC) so a Sepolia payment can unlock or clear a credit line on Creditcoin without a centralized oracle.</p>
+    <p class="lead">Spark uses the Attestcoin Protocol (formerly USC) so Sepolia facts can unlock or clear a credit line on Creditcoin without a centralized oracle.</p>
     <ul>
-      <li>Deposit on Sepolia → Attestcoin proves the tx → credit opens</li>
-      <li>Repay the same way → line closes</li>
+      <li>Deposit + attested Sepolia ETH balance → dual BlockProver proofs → credit opens</li>
+      <li>LTV scales with attested solvency; debt accrues interest; repay closes the line</li>
       <li>No valid proof means no state change</li>
     </ul>
     <div class="footer"><span>Spark</span><span>3 / 7</span></div>
@@ -92,8 +92,8 @@
     <p class="brand">HOW IT WORKS</p>
     <h2>Four steps. Fully on-chain.</h2>
     <div class="steps">
-      <div class="step"><div class="n">01</div><div class="t">Pay deposit on Sepolia</div></div>
-      <div class="step"><div class="n">02</div><div class="t">Attestcoin proves the payment</div></div>
+      <div class="step"><div class="n">01</div><div class="t">Pay deposit + attest balance</div></div>
+      <div class="step"><div class="n">02</div><div class="t">Attestcoin proves both txs</div></div>
       <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin</div></div>
       <div class="step"><div class="n">04</div><div class="t">Repay → credit closes</div></div>
     </div>
@@ -107,22 +107,23 @@
     <div class="row">
       <div>
         <ul>
-          <li><code>openCredit</code> and <code>repayCredit</code> call the verifier</li>
+          <li><code>openCredit</code> requires two proofs: deposit + balance</li>
           <li>One-time <code>txHash</code> (replay protected)</li>
           <li>Payer must match <code>msg.sender</code></li>
-          <li>Amounts come from the verified claim</li>
+          <li>Attested balance sizes LTV (80% / 85% / 90%)</li>
         </ul>
       </div>
       <div>
         <table>
           <tr><th>Component</th><th>Role</th></tr>
-          <tr><td>SepoliaPayment</td><td>Payment events</td></tr>
+          <tr><td>SepoliaPayment</td><td>Deposit, repay, balance events</td></tr>
           <tr><td>Attestcoin / USC</td><td>Cross-chain proof</td></tr>
-          <tr><td>CreditLine</td><td>Credit on Creditcoin</td></tr>
+          <tr><td>CreditLine</td><td>Credit + interest on Creditcoin</td></tr>
           <tr><td>BlockProver 0xFD2</td><td>On-chain verify</td></tr>
         </table>
       </div>
     </div>
+    <p class="meta" style="margin-top:1.5rem;max-width:42em">Testnet verifier: BlockProver proves inclusion; we match event topics in tx bytes. Production would strict-decode logs and bind amounts. Fine for testnet — not audited.</p>
     <div class="footer"><span>Spark</span><span>5 / 7</span></div>
   </section>
 
@@ -143,9 +144,9 @@
     <p class="brand">ROADMAP &amp; ASK</p>
     <h2>Grow Spark on Creditcoin</h2>
     <ul>
-      <li><strong style="color:#fafafa">Now:</strong> Live Attestcoin USC proofs on Creditcoin testnet</li>
-      <li><strong style="color:#fafafa">Next:</strong> Faster attestation UX and deeper receipt decoding</li>
-      <li><strong style="color:#fafafa">Later:</strong> Mainnet readiness, audit, simpler UX</li>
+      <li><strong style="color:#fafafa">Now:</strong> Dual Attestcoin proofs (deposit + balance), interest, redeem</li>
+      <li><strong style="color:#fafafa">Next:</strong> Strict log/ABI decoding in the verifier, faster attestation UX</li>
+      <li><strong style="color:#fafafa">Later:</strong> Mainnet readiness, audit, lending pool</li>
     </ul>
     <p class="lead" style="margin-top:2rem">Seeking Grand Prize / CEIP fast-track to deepen Attestcoin integration and ship credit that Creditcoin can power for the real world.</p>
     <p class="meta">MIT License · Contact via GitHub</p>

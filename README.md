@@ -30,12 +30,12 @@
 
 ## What it is
 
-Other credit apps cannot trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies the payment, then unlocks or clears credit on **Creditcoin**.
+Other credit apps cannot trust a payment that happened somewhere else without paperwork or a middleman. **Spark** verifies Sepolia facts with **Attestcoin**, then unlocks or clears credit on **Creditcoin**.
 
 - DeFi credit on Creditcoin (BUIDL CTC 2026 Fall)
-- Rules, proofs, and on-chain balances only
-- Runs on testnets today (Sepolia + Creditcoin testnet)
-- Live app uses **Attestcoin Protocol** (USC BlockProver) to verify Sepolia payments before credit opens
+- **Two** Attestcoin proofs to open: deposit payment + Sepolia ETH balance (sizes LTV)
+- Debt accrues interest; redeem burns sCREDIT; attested Sepolia repay closes the line
+- Live app uses **Attestcoin Protocol** (USC BlockProver) — no centralized oracle
 
 ## Architecture
 
@@ -47,7 +47,7 @@ flowchart TB
   Verifier --> Credit[CreditLine]
 ```
 
-User flow: **Pay deposit → Confirming → Credit ready → Repay → Closed**
+User flow: **Pay deposit → Attest balance → Dual Attestcoin proofs → Credit ready → Withdraw / Redeem → Repay → Closed**
 
 See [docs/architecture.md](docs/architecture.md) and [docs/attestcoin.md](docs/attestcoin.md).
 
@@ -71,13 +71,17 @@ Live: [https://spark.sithunyein.com](https://spark.sithunyein.com) · Deck: [spa
 
 ## Deployed contracts (testnet)
 
+In-window Fall 2026 deploys (2026-08-13):
+
 | Contract | Network | Address |
 |---|---|---|
-| SepoliaPayment | Sepolia | `0xfe6D6efD09D2Da22656AA197713A4dEdd064E14F` |
-| AttestcoinPaymentVerifier | Creditcoin testnet | `0xB8d175f48cbeCc70448639000F749463734C08d0` |
-| CreditLine | Creditcoin testnet | `0x336bF0cF045048f7a17efE6eD50671f304B4E815` |
+| SepoliaPayment | Sepolia | `0x4B137F56A0b5A8633D079d2d6b34d6aC5CdD22E9` |
+| AttestcoinPaymentVerifier | Creditcoin testnet | `0x372BF96DFfa019A03E861d57CfC8a129172C8A3C` |
+| CreditLine (dual-proof + interest) | Creditcoin testnet | `0x1Ba750b08dC4C06B993DfDedE45d22cbD540D319` |
+| SparkCredit (sCREDIT) | Creditcoin testnet | `0xFa18A5458a973a4E8a3eF327A88262683B64b02b` |
+| BlockProver | Creditcoin | `0x0000000000000000000000000000000000000FD2` |
 
-Details: [docs/addresses.md](docs/addresses.md)
+Details / retired addresses: [docs/addresses.md](docs/addresses.md)
 
 ## Deploy
 
@@ -88,13 +92,15 @@ Details: [docs/addresses.md](docs/addresses.md)
 
 | Phase | Focus |
 |---|---|
-| **Now** | Testnet demo with live Attestcoin USC proofs |
-| **Next** | Stronger receipt decoding, faster attestation UX |
-| **Later** | Mainnet readiness, audit, simpler single-network UX |
+| **Now** | Dual Attestcoin proofs (deposit + balance), interest, redeem — live on testnet |
+| **Next** | Strict log/ABI decoding in the verifier, faster attestation UX |
+| **Later** | Mainnet readiness, audit, lending pool / single-network UX |
 
 ## Security
 
 Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Vercel.
+
+**Testnet verifier note:** BlockProver proves inclusion cryptographically. The adapter then checks that the payment contract, event topic, and payer appear in the proven tx bytes (substring match) — not full log/ABI decoding. Fine for this hackathon demo; production would strict-decode receipts and bind amounts.
 
 ## License
 
