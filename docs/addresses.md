@@ -20,4 +20,13 @@ In-window Fall 2026 deploys (2026-08-13):
 | SparkCredit | `0x03bE0d28A26Dca214461D1BC4f04b6b04C3B1b20` |
 | CreditLine (no withdraw) | `0x336bF0cF045048f7a17efE6eD50671f304B4E815` |
 
+## Verified sources
+
+| Contract | Explorer |
+|---|---|
+| SepoliaPayment | [eth-sepolia.blockscout.com](https://eth-sepolia.blockscout.com/address/0x4B137F56A0b5A8633D079d2d6b34d6aC5CdD22E9?tab=contract) |
+| AttestcoinPaymentVerifier | [creditcoin-testnet.blockscout.com](https://creditcoin-testnet.blockscout.com/address/0x372BF96DFfa019A03E861d57CfC8a129172C8A3C?tab=contract) |
+| CreditLine | [creditcoin-testnet.blockscout.com](https://creditcoin-testnet.blockscout.com/address/0x1Ba750b08dC4C06B993DfDedE45d22cbD540D319?tab=contract) |
+| SparkCredit | [creditcoin-testnet.blockscout.com](https://creditcoin-testnet.blockscout.com/address/0xFa18A5458a973a4E8a3eF327A88262683B64b02b?tab=contract) |
+
 Set on Vercel: `NEXT_PUBLIC_PAYMENT_ADDRESS`, `NEXT_PUBLIC_VERIFIER_ADDRESS`, `NEXT_PUBLIC_CREDITLINE_ADDRESS`, `NEXT_PUBLIC_CREDIT_TOKEN_ADDRESS`, `NEXT_PUBLIC_ATTESTCOIN=true`.
