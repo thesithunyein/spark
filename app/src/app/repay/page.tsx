@@ -9,7 +9,7 @@ import {
   useReadContract,
   usePublicClient,
 } from "wagmi";
-import { parseEther, type Hex, keccak256, toBytes, formatEther } from "viem";
+import { parseEther, type Hex, keccak256, toBytes, formatEther, parseAbiItem, decodeEventLog } from "viem";
 import { sepolia } from "wagmi/chains";
 import { Check } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
@@ -33,6 +33,16 @@ import {
 import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
 
 const ZERO = "0x0000000000000000000000000000000000000000" as const;
+const repaymentPaidEvent = parseAbiItem(
+  "event RepaymentPaid(address indexed payer, uint256 amount, bytes32 indexed ref)",
+);
+
+function formatDebtLabel(wei: bigint) {
+  if (wei === 0n) return "0";
+  const n = Number(wei) / 1e18;
+  if (n > 0 && n < 0.0001) return n.toFixed(12).replace(/0+$/, "").replace(/\.$/, "");
+  return formatEth(wei);
+}
 
 export default function RepayPage() {
   const { address, chainId, isConnected } = useAccount();
@@ -45,6 +55,7 @@ export default function RepayPage() {
     null,
   );
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
+  const [verifyStartedAt, setVerifyStartedAt] = useState<number | null>(null);
   const autoVerifyStarted = useRef(false);
   const resumeChecked = useRef(false);
   const amountWeiRef = useRef<bigint>(0n);
@@ -53,6 +64,7 @@ export default function RepayPage() {
   const { writeContractAsync, isPending: isSigning } = useWriteContract();
   const sepoliaTx = useChainTxConfirmation(sepolia.id);
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
+  const sepoliaClient = usePublicClient({ chainId: sepolia.id });
 
   const hasLegacy =
     config.legacyCreditLineAddress !== ZERO &&
@@ -206,23 +218,67 @@ export default function RepayPage() {
     const creditLine = creditLineRef.current;
     try {
       setStep(3);
+      setVerifyStartedAt(Date.now());
       if (chainId !== creditcoinTestnet.id) {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
-      const amountWei = amountWeiRef.current || parseEther(amount || "0");
+
+      // Prefer the on-chain Sepolia repayment amount (claim must match the paid tx).
+      let amountWei = amountWeiRef.current || parseEther(amount || "0");
+      if (sepoliaClient) {
+        try {
+          const receipt = await sepoliaClient.getTransactionReceipt({ hash: txHash });
+          for (const log of receipt.logs) {
+            const addr = log.address.toLowerCase();
+            if (
+              addr !== config.paymentAddress.toLowerCase() &&
+              addr !== config.legacyPaymentAddress.toLowerCase()
+            ) {
+              continue;
+            }
+            try {
+              const decoded = decodeEventLog({
+                abi: [repaymentPaidEvent],
+                data: log.data,
+                topics: log.topics,
+              });
+              if (decoded.eventName === "RepaymentPaid" && decoded.args.amount != null) {
+                amountWei = decoded.args.amount;
+                amountWeiRef.current = decoded.args.amount;
+                setAmount(formatEther(decoded.args.amount));
+                break;
+              }
+            } catch {
+              /* skip */
+            }
+          }
+        } catch {
+          /* keep amountWeiRef */
+        }
+      }
+      if (amountWei === 0n) {
+        throw new Error("Could not read Sepolia repayment amount. Refresh and try Verify again.");
+      }
+
       let proof: Hex;
       if (config.attestcoin) {
         setAttestPhase("finding_tx");
         setAttestMeta(null);
-        setStatusNote("Waiting for Attestcoin attestation, then building USC proof…");
+        setStatusNote("Waiting for Attestcoin attestation (often 8–20 min), then building USC proof…");
         const built = await buildAttestcoinProof(txHash, (phase, meta) => {
           setAttestPhase(phase);
           if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
+          if (phase === "building_proof") {
+            setStatusNote("Attestation ready. Building USC proof…");
+          }
+          if (phase === "proof_ready") {
+            setStatusNote("Proof ready. Confirm repayCredit in MetaMask…");
+          }
         });
         proof = built.proof;
         setAttestMeta(built.meta);
         setAttestPhase("submitting");
-        setStatusNote("USC proof ready. Updating credit on Creditcoin…");
+        setStatusNote("USC proof ready. Confirm in MetaMask on Creditcoin…");
       } else {
         proof = encodePaymentProof({ txHash, payer: address, amountWei, kind: 2 });
       }
@@ -246,12 +302,14 @@ export default function RepayPage() {
       setStatusNote(null);
       if (config.attestcoin) setAttestPhase("done");
       setStep(4);
+      setVerifyStartedAt(null);
       void refetchPosition();
       void refetchLegacy();
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
       setAttestPhase(null);
+      setVerifyStartedAt(null);
       setStep(2);
       autoVerifyStarted.current = false;
     }
@@ -370,11 +428,11 @@ export default function RepayPage() {
         {effectiveActive && step < 4 && (
           <p className="mb-5 text-[13px] text-muted">
             Outstanding debt:{" "}
-            <span className="tabular-nums text-text">{formatEth(effectiveDebt)} sCREDIT</span>
+            <span className="tabular-nums text-text">{formatDebtLabel(effectiveDebt)} sCREDIT</span>
           </p>
         )}
 
-        {hasActiveLine && !isLegacyClose && step < 4 && (
+        {hasActiveLine && !isLegacyClose && step < 2 && (
           <>
             <label className="text-[11px] font-medium uppercase tracking-label text-muted">
               Repay amount (ETH)
@@ -382,8 +440,7 @@ export default function RepayPage() {
             <input
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={step === 3}
-              className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
+              className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
             />
             <div className="mt-8 flex flex-col gap-2">
               <button
@@ -396,9 +453,7 @@ export default function RepayPage() {
                   ? "Confirm in MetaMask…"
                   : sepoliaConfirming
                     ? "Confirming on Sepolia…"
-                    : verifying
-                      ? "Verifying on Creditcoin…"
-                      : "Make repayment"}
+                    : "Make repayment"}
               </button>
             </div>
           </>
@@ -406,27 +461,52 @@ export default function RepayPage() {
 
         {effectiveActive && (step >= 2 || isLegacyClose) && step < 4 && (
           <>
-            <div className={hasActiveLine && !isLegacyClose ? "mt-8" : ""}>
+            <div className={hasActiveLine && !isLegacyClose && step < 2 ? "mt-8" : ""}>
               <ConfirmingStages step={stage} />
             </div>
             <div className="mt-8 flex flex-col gap-2">
-              {sepoliaTx.confirmed && step === 2 && !verifying && (
+              {sepoliaTx.confirmed && step >= 2 && step < 4 && (
                 <button
                   type="button"
                   onClick={() => {
                     autoVerifyStarted.current = true;
                     void onProveRepay();
                   }}
-                  className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2"
+                  disabled={verifying && attestPhase !== null && attestPhase !== "proof_ready"}
+                  className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
                 >
-                  Verify repayment &amp; close credit
+                  {verifying
+                    ? attestPhase === "submitting"
+                      ? "Confirm in MetaMask…"
+                      : "Verifying… (keep this tab open)"
+                    : "Verify repayment & close credit"}
                 </button>
               )}
-              {verifying && !config.attestcoin && (
-                <p className="text-center text-[12px] text-muted">
-                  {statusNote || "Payment confirmed. Updating credit on Creditcoin…"}
-                </p>
+              {verifying && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    autoVerifyStarted.current = false;
+                    setAttestPhase(null);
+                    setVerifyStartedAt(null);
+                    setStep(2);
+                    setError(null);
+                    setTimeout(() => {
+                      autoVerifyStarted.current = true;
+                      void onProveRepay();
+                    }, 50);
+                  }}
+                  className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03]"
+                >
+                  Retry verify (same Sepolia tx)
+                </button>
               )}
+              {statusNote && (
+                <p className="text-center text-[12px] text-muted">{statusNote}</p>
+              )}
+              <p className="text-center text-[12px] text-muted">
+                Do not make a second Sepolia repayment. Attestcoin can take 15–25 min; then confirm MetaMask on Creditcoin.
+              </p>
             </div>
           </>
         )}
@@ -437,6 +517,7 @@ export default function RepayPage() {
             meta={attestMeta}
             paymentTx={sepoliaTx.hash}
             creditTx={creditTx}
+            verifyStartedAt={verifyStartedAt ?? undefined}
             claim={{
               payer: address,
               amountLabel: amount || "0",

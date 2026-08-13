@@ -94,7 +94,7 @@ export function AttestcoinProofPanel({
         <p className="mt-2 text-[13px] text-text/85">
           {dualProof
             ? "Waiting for Sepolia attestation (both proofs in parallel"
-            : "Usually ~8–10 min on Sepolia"}
+            : "Often 8–20 min on Sepolia"}
           <span className="text-muted"> · elapsed {formatElapsed(elapsed)}</span>
           {dualProof ? ")" : ""}
         </p>
@@ -117,9 +117,7 @@ export function AttestcoinProofPanel({
               />
               <span className={done || current ? "text-text" : "text-muted"}>
                 {item.id === "waiting_attestation"
-                  ? dualProof
-                    ? "Wait for Attestcoin attestation (parallel for both txs)"
-                    : "Wait for Attestcoin attestation (~8–10 min on Sepolia)"
+                  ? "Wait for Attestcoin attestation (often 8–20 min on Sepolia)"
                   : item.label}
               </span>
             </li>

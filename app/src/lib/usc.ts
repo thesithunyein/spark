@@ -39,8 +39,9 @@ export type AttestcoinPairProgress = {
 };
 
 const ATTEST_POLL_MS = 3_000;
-const ATTEST_TIMEOUT_MS = 900_000;
-const ATTEST_INITIAL_DELAY_MS = 10_000;
+/** Attestcoin on Sepolia often needs 8–20 min; allow up to 30 min before failing. */
+const ATTEST_TIMEOUT_MS = 1_800_000;
+const ATTEST_INITIAL_DELAY_MS = 5_000;
 
 function proverConfig() {
   return {

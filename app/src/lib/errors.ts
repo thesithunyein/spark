@@ -46,6 +46,13 @@ export function friendlyError(err: unknown): string {
   }
 
   if (
+    msg.includes("timeout") &&
+    (msg.includes("attest") || msg.includes("height") || msg.includes("wait"))
+  ) {
+    return "Attestcoin is still catching up (can take 15–25 min). Click Verify again — do not repay a second time.";
+  }
+
+  if (
     msg.includes("rpc timeout") ||
     msg.includes("timeout") ||
     msg.includes("block range") ||
