@@ -45,7 +45,25 @@ export function friendlyError(err: unknown): string {
     return "No wallet found. Install the MetaMask browser extension.";
   }
 
-  if (msg.includes("contract not") || msg.includes("0x000000")) {
+  if (
+    msg.includes("rpc timeout") ||
+    msg.includes("timeout") ||
+    msg.includes("block range") ||
+    msg.includes("query returned more than") ||
+    msg.includes("too many results")
+  ) {
+    return "Sepolia RPC timed out scanning payment history. Wait a moment and scan again.";
+  }
+
+  if (
+    msg.includes("contract not deployed") ||
+    msg.includes("contract code is empty") ||
+    msg.includes("address is not a contract")
+  ) {
+    return "Contracts are not configured yet.";
+  }
+
+  if (msg.includes("0x0000000000000000000000000000000000000000")) {
     return "Contracts are not configured yet.";
   }
 

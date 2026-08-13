@@ -32,6 +32,22 @@ const depositEvent = parseAbiItem(
 const repayEvent = parseAbiItem(
   "event RepaymentPaid(address indexed payer, uint256 amount, bytes32 indexed ref)",
 );
+const LOG_LOOKBACK = 30_000n;
+const LOG_TIMEOUT_MS = 12_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<T>((_, reject) => {
+      setTimeout(() => reject(new Error("rpc timeout")), ms);
+    }),
+  ]);
+}
+
+async function scanFromBlock(client: { getBlockNumber: () => Promise<bigint> }) {
+  const latest = await withTimeout(client.getBlockNumber(), LOG_TIMEOUT_MS);
+  return latest > LOG_LOOKBACK ? latest - LOG_LOOKBACK : 0n;
+}
 
 export function LinkHistoryPanel() {
   const { address, chainId, isConnected } = useAccount();
@@ -96,21 +112,28 @@ export function LinkHistoryPanel() {
     try {
       setScanning(true);
       setStatus("Scanning SepoliaPayment for your deposit/repay events…");
+      const fromBlock = await scanFromBlock(sepoliaClient);
       const [deps, reps] = await Promise.all([
-        sepoliaClient.getLogs({
-          address: config.paymentAddress,
-          event: depositEvent,
-          args: { payer: address },
-          fromBlock: 0n,
-          toBlock: "latest",
-        }),
-        sepoliaClient.getLogs({
-          address: config.paymentAddress,
-          event: repayEvent,
-          args: { payer: address },
-          fromBlock: 0n,
-          toBlock: "latest",
-        }),
+        withTimeout(
+          sepoliaClient.getLogs({
+            address: config.paymentAddress,
+            event: depositEvent,
+            args: { payer: address },
+            fromBlock,
+            toBlock: "latest",
+          }),
+          LOG_TIMEOUT_MS,
+        ),
+        withTimeout(
+          sepoliaClient.getLogs({
+            address: config.paymentAddress,
+            event: repayEvent,
+            args: { payer: address },
+            fromBlock,
+            toBlock: "latest",
+          }),
+          LOG_TIMEOUT_MS,
+        ),
       ]);
 
       const byTx = new Map<string, HistoryPayment>();
