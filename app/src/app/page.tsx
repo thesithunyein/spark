@@ -1,10 +1,26 @@
 import Image from "next/image";
 import Link from "next/link";
 
+const SPEAK_BG =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4";
+
 export default function HomePage() {
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center px-6 text-center">
-      <div className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_rgba(255,102,0,0.14),_transparent_55%)]" />
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
+      <video
+        className="pointer-events-none absolute inset-0 -z-20 h-full w-full object-cover"
+        src={SPEAK_BG}
+        autoPlay
+        muted
+        loop
+        playsInline
+        preload="auto"
+        aria-hidden
+      />
+      <div
+        className="pointer-events-none absolute inset-0 -z-10 bg-gradient-to-b from-bg/75 via-bg/55 to-bg/90"
+        aria-hidden
+      />
 
       <Image
         src="/brand/logo.png"
@@ -12,7 +28,7 @@ export default function HomePage() {
         width={64}
         height={64}
         priority
-        className="rounded-[18px]"
+        className="rounded-[18px] shadow-[0_8px_40px_rgba(0,0,0,0.45)]"
       />
 
       <p className="mt-8 text-[13px] font-medium tracking-wide text-brand">Spark</p>
@@ -36,7 +52,7 @@ export default function HomePage() {
         </Link>
         <Link
           href="/overview"
-          className="inline-flex rounded-full border border-border px-7 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03]"
+          className="inline-flex rounded-full border border-border bg-bg/40 px-7 py-3 text-[14px] font-medium text-text backdrop-blur-sm transition hover:bg-white/[0.06]"
         >
           Overview
         </Link>
