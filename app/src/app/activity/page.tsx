@@ -11,7 +11,11 @@ import { isConfigured } from "@/lib/config";
 const filters: { id: ActivityFilter; label: string }[] = [
   { id: "all", label: "All" },
   { id: "deposit", label: "Deposits" },
+  { id: "withdraw", label: "Withdraws" },
+  { id: "redeem", label: "Redeems" },
   { id: "repay", label: "Repayments" },
+  { id: "credit", label: "Credit" },
+  { id: "transfer", label: "Transfers" },
 ];
 
 export default function ActivityPage() {
@@ -20,8 +24,11 @@ export default function ActivityPage() {
   const { items, loading, empty } = usePaymentActivity(filter);
 
   return (
-    <AppShell title="Payments" subtitle="Deposits and repayments for your wallet.">
-      <div className="mb-6 flex gap-1">
+    <AppShell
+      title="Payments"
+      subtitle="Deposits, withdraws, redeems, repayments, and credit events for your wallet."
+    >
+      <div className="mb-6 flex flex-wrap gap-1">
         {filters.map((t) => (
           <button
             key={t.id}
@@ -56,7 +63,7 @@ export default function ActivityPage() {
           {loading && <p className="mb-3 text-[12px] text-muted">Loading…</p>}
           {!loading && empty ? (
             <div className="rounded-2xl border border-dashed border-border px-5 py-12 text-center">
-              <p className="text-[13px] text-muted">No payments yet</p>
+              <p className="text-[13px] text-muted">No activity yet</p>
               <Link
                 href="/pay"
                 className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"

@@ -6,7 +6,6 @@ import {
   useAccount,
   usePublicClient,
   useWriteContract,
-  useWaitForTransactionReceipt,
   useSwitchChain,
 } from "wagmi";
 import {
@@ -33,6 +32,7 @@ import {
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
+import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
 
 function readAttestedBalance(logs: Log[], payment: `0x${string}`): bigint | null {
   for (const log of logs) {
@@ -71,8 +71,8 @@ export default function PayPage() {
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
   const autoVerifyStarted = useRef(false);
   const { switchChainAsync } = useSwitchChain();
-  const { writeContractAsync, isPending } = useWriteContract();
-  const { isLoading: waiting, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContractAsync, isPending: isSigning } = useWriteContract();
+  const sepoliaTx = useChainTxConfirmation(sepolia.id);
 
   async function onPay() {
     setError(null);
@@ -82,6 +82,7 @@ export default function PayPage() {
     setCreditTx(undefined);
     setBalanceTxHash(undefined);
     setAttestedBalanceWei(null);
+    sepoliaTx.reset();
     if (!address) {
       setError("Connect a wallet first.");
       return;
@@ -105,6 +106,7 @@ export default function PayPage() {
         chainId: sepolia.id,
       });
       setTxHash(hash);
+      sepoliaTx.track(hash);
       setStep(2);
       journalActivity(address, {
         id: `${hash}-dep`,
@@ -145,7 +147,7 @@ export default function PayPage() {
       amount: `${formatEth(balanceWei)} ETH`,
       status: "Confirmed",
       at: "Sepolia",
-      kind: "deposit",
+      kind: "attest",
       href: `${config.explorerSepolia}/tx/${hash}`,
     });
     return { hash, balanceWei };
@@ -245,7 +247,7 @@ export default function PayPage() {
         amount: `${formatEth(amountWei)} ETH`,
         status: "Completed",
         at: "Creditcoin",
-        kind: "deposit",
+        kind: "credit",
         href: `${config.explorerCreditcoin}/tx/${openHash}`,
       });
       setStatusNote(null);
@@ -261,14 +263,17 @@ export default function PayPage() {
   }
 
   useEffect(() => {
-    if (!isSuccess || step !== 2 || autoVerifyStarted.current || !txHash) return;
+    if (!sepoliaTx.confirmed || step !== 2 || autoVerifyStarted.current || !txHash) return;
     autoVerifyStarted.current = true;
     void onProveAndOpen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess, step, txHash]);
+  }, [sepoliaTx.confirmed, step, txHash]);
 
-  const stage = isSuccess && step === 2 ? 2 : step;
-  const verifying = step === 3 || (isSuccess && step === 2 && autoVerifyStarted.current);
+  const awaitingWallet = isSigning && !sepoliaTx.hash;
+  const sepoliaConfirming = Boolean(sepoliaTx.hash && !sepoliaTx.confirmed && step >= 1 && step < 3);
+  const verifying = step === 3 || (sepoliaTx.confirmed && step === 2 && autoVerifyStarted.current);
+  const stage: 0 | 1 | 2 | 3 | 4 =
+    step === 4 ? 4 : verifying ? 3 : sepoliaTx.confirmed ? 2 : sepoliaTx.hash ? 2 : step;
 
   return (
     <AppShell
@@ -331,18 +336,20 @@ export default function PayPage() {
           <button
             type="button"
             onClick={onPay}
-            disabled={!isConnected || isPending || waiting || verifying || step === 4}
+            disabled={!isConnected || awaitingWallet || sepoliaConfirming || verifying || step === 4}
             className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
           >
-            {isPending || waiting
-              ? "Confirm in wallet…"
-              : verifying
-                ? "Verifying deposit + balance…"
-                : step === 4
-                  ? "Credit ready"
-                  : "Pay deposit"}
+            {awaitingWallet
+              ? "Confirm in MetaMask…"
+              : sepoliaConfirming
+                ? "Confirming on Sepolia…"
+                : verifying
+                  ? "Verifying deposit + balance…"
+                  : step === 4
+                    ? "Credit ready"
+                    : "Pay deposit"}
           </button>
-          {isSuccess && step >= 2 && step < 4 && !verifying && (
+          {sepoliaTx.confirmed && step >= 2 && step < 4 && !verifying && (
             <button
               type="button"
               onClick={onProveAndOpen}

@@ -9,14 +9,33 @@ import { creditcoinTestnet } from "@/lib/wagmi";
 import { creditLineAbi } from "@/lib/abi";
 import { formatEth, type ActivityItem as TableItem } from "@/lib/format";
 
+export type ActivityKind =
+  | "deposit"
+  | "repay"
+  | "withdraw"
+  | "redeem"
+  | "credit"
+  | "transfer"
+  | "attest";
+
 export type ActivityItem = TableItem & {
-  kind: "deposit" | "repay";
+  kind: ActivityKind;
 };
 
-export type ActivityFilter = "all" | "deposit" | "repay";
+export type ActivityFilter =
+  | "all"
+  | "deposit"
+  | "withdraw"
+  | "redeem"
+  | "repay"
+  | "credit"
+  | "transfer";
 
-const LOOKBACK = 30_000n; // smaller window — public RPCs are slow on wide ranges
+const JOURNAL_EVENT = "spark-activity-journal";
+const JOURNAL_KEY = "spark.activity.v1";
+const LOOKBACK = 30_000n;
 const LOG_TIMEOUT_MS = 8_000;
+const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
 
 const depositPaid = parseAbiItem(
   "event DepositPaid(address indexed payer, uint256 amount, bytes32 indexed ref)",
@@ -25,37 +44,42 @@ const repaymentPaid = parseAbiItem(
   "event RepaymentPaid(address indexed payer, uint256 amount, bytes32 indexed ref)",
 );
 const creditOpened = parseAbiItem(
-  "event CreditOpened(address indexed user, uint256 deposit, uint256 credit, bytes32 indexed txHash)",
+  "event CreditOpened(address indexed user, uint256 deposit, uint256 attestedBalance, uint256 credit, uint256 factorBps, bytes32 indexed depositTxHash, bytes32 balanceTxHash)",
 );
 const creditRepaid = parseAbiItem(
   "event CreditRepaid(address indexed user, uint256 amount, bytes32 indexed txHash)",
 );
+const creditWithdrawn = parseAbiItem(
+  "event CreditWithdrawn(address indexed user, uint256 amount, uint256 debt)",
+);
+const creditRedeemed = parseAbiItem(
+  "event CreditRedeemed(address indexed user, uint256 amount, uint256 debt)",
+);
+const creditClosed = parseAbiItem(
+  "event CreditClosed(address indexed user, bytes32 indexed txHash)",
+);
 
-const JOURNAL_KEY = "spark.activity.v1";
-const ZERO_HASH = "0x0000000000000000000000000000000000000000000000000000000000000000";
-
-type JournalEntry = ActivityItem;
-
-function readJournal(address: string): JournalEntry[] {
+function readJournal(address: string): ActivityItem[] {
   try {
     const raw = localStorage.getItem(JOURNAL_KEY);
     if (!raw) return [];
-    const all = JSON.parse(raw) as Record<string, JournalEntry[]>;
+    const all = JSON.parse(raw) as Record<string, ActivityItem[]>;
     return all[address.toLowerCase()] ?? [];
   } catch {
     return [];
   }
 }
 
-export function journalActivity(address: string, entry: JournalEntry) {
+export function journalActivity(address: string, entry: ActivityItem) {
   try {
     const raw = localStorage.getItem(JOURNAL_KEY);
-    const all = (raw ? JSON.parse(raw) : {}) as Record<string, JournalEntry[]>;
+    const all = (raw ? JSON.parse(raw) : {}) as Record<string, ActivityItem[]>;
     const key = address.toLowerCase();
     const prev = all[key] ?? [];
     if (prev.some((p) => p.id === entry.id)) return;
-    all[key] = [entry, ...prev].slice(0, 50);
+    all[key] = [entry, ...prev].slice(0, 100);
     localStorage.setItem(JOURNAL_KEY, JSON.stringify(all));
+    window.dispatchEvent(new CustomEvent(JOURNAL_EVENT));
   } catch {
     /* ignore */
   }
@@ -105,7 +129,7 @@ function itemsFromPosition(
   const openHash = position.openTxHash;
   if (openHash && openHash !== ZERO_HASH) {
     items.push({
-      id: `${openHash}-dep`,
+      id: `${openHash}-dep-pos`,
       type: "Deposit paid",
       amount: `${formatEth(position.deposit)} ETH`,
       status: "Confirmed",
@@ -118,13 +142,13 @@ function itemsFromPosition(
   const closeHash = position.closeTxHash;
   if (Number(position.status) === 2 && closeHash && closeHash !== ZERO_HASH) {
     items.push({
-      id: `${closeHash}-rep`,
-      type: "Repayment paid",
+      id: `${closeHash}-close-pos`,
+      type: "Credit closed",
       amount: `${formatEth(position.deposit)} ETH`,
-      status: "Confirmed",
-      at: "Sepolia",
-      kind: "repay",
-      href: `${config.explorerSepolia}/tx/${closeHash}`,
+      status: "Completed",
+      at: "Creditcoin",
+      kind: "credit",
+      href: `${config.explorerCreditcoin}/tx/${closeHash}`,
     });
   }
 
@@ -137,6 +161,13 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
   const [logItems, setLogItems] = useState<ActivityItem[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [journalTick, setJournalTick] = useState(0);
+
+  useEffect(() => {
+    const bump = () => setJournalTick((t) => t + 1);
+    window.addEventListener(JOURNAL_EVENT, bump);
+    return () => window.removeEventListener(JOURNAL_EVENT, bump);
+  }, []);
 
   const { data: position, isPending: positionPending } = useReadContract({
     address: config.creditLineAddress,
@@ -151,7 +182,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
 
   const journalItems = useMemo(
     () => (address ? readJournal(address) : []),
-    [address],
+    [address, journalTick],
   );
 
   const positionItems = useMemo(() => itemsFromPosition(position), [position]);
@@ -231,7 +262,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
       if (creditClient && !cancelled) {
         try {
           const start = await fromBlock(creditClient);
-          const [opened, repaid] = await withTimeout(
+          const [opened, repaid, withdrawn, redeemed, closed] = await withTimeout(
             Promise.all([
               creditClient.getLogs({
                 address: config.creditLineAddress,
@@ -247,6 +278,27 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
                 fromBlock: start,
                 toBlock: "latest",
               }),
+              creditClient.getLogs({
+                address: config.creditLineAddress,
+                event: creditWithdrawn,
+                args: { user: address },
+                fromBlock: start,
+                toBlock: "latest",
+              }),
+              creditClient.getLogs({
+                address: config.creditLineAddress,
+                event: creditRedeemed,
+                args: { user: address },
+                fromBlock: start,
+                toBlock: "latest",
+              }),
+              creditClient.getLogs({
+                address: config.creditLineAddress,
+                event: creditClosed,
+                args: { user: address },
+                fromBlock: start,
+                toBlock: "latest",
+              }),
             ]),
             LOG_TIMEOUT_MS,
           );
@@ -255,10 +307,10 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
             push({
               id: `${log.transactionHash}-open`,
               type: "Credit opened",
-              amount: `${formatEther(log.args.credit ?? 0n)} ETH`,
+              amount: `${formatEther(log.args.credit ?? 0n)} sCREDIT`,
               status: "Completed",
               at: "Creditcoin",
-              kind: "deposit",
+              kind: "credit",
               href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
             });
           }
@@ -266,10 +318,43 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
             push({
               id: `${log.transactionHash}-crepay`,
               type: "Credit repaid",
-              amount: `${formatEther(log.args.amount ?? 0n)} ETH`,
+              amount: `${formatEther(log.args.amount ?? 0n)} sCREDIT`,
               status: "Completed",
               at: "Creditcoin",
               kind: "repay",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of withdrawn) {
+            push({
+              id: `${log.transactionHash}-wd`,
+              type: "Credit withdrawn",
+              amount: `${formatEther(log.args.amount ?? 0n)} sCREDIT`,
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "withdraw",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of redeemed) {
+            push({
+              id: `${log.transactionHash}-rd`,
+              type: "Credit redeemed",
+              amount: `${formatEther(log.args.amount ?? 0n)} sCREDIT`,
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "redeem",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of closed) {
+            push({
+              id: `${log.transactionHash}-closed`,
+              type: "Credit closed",
+              amount: "—",
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "credit",
               href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
             });
           }
@@ -288,12 +373,15 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
     return () => {
       cancelled = true;
     };
-  }, [address, sepoliaClient, creditClient, openTxHash, closeTxHash, positionStatus]);
+  }, [address, sepoliaClient, creditClient, openTxHash, closeTxHash, positionStatus, journalTick]);
 
-  const items = useMemo(
-    () => mergeItems([journalItems, positionItems, logItems]),
-    [journalItems, positionItems, logItems],
-  );
+  const items = useMemo(() => {
+    const merged = mergeItems([journalItems, positionItems, logItems]);
+    return merged.sort((a, b) => {
+      const rank = (id: string) => (journalItems.some((j) => j.id === id) ? 1 : 0);
+      return rank(b.id) - rank(a.id);
+    });
+  }, [journalItems, positionItems, logItems]);
 
   const filtered = useMemo(() => {
     if (filter === "all") return items;

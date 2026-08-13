@@ -6,7 +6,6 @@ import {
   useAccount,
   useReadContract,
   useWriteContract,
-  useWaitForTransactionReceipt,
   useSwitchChain,
 } from "wagmi";
 import { formatEther, isAddress, parseEther, type Hex } from "viem";
@@ -19,6 +18,7 @@ import { formatEth } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
+import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
 import clsx from "clsx";
 
 type Tab = "send" | "receive";
@@ -32,8 +32,8 @@ export default function TransferPage() {
   const [txHash, setTxHash] = useState<Hex | undefined>();
   const [copied, setCopied] = useState(false);
   const { switchChainAsync } = useSwitchChain();
-  const { writeContractAsync, isPending } = useWriteContract();
-  const { isLoading: waiting, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContractAsync, isPending: isSigning } = useWriteContract();
+  const creditTx = useChainTxConfirmation(creditcoinTestnet.id);
 
   const tokenOk =
     config.creditTokenAddress !== "0x0000000000000000000000000000000000000000";
@@ -50,8 +50,8 @@ export default function TransferPage() {
   const bal = balance ?? 0n;
 
   useEffect(() => {
-    if (isSuccess) void refetch();
-  }, [isSuccess, refetch]);
+    if (creditTx.confirmed) void refetch();
+  }, [creditTx.confirmed, refetch]);
 
   async function onCopy() {
     if (!address) return;
@@ -88,19 +88,23 @@ export default function TransferPage() {
         chainId: creditcoinTestnet.id,
       });
       setTxHash(hash);
+      creditTx.track(hash);
       journalActivity(address, {
         id: `${hash}-send`,
         type: "sCREDIT sent",
         amount: `${formatEth(value)} sCREDIT`,
         status: "Completed",
         at: "Creditcoin",
-        kind: "deposit",
+        kind: "transfer",
         href: `${config.explorerCreditcoin}/tx/${hash}`,
       });
     } catch (e) {
       setError(friendlyError(e));
     }
   }
+
+  const awaitingWallet = isSigning && !creditTx.hash;
+  const confirming = Boolean(creditTx.hash && !creditTx.confirmed);
 
   const qrUrl = address
     ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(address)}`
@@ -181,14 +185,16 @@ export default function TransferPage() {
             <button
               type="button"
               onClick={onSend}
-              disabled={!isConnected || isPending || waiting || bal === 0n || isSuccess}
+              disabled={!isConnected || awaitingWallet || confirming || bal === 0n || creditTx.confirmed}
               className="mt-8 w-full rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
             >
-              {isPending || waiting
-                ? "Confirm in wallet…"
-                : isSuccess
-                  ? "Sent"
-                  : "Send sCREDIT"}
+              {awaitingWallet
+                ? "Confirm in MetaMask…"
+                : confirming
+                  ? "Confirming on Creditcoin…"
+                  : creditTx.confirmed
+                    ? "Sent"
+                    : "Send sCREDIT"}
             </button>
 
             {bal === 0n && isConnected && (
@@ -255,7 +261,7 @@ export default function TransferPage() {
           </p>
         )}
         {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
-        {isSuccess && tab === "send" && (
+        {creditTx.confirmed && tab === "send" && (
           <div className="mt-6 border-t border-border pt-5">
             <p className="text-[15px] font-medium text-text">Sent</p>
             <Link

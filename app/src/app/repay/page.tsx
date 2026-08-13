@@ -2,9 +2,15 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { useAccount, useWriteContract, useWaitForTransactionReceipt, useSwitchChain, useReadContract } from "wagmi";
-import { parseEther, type Hex, keccak256, toBytes } from "viem";
+import {
+  useAccount,
+  useWriteContract,
+  useSwitchChain,
+  useReadContract,
+} from "wagmi";
+import { parseEther, type Hex, keccak256, toBytes, formatEther } from "viem";
 import { sepolia } from "wagmi/chains";
+import { Check } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { ConfirmingStages } from "@/components/ConfirmingStages";
 import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
@@ -20,12 +26,12 @@ import {
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
+import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
 
 export default function RepayPage() {
   const { address, chainId, isConnected } = useAccount();
-  const [amount, setAmount] = useState("0.008");
+  const [amount, setAmount] = useState("");
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
-  const [txHash, setTxHash] = useState<Hex | undefined>();
   const [creditTx, setCreditTx] = useState<Hex | undefined>();
   const [error, setError] = useState<string | null>(null);
   const [statusNote, setStatusNote] = useState<string | null>(null);
@@ -34,11 +40,12 @@ export default function RepayPage() {
   );
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
   const autoVerifyStarted = useRef(false);
+  const amountWeiRef = useRef<bigint>(0n);
   const { switchChainAsync } = useSwitchChain();
-  const { writeContractAsync, isPending } = useWriteContract();
-  const { isLoading: waiting, isSuccess } = useWaitForTransactionReceipt({ hash: txHash });
+  const { writeContractAsync, isPending: isSigning } = useWriteContract();
+  const sepoliaTx = useChainTxConfirmation(sepolia.id);
 
-  const { data: position } = useReadContract({
+  const { data: position, refetch: refetchPosition } = useReadContract({
     address: config.creditLineAddress,
     abi: creditLineAbi,
     functionName: "getPosition",
@@ -55,12 +62,26 @@ export default function RepayPage() {
   const hasActiveLine = status === 1;
   const debt = position?.debt ?? 0n;
 
+  useEffect(() => {
+    if (debt > 0n && !amount) {
+      setAmount(formatEther(debt));
+    }
+  }, [debt, amount]);
+
+  useEffect(() => {
+    if (!sepoliaTx.confirmed || step !== 2 || autoVerifyStarted.current || !sepoliaTx.hash) return;
+    autoVerifyStarted.current = true;
+    void onProveRepay();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sepoliaTx.confirmed, step, sepoliaTx.hash]);
+
   async function onRepayPay() {
     setError(null);
     autoVerifyStarted.current = false;
     setAttestPhase(null);
     setAttestMeta(null);
     setCreditTx(undefined);
+    sepoliaTx.reset();
     if (!address) return setError("Connect a wallet first.");
     if (!hasActiveLine) return setError("No active credit line to repay.");
     if (config.paymentAddress.endsWith("0000")) {
@@ -68,6 +89,9 @@ export default function RepayPage() {
     }
     try {
       if (chainId !== sepolia.id) await switchChainAsync({ chainId: sepolia.id });
+      const value = parseEther(amount || "0");
+      if (value === 0n) return setError("Enter an amount greater than 0.");
+      amountWeiRef.current = value;
       setStep(1);
       const ref = keccak256(toBytes(`spark-repay-${address}-${Date.now()}`));
       const hash = await writeContractAsync({
@@ -75,15 +99,15 @@ export default function RepayPage() {
         abi: sepoliaPaymentAbi,
         functionName: "payRepayment",
         args: [ref],
-        value: parseEther(amount || "0.008"),
+        value,
         chainId: sepolia.id,
       });
-      setTxHash(hash);
+      sepoliaTx.track(hash);
       setStep(2);
       journalActivity(address, {
         id: `${hash}-rep`,
         type: "Repayment paid",
-        amount: `${amount || "0.008"} ETH`,
+        amount: `${formatEth(value)} ETH`,
         status: "Confirmed",
         at: "Sepolia",
         kind: "repay",
@@ -92,6 +116,7 @@ export default function RepayPage() {
     } catch (e) {
       setError(friendlyError(e));
       setStep(0);
+      sepoliaTx.reset();
     }
   }
 
@@ -99,13 +124,14 @@ export default function RepayPage() {
     setError(null);
     setStatusNote(null);
     setCreditTx(undefined);
+    const txHash = sepoliaTx.hash;
     if (!address || !txHash) return;
     try {
       setStep(3);
       if (chainId !== creditcoinTestnet.id) {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
-      const amountWei = parseEther(amount || "0.008");
+      const amountWei = amountWeiRef.current || parseEther(amount || "0");
       let proof: Hex;
       if (config.attestcoin) {
         setAttestPhase("finding_tx");
@@ -133,7 +159,7 @@ export default function RepayPage() {
       journalActivity(address, {
         id: `${repayHash}-crepay`,
         type: "Credit repaid",
-        amount: `${formatEth(amountWei)} ETH`,
+        amount: `${formatEth(amountWei)} sCREDIT`,
         status: "Completed",
         at: "Creditcoin",
         kind: "repay",
@@ -142,6 +168,7 @@ export default function RepayPage() {
       setStatusNote(null);
       if (config.attestcoin) setAttestPhase("done");
       setStep(4);
+      void refetchPosition();
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
@@ -151,14 +178,12 @@ export default function RepayPage() {
     }
   }
 
-  useEffect(() => {
-    if (!isSuccess || step !== 2 || autoVerifyStarted.current || !txHash) return;
-    autoVerifyStarted.current = true;
-    void onProveRepay();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isSuccess, step, txHash]);
-
-  const verifying = step === 3 || (isSuccess && step === 2 && autoVerifyStarted.current);
+  const awaitingWallet = isSigning && !sepoliaTx.hash;
+  const sepoliaConfirming = Boolean(sepoliaTx.hash && !sepoliaTx.confirmed && step >= 1 && step < 3);
+  const verifying = step === 3;
+  const sepoliaPaid = sepoliaTx.confirmed && step >= 2 && step < 4;
+  const stage: 0 | 1 | 2 | 3 | 4 =
+    step === 4 ? 4 : verifying ? 3 : sepoliaTx.confirmed ? 2 : sepoliaTx.hash ? 2 : step;
 
   return (
     <AppShell title="Repay" subtitle="Pay on Sepolia, verify, clear debt on Creditcoin.">
@@ -172,7 +197,24 @@ export default function RepayPage() {
           </div>
         )}
 
-        {isConnected && !hasActiveLine && (
+        {isConnected && !hasActiveLine && status === 2 && (
+          <div className="mb-6 rounded-xl border border-success/30 bg-success/10 p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">
+                <Check className="h-4 w-4" />
+              </span>
+              <div>
+                <p className="text-[15px] font-medium text-text">Credit line closed</p>
+                <p className="mt-1 text-[13px] text-muted">Repayment verified on Creditcoin.</p>
+                <Link href="/overview" className="mt-3 inline-flex text-[13px] font-medium text-brand hover:underline">
+                  Back to overview
+                </Link>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {isConnected && !hasActiveLine && status !== 2 && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">No active credit line</p>
             <p className="mt-1 text-[13px] text-muted">Open credit with a deposit before you can repay.</p>
@@ -182,77 +224,124 @@ export default function RepayPage() {
           </div>
         )}
 
+        {sepoliaPaid && step < 4 && (
+          <div className="mb-6 rounded-xl border border-success/30 bg-success/10 p-4">
+            <p className="text-[15px] font-medium text-text">Sepolia repayment confirmed</p>
+            <p className="mt-1 text-[13px] text-muted">
+              {verifying
+                ? "Building Attestcoin proof and updating Creditcoin…"
+                : "Starting verification on Creditcoin…"}
+            </p>
+            {sepoliaTx.hash && (
+              <a
+                className="mt-2 inline-block break-all text-[12px] text-brand hover:underline"
+                href={`${config.explorerSepolia}/tx/${sepoliaTx.hash}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                View Sepolia tx
+              </a>
+            )}
+          </div>
+        )}
+
         {hasActiveLine && (
           <p className="mb-5 text-[13px] text-muted">
-            Outstanding debt: <span className="tabular-nums text-text">{formatEth(debt)} ETH</span>
+            Outstanding debt: <span className="tabular-nums text-text">{formatEth(debt)} sCREDIT</span>
           </p>
         )}
 
-        <label className="text-[11px] font-medium uppercase tracking-label text-muted">Repay amount (ETH)</label>
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          disabled={!hasActiveLine}
-          className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
-        />
-        <div className="mt-8">
-          <ConfirmingStages step={step} />
-        </div>
-        <div className="mt-8 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={onRepayPay}
-            disabled={!hasActiveLine || isPending || waiting || verifying || step === 4}
-            className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
-          >
-            {isPending || waiting
-              ? "Confirm in wallet…"
-              : verifying
-                ? "Verifying repayment…"
-                : "Make repayment"}
-          </button>
-          {isSuccess && step >= 2 && step < 4 && !verifying && (
-            <button
-              type="button"
-              onClick={onProveRepay}
-              className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03]"
-            >
-              Verify repayment & update credit
-            </button>
-          )}
-          {verifying && step < 4 && !config.attestcoin && (
-            <p className="text-center text-[12px] text-muted">
-              {statusNote || "Payment confirmed. Updating credit on Creditcoin…"}
-            </p>
-          )}
-        </div>
+        {hasActiveLine && (
+          <>
+            <label className="text-[11px] font-medium uppercase tracking-label text-muted">
+              Repay amount (ETH)
+            </label>
+            <input
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              disabled={step === 3 || step === 4}
+              className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
+            />
+            <div className="mt-8">
+              <ConfirmingStages step={stage} />
+            </div>
+            <div className="mt-8 flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={onRepayPay}
+                disabled={awaitingWallet || sepoliaConfirming || verifying || step === 4}
+                className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+              >
+                {awaitingWallet
+                  ? "Confirm in MetaMask…"
+                  : sepoliaConfirming
+                    ? "Confirming on Sepolia…"
+                    : verifying
+                      ? "Verifying on Creditcoin…"
+                      : step === 4
+                        ? "Repayment complete"
+                        : "Make repayment"}
+              </button>
+              {sepoliaTx.confirmed && step === 2 && !verifying && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    autoVerifyStarted.current = true;
+                    void onProveRepay();
+                  }}
+                  className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03]"
+                >
+                  Verify repayment & update credit
+                </button>
+              )}
+              {verifying && step < 4 && !config.attestcoin && (
+                <p className="text-center text-[12px] text-muted">
+                  {statusNote || "Payment confirmed. Updating credit on Creditcoin…"}
+                </p>
+              )}
+            </div>
+          </>
+        )}
+
         {config.attestcoin && attestPhase && address && (
           <AttestcoinProofPanel
             phase={attestPhase}
             meta={attestMeta}
-            paymentTx={txHash}
+            paymentTx={sepoliaTx.hash}
             creditTx={creditTx}
             claim={{
               payer: address,
-              amountLabel: amount || "0.008",
+              amountLabel: amount || "0",
               kind: "repay",
             }}
           />
         )}
-        {txHash && !attestPhase && (
+
+        {sepoliaTx.hash && !sepoliaTx.confirmed && step < 4 && (
           <p className="mt-5 break-all text-[12px] text-muted">
-            <a className="hover:underline" href={`${config.explorerSepolia}/tx/${txHash}`} target="_blank" rel="noreferrer">
-              {txHash}
+            <a
+              className="text-brand hover:underline"
+              href={`${config.explorerSepolia}/tx/${sepoliaTx.hash}`}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {sepoliaTx.hash}
             </a>
           </p>
         )}
         {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
         {step === 4 && (
           <div className="mt-6 border-t border-border pt-5">
-            <p className="text-[15px] font-medium text-text">Loan updated</p>
-            <Link href="/overview" className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
-              Back to overview
-            </Link>
+            <p className="text-[15px] font-medium text-text">Loan closed</p>
+            <p className="mt-1 text-[13px] text-muted">Debt cleared on Creditcoin.</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              <Link href="/overview" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
+                Back to overview
+              </Link>
+              <Link href="/activity" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
+                See payments
+              </Link>
+            </div>
           </div>
         )}
       </div>
