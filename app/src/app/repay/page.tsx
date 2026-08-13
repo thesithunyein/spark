@@ -112,7 +112,10 @@ export default function RepayPage() {
 
   useEffect(() => {
     if (effectiveDebt > 0n && !amount) {
-      setAmount(formatEther(effectiveDebt));
+      // Overpay tiny dust so interest accrual can't leave the line Active.
+      const floor = parseEther("0.001");
+      const pay = effectiveDebt < floor ? floor : effectiveDebt;
+      setAmount(formatEther(pay));
     }
   }, [effectiveDebt, amount]);
 
@@ -290,6 +293,9 @@ export default function RepayPage() {
         chainId: creditcoinTestnet.id,
       });
       setCreditTx(repayHash);
+      if (creditClient) {
+        await creditClient.waitForTransactionReceipt({ hash: repayHash });
+      }
       journalActivity(address, {
         id: `${repayHash}-crepay`,
         type: "Credit repaid",
@@ -301,10 +307,38 @@ export default function RepayPage() {
       });
       setStatusNote(null);
       if (config.attestcoin) setAttestPhase("done");
-      setStep(4);
-      setVerifyStartedAt(null);
-      void refetchPosition();
+
+      // Brief pause so RPC reflects state, then check closed vs dust left.
+      await new Promise((r) => setTimeout(r, 1500));
+      const posAfter = await refetchPosition();
       void refetchLegacy();
+      const nextStatus = posAfter.data ? Number(posAfter.data.status) : 0;
+      let nextDebt = posAfter.data?.debt ?? 0n;
+      if (creditClient && address) {
+        try {
+          nextDebt = await creditClient.readContract({
+            address: creditLine,
+            abi: creditLineAbi,
+            functionName: "currentDebt",
+            args: [address],
+          });
+        } catch {
+          /* use posAfter */
+        }
+      }
+      if (nextStatus === 2 || nextDebt === 0n) {
+        setStep(4);
+      } else {
+        setStep(0);
+        sepoliaTx.reset();
+        autoVerifyStarted.current = false;
+        setAttestPhase(null);
+        setAmount(formatEther(nextDebt < parseEther("0.001") ? parseEther("0.001") : nextDebt));
+        setError(
+          "Repayment applied, but tiny interest dust remains — line still Active. Pay 0.001 ETH once more and verify to fully close.",
+        );
+      }
+      setVerifyStartedAt(null);
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
@@ -442,6 +476,12 @@ export default function RepayPage() {
               onChange={(e) => setAmount(e.target.value)}
               className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
             />
+            {effectiveDebt > 0n && effectiveDebt < parseEther("0.001") && (
+              <p className="mt-2 text-[12px] text-muted">
+                Dust debt left after the last repay. Use <span className="tabular-nums text-text">0.001 ETH</span>{" "}
+                (overpay is fine) so interest can&apos;t leave the line open.
+              </p>
+            )}
             <div className="mt-8 flex flex-col gap-2">
               <button
                 type="button"
