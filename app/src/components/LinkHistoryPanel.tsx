@@ -19,7 +19,6 @@ import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
 import { SuccessBanner } from "@/components/SuccessBanner";
-import { PaymentHistoryStrip } from "@/components/PaymentHistoryStrip";
 import { encodePaymentProof } from "@/lib/format";
 
 type HistoryPayment = {
@@ -360,10 +359,6 @@ export function LinkHistoryPanel() {
 
       {status && <p className="mt-4 text-[13px] text-muted">{status}</p>}
       {error && <p className="mt-3 text-[13px] text-red-400">{error}</p>}
-
-      {isConnected && count > 0 && (
-        <PaymentHistoryStrip limit={3} title="Linked payment history" />
-      )}
     </div>
   );
 }
