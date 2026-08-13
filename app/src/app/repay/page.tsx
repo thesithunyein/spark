@@ -7,6 +7,7 @@ import {
   useWriteContract,
   useSwitchChain,
   useReadContract,
+  usePublicClient,
 } from "wagmi";
 import { parseEther, type Hex, keccak256, toBytes, formatEther } from "viem";
 import { sepolia } from "wagmi/chains";
@@ -25,8 +26,13 @@ import {
 } from "@/lib/usc";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
-import { journalActivity } from "@/hooks/usePaymentActivity";
+import {
+  getPendingSepoliaRepay,
+  journalActivity,
+} from "@/hooks/usePaymentActivity";
 import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
+
+const ZERO = "0x0000000000000000000000000000000000000000" as const;
 
 export default function RepayPage() {
   const { address, chainId, isConnected } = useAccount();
@@ -40,10 +46,17 @@ export default function RepayPage() {
   );
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
   const autoVerifyStarted = useRef(false);
+  const resumeChecked = useRef(false);
   const amountWeiRef = useRef<bigint>(0n);
+  const creditLineRef = useRef<`0x${string}`>(config.creditLineAddress);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending: isSigning } = useWriteContract();
   const sepoliaTx = useChainTxConfirmation(sepolia.id);
+  const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
+
+  const hasLegacy =
+    config.legacyCreditLineAddress !== ZERO &&
+    config.legacyCreditLineAddress !== config.creditLineAddress;
 
   const { data: position, refetch: refetchPosition } = useReadContract({
     address: config.creditLineAddress,
@@ -54,19 +67,83 @@ export default function RepayPage() {
     query: {
       enabled:
         Boolean(address) &&
-        config.creditLineAddress !== "0x0000000000000000000000000000000000000000",
+        config.creditLineAddress !== ZERO,
+    },
+  });
+
+  const { data: legacyPosition, refetch: refetchLegacy } = useReadContract({
+    address: config.legacyCreditLineAddress,
+    abi: creditLineAbi,
+    functionName: "getPosition",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: {
+      enabled: Boolean(address) && hasLegacy,
     },
   });
 
   const status = position ? Number(position.status) : 0;
+  const legacyStatus = legacyPosition ? Number(legacyPosition.status) : 0;
   const hasActiveLine = status === 1;
+  const legacyActive = legacyStatus === 1;
+  const effectiveActive = hasActiveLine || legacyActive;
   const debt = position?.debt ?? 0n;
+  const legacyDebt = legacyPosition?.debt ?? 0n;
+  const effectiveDebt = hasActiveLine ? debt : legacyDebt;
+  const isLegacyClose = legacyActive && !hasActiveLine;
+
+  creditLineRef.current = hasActiveLine
+    ? config.creditLineAddress
+    : legacyActive
+      ? config.legacyCreditLineAddress
+      : config.creditLineAddress;
 
   useEffect(() => {
-    if (debt > 0n && !amount) {
-      setAmount(formatEther(debt));
+    if (effectiveDebt > 0n && !amount) {
+      setAmount(formatEther(effectiveDebt));
     }
-  }, [debt, amount]);
+  }, [effectiveDebt, amount]);
+
+  useEffect(() => {
+    if (!address || !creditClient || resumeChecked.current || step >= 2) return;
+    const pending = getPendingSepoliaRepay(address);
+    if (!pending) return;
+
+    resumeChecked.current = true;
+    void (async () => {
+      const lines: `0x${string}`[] = [];
+      if (hasLegacy) lines.push(config.legacyCreditLineAddress);
+      if (config.creditLineAddress !== ZERO) lines.push(config.creditLineAddress);
+
+      for (const line of lines) {
+        try {
+          const used = await creditClient.readContract({
+            address: line,
+            abi: creditLineAbi,
+            functionName: "usedTx",
+            args: [pending.txHash],
+          });
+          if (used) continue;
+          const pos = await creditClient.readContract({
+            address: line,
+            abi: creditLineAbi,
+            functionName: "getPosition",
+            args: [address],
+          });
+          if (Number(pos.status) !== 1) continue;
+          creditLineRef.current = line;
+          setAmount(pending.amountLabel);
+          amountWeiRef.current = parseEther(pending.amountLabel || "0");
+          sepoliaTx.track(pending.txHash);
+          setStep(2);
+          return;
+        } catch {
+          /* try next line */
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, creditClient, step, hasLegacy]);
 
   useEffect(() => {
     if (!sepoliaTx.confirmed || step !== 2 || autoVerifyStarted.current || !sepoliaTx.hash) return;
@@ -126,6 +203,7 @@ export default function RepayPage() {
     setCreditTx(undefined);
     const txHash = sepoliaTx.hash;
     if (!address || !txHash) return;
+    const creditLine = creditLineRef.current;
     try {
       setStep(3);
       if (chainId !== creditcoinTestnet.id) {
@@ -149,7 +227,7 @@ export default function RepayPage() {
         proof = encodePaymentProof({ txHash, payer: address, amountWei, kind: 2 });
       }
       const repayHash = await writeContractAsync({
-        address: config.creditLineAddress,
+        address: creditLine,
         abi: creditLineAbi,
         functionName: "repayCredit",
         args: [{ txHash, payer: address, amount: amountWei, kind: 2 }, proof],
@@ -169,6 +247,7 @@ export default function RepayPage() {
       if (config.attestcoin) setAttestPhase("done");
       setStep(4);
       void refetchPosition();
+      void refetchLegacy();
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
@@ -178,12 +257,29 @@ export default function RepayPage() {
     }
   }
 
+  function resumePendingRepay() {
+    if (!address) return;
+    const pending = getPendingSepoliaRepay(address);
+    if (!pending) {
+      setError("No pending Sepolia repayment in this browser.");
+      return;
+    }
+    resumeChecked.current = false;
+    setAmount(pending.amountLabel);
+    amountWeiRef.current = parseEther(pending.amountLabel || "0");
+    sepoliaTx.track(pending.txHash);
+    setStep(2);
+    setError(null);
+  }
+
   const awaitingWallet = isSigning && !sepoliaTx.hash;
   const sepoliaConfirming = Boolean(sepoliaTx.hash && !sepoliaTx.confirmed && step >= 1 && step < 3);
   const verifying = step === 3;
   const sepoliaPaid = sepoliaTx.confirmed && step >= 2 && step < 4;
   const stage: 0 | 1 | 2 | 3 | 4 =
     step === 4 ? 4 : verifying ? 3 : sepoliaTx.confirmed ? 2 : sepoliaTx.hash ? 2 : step;
+  const lineClosed = step === 4 || (!effectiveActive && (status === 2 || legacyStatus === 2));
+  const pendingJournal = address ? getPendingSepoliaRepay(address) : null;
 
   return (
     <AppShell title="Repay" subtitle="Pay on Sepolia, verify, clear debt on Creditcoin.">
@@ -197,7 +293,7 @@ export default function RepayPage() {
           </div>
         )}
 
-        {isConnected && !hasActiveLine && status === 2 && (
+        {isConnected && lineClosed && step !== 4 && (
           <div className="mb-6 rounded-xl border border-success/30 bg-success/10 p-4">
             <div className="flex items-start gap-3">
               <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">
@@ -214,7 +310,33 @@ export default function RepayPage() {
           </div>
         )}
 
-        {isConnected && !hasActiveLine && status !== 2 && (
+        {isConnected && !effectiveActive && !lineClosed && pendingJournal && (
+          <div className="mb-6 rounded-xl border border-brand/30 bg-brand/10 p-4">
+            <p className="text-[15px] font-medium text-text">Sepolia repayment ready to verify</p>
+            <p className="mt-1 text-[13px] text-muted">
+              You paid on Sepolia ({pendingJournal.txHash.slice(0, 10)}…). Finish with{" "}
+              <code className="text-[12px]">repayCredit</code> on Creditcoin (~8–10 min attestation).
+            </p>
+            <button
+              type="button"
+              onClick={resumePendingRepay}
+              className="mt-4 rounded-full bg-brand px-4 py-2.5 text-[13px] font-medium text-white transition hover:bg-accent2"
+            >
+              Finish close on Creditcoin
+            </button>
+          </div>
+        )}
+
+        {isConnected && isLegacyClose && step < 4 && (
+          <div className="mb-6 rounded-xl border border-border bg-white/[0.02] p-4">
+            <p className="text-[13px] text-muted">
+              Closing your previous credit line on the Aug 13 deployment. Sepolia is already paid —
+              only Creditcoin verification remains.
+            </p>
+          </div>
+        )}
+
+        {isConnected && !effectiveActive && !lineClosed && !pendingJournal && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">No active credit line</p>
             <p className="mt-1 text-[13px] text-muted">Open credit with a deposit before you can repay.</p>
@@ -245,13 +367,14 @@ export default function RepayPage() {
           </div>
         )}
 
-        {hasActiveLine && (
+        {effectiveActive && step < 4 && (
           <p className="mb-5 text-[13px] text-muted">
-            Outstanding debt: <span className="tabular-nums text-text">{formatEth(debt)} sCREDIT</span>
+            Outstanding debt:{" "}
+            <span className="tabular-nums text-text">{formatEth(effectiveDebt)} sCREDIT</span>
           </p>
         )}
 
-        {hasActiveLine && (
+        {hasActiveLine && !isLegacyClose && step < 4 && (
           <>
             <label className="text-[11px] font-medium uppercase tracking-label text-muted">
               Repay amount (ETH)
@@ -259,17 +382,14 @@ export default function RepayPage() {
             <input
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
-              disabled={step === 3 || step === 4}
+              disabled={step === 3}
               className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
             />
-            <div className="mt-8">
-              <ConfirmingStages step={stage} />
-            </div>
             <div className="mt-8 flex flex-col gap-2">
               <button
                 type="button"
                 onClick={onRepayPay}
-                disabled={awaitingWallet || sepoliaConfirming || verifying || step === 4}
+                disabled={awaitingWallet || sepoliaConfirming || verifying}
                 className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
               >
                 {awaitingWallet
@@ -278,10 +398,18 @@ export default function RepayPage() {
                     ? "Confirming on Sepolia…"
                     : verifying
                       ? "Verifying on Creditcoin…"
-                      : step === 4
-                        ? "Repayment complete"
-                        : "Make repayment"}
+                      : "Make repayment"}
               </button>
+            </div>
+          </>
+        )}
+
+        {effectiveActive && (step >= 2 || isLegacyClose) && step < 4 && (
+          <>
+            <div className={hasActiveLine && !isLegacyClose ? "mt-8" : ""}>
+              <ConfirmingStages step={stage} />
+            </div>
+            <div className="mt-8 flex flex-col gap-2">
               {sepoliaTx.confirmed && step === 2 && !verifying && (
                 <button
                   type="button"
@@ -289,12 +417,12 @@ export default function RepayPage() {
                     autoVerifyStarted.current = true;
                     void onProveRepay();
                   }}
-                  className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03]"
+                  className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2"
                 >
-                  Verify repayment & update credit
+                  Verify repayment &amp; close credit
                 </button>
               )}
-              {verifying && step < 4 && !config.attestcoin && (
+              {verifying && !config.attestcoin && (
                 <p className="text-center text-[12px] text-muted">
                   {statusNote || "Payment confirmed. Updating credit on Creditcoin…"}
                 </p>
@@ -338,8 +466,8 @@ export default function RepayPage() {
               <Link href="/overview" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
                 Back to overview
               </Link>
-              <Link href="/activity" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
-                See payments
+              <Link href="/score" className="rounded-full border border-border px-4 py-2 text-[13px] font-medium">
+                Build credit score
               </Link>
             </div>
           </div>

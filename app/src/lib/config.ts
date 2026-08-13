@@ -12,6 +12,11 @@ export const config = {
     "0xFa18A5458a973a4E8a3eF327A88262683B64b02b") as `0x${string}`,
   verifierAddress: (process.env.NEXT_PUBLIC_VERIFIER_ADDRESS ??
     "0x0000000000000000000000000000000000000000") as `0x${string}`,
+  /** Previous CreditLine — finish repayCredit after env flip if a line is still open there. */
+  legacyCreditLineAddress: (process.env.NEXT_PUBLIC_LEGACY_CREDITLINE_ADDRESS ??
+    "0x0000000000000000000000000000000000000000") as `0x${string}`,
+  legacyPaymentAddress: (process.env.NEXT_PUBLIC_LEGACY_PAYMENT_ADDRESS ??
+    "0x0000000000000000000000000000000000000000") as `0x${string}`,
   proverUrl: process.env.NEXT_PUBLIC_PROVER_URL ?? "",
   explorerSepolia: process.env.NEXT_PUBLIC_EXPLORER_SEPOLIA ?? "https://sepolia.etherscan.io",
   explorerCreditcoin:

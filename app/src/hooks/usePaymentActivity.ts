@@ -70,6 +70,22 @@ function readJournal(address: string): ActivityItem[] {
   }
 }
 
+/** Sepolia repay logged in journal but Creditcoin repayCredit not yet done. */
+export function getPendingSepoliaRepay(
+  address: string,
+): { txHash: `0x${string}`; amountLabel: string } | null {
+  const journal = readJournal(address);
+  if (journal.some((e) => e.type === "Credit repaid")) return null;
+  const repay = journal.find((e) => e.type === "Repayment paid" && e.at === "Sepolia");
+  if (!repay?.href) return null;
+  const m = repay.href.match(/\/tx\/(0x[a-fA-F0-9]{64})/i);
+  if (!m) return null;
+  return {
+    txHash: m[1] as `0x${string}`,
+    amountLabel: (repay.amount ?? "0").replace(/\s*ETH\s*$/i, "").trim(),
+  };
+}
+
 export function journalActivity(address: string, entry: ActivityItem) {
   try {
     const raw = localStorage.getItem(JOURNAL_KEY);
