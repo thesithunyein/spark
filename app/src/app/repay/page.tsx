@@ -31,6 +31,7 @@ import {
   journalActivity,
 } from "@/hooks/usePaymentActivity";
 import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
+import { clearRepayFlow, loadRepayFlow, saveRepayFlow } from "@/lib/flowState";
 
 const ZERO = "0x0000000000000000000000000000000000000000" as const;
 const repaymentPaidEvent = parseAbiItem(
@@ -125,8 +126,20 @@ export default function RepayPage() {
 
   useEffect(() => {
     if (!address || !creditClient || resumeChecked.current || step >= 2) return;
-    const pending = getPendingSepoliaRepay(address);
-    if (!pending) return;
+    if (status === 2) {
+      resumeChecked.current = true;
+      setStep(4);
+      clearRepayFlow(address);
+      return;
+    }
+    const saved = loadRepayFlow(address);
+    const pending = saved?.txHash
+      ? { txHash: saved.txHash, amountLabel: saved.amount }
+      : getPendingSepoliaRepay(address);
+    if (!pending) {
+      resumeChecked.current = true;
+      return;
+    }
 
     resumeChecked.current = true;
     void (async () => {
@@ -142,7 +155,20 @@ export default function RepayPage() {
             functionName: "usedTx",
             args: [pending.txHash],
           });
-          if (used) continue;
+          if (used) {
+            const pos = await creditClient.readContract({
+              address: line,
+              abi: creditLineAbi,
+              functionName: "getPosition",
+              args: [address],
+            });
+            if (Number(pos.status) === 2) {
+              clearRepayFlow(address);
+              setStep(4);
+              return;
+            }
+            continue;
+          }
           const pos = await creditClient.readContract({
             address: line,
             abi: creditLineAbi,
@@ -155,6 +181,7 @@ export default function RepayPage() {
           amountWeiRef.current = parseEther(pending.amountLabel || "0");
           sepoliaTx.track(pending.txHash);
           setStep(2);
+          setStatusNote("Resumed unfinished Sepolia repay — verify once, do not pay again.");
           return;
         } catch {
           /* try next line */
@@ -162,7 +189,7 @@ export default function RepayPage() {
       }
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [address, creditClient, step, hasLegacy]);
+  }, [address, creditClient, step, hasLegacy, status]);
 
   useEffect(() => {
     if (!verifyStartedAt || step === 4) {
@@ -244,8 +271,32 @@ export default function RepayPage() {
     setProving(true);
     const creditLine = creditLineRef.current;
     try {
+      if (creditClient) {
+        const used = await creditClient.readContract({
+          address: creditLine,
+          abi: creditLineAbi,
+          functionName: "usedTx",
+          args: [txHash],
+        });
+        if (used) {
+          const pos = await refetchPosition();
+          if (pos.data && Number(pos.data.status) === 2) {
+            clearRepayFlow(address);
+            setStep(4);
+            setAttestPhase("done");
+            return;
+          }
+          setError("This Sepolia repayment was already applied on Creditcoin.");
+          setStep(0);
+          sepoliaTx.reset();
+          clearRepayFlow(address);
+          return;
+        }
+      }
+
       setStep(3);
       if (!verifyStartedAt) setVerifyStartedAt(Date.now());
+      saveRepayFlow(address, { txHash, amount: amount || "0", step: 3 });
       if (chainId !== creditcoinTestnet.id) {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
       }
@@ -351,6 +402,7 @@ export default function RepayPage() {
         }
       }
       if (nextStatus === 2 || nextDebt === 0n) {
+        clearRepayFlow(address);
         setStep(4);
       } else {
         setStep(0);

@@ -7,12 +7,14 @@ import {
   usePublicClient,
   useWriteContract,
   useSwitchChain,
+  useReadContract,
 } from "wagmi";
 import {
   parseEther,
   keccak256,
   toBytes,
   decodeEventLog,
+  parseAbiItem,
   type Hex,
   type Log,
 } from "viem";
@@ -34,6 +36,11 @@ import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
 import { useChainTxConfirmation } from "@/hooks/useChainTxConfirmation";
+import { clearPayFlow, loadPayFlow, savePayFlow } from "@/lib/flowState";
+
+const depositPaidEvent = parseAbiItem(
+  "event DepositPaid(address indexed payer, uint256 amount, bytes32 indexed ref)",
+);
 
 function readAttestedBalance(logs: Log[], payment: `0x${string}`): bigint | null {
   for (const log of logs) {
@@ -57,6 +64,7 @@ function readAttestedBalance(logs: Log[], payment: `0x${string}`): bigint | null
 export default function PayPage() {
   const { address, chainId, isConnected } = useAccount();
   const publicClient = usePublicClient({ chainId: sepolia.id });
+  const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
   const [amount, setAmount] = useState("0.01");
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [txHash, setTxHash] = useState<Hex | undefined>();
@@ -70,22 +78,167 @@ export default function PayPage() {
   );
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
   const [verifyStartedAt, setVerifyStartedAt] = useState<number | null>(null);
-  const autoVerifyStarted = useRef(false);
+  const [proving, setProving] = useState(false);
+  const [resumeReady, setResumeReady] = useState(false);
+  const autoAttemptHash = useRef<string | null>(null);
+  const provingRef = useRef(false);
+  const hydrated = useRef(false);
   const { switchChainAsync } = useSwitchChain();
   const { writeContractAsync, isPending: isSigning } = useWriteContract();
   const sepoliaTx = useChainTxConfirmation(sepolia.id);
 
+  const { data: position, refetch: refetchPosition } = useReadContract({
+    address: config.creditLineAddress,
+    abi: creditLineAbi,
+    functionName: "getPosition",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: {
+      enabled:
+        Boolean(address) &&
+        config.creditLineAddress !== "0x0000000000000000000000000000000000000000",
+    },
+  });
+
+  const { data: hist } = useReadContract({
+    address: config.creditLineAddress,
+    abi: creditLineAbi,
+    functionName: "getHistory",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: {
+      enabled:
+        Boolean(address) &&
+        config.creditLineAddress !== "0x0000000000000000000000000000000000000000",
+    },
+  });
+
+  const status = position ? Number(position.status) : 0;
+  const hasActiveLine = status === 1;
+  const lineClosed = status === 2;
+  const histCount = hist ? Number(hist.count) : 0;
+
+  // Hydrate from session + detect unfinished Sepolia deposit.
+  useEffect(() => {
+    if (!address || !creditClient || !publicClient || hydrated.current) return;
+    hydrated.current = true;
+
+    void (async () => {
+      if (hasActiveLine) {
+        clearPayFlow(address);
+        setStep(4);
+        setResumeReady(true);
+        return;
+      }
+
+      const saved = loadPayFlow(address);
+      if (saved?.txHash) {
+        try {
+          const used = await creditClient.readContract({
+            address: config.creditLineAddress,
+            abi: creditLineAbi,
+            functionName: "usedTx",
+            args: [saved.txHash],
+          });
+          if (used && hasActiveLine) {
+            clearPayFlow(address);
+            setStep(4);
+            setCreditTx(saved.creditTx);
+            setResumeReady(true);
+            return;
+          }
+          if (!used) {
+            setTxHash(saved.txHash);
+            setAmount(saved.amount || "0.01");
+            if (saved.balanceTxHash) setBalanceTxHash(saved.balanceTxHash);
+            if (saved.attestedBalanceWei) setAttestedBalanceWei(BigInt(saved.attestedBalanceWei));
+            sepoliaTx.track(saved.txHash);
+            setStep(2);
+            setResumeReady(true);
+            setStatusNote("Resumed unfinished deposit — click Verify & open credit (do not pay again).");
+            return;
+          }
+        } catch {
+          /* fall through to chain scan */
+        }
+      }
+
+      // Scan newest unused DepositPaid on payment contract.
+      try {
+        const latest = await publicClient.getBlockNumber();
+        const fromBlock = latest > 50_000n ? latest - 50_000n : 0n;
+        const logs = await publicClient.getLogs({
+          address: config.paymentAddress,
+          event: depositPaidEvent,
+          args: { payer: address },
+          fromBlock,
+          toBlock: "latest",
+        });
+        for (let i = logs.length - 1; i >= 0; i--) {
+          const log = logs[i];
+          if (!log.transactionHash || log.args.amount == null) continue;
+          const used = await creditClient.readContract({
+            address: config.creditLineAddress,
+            abi: creditLineAbi,
+            functionName: "usedTx",
+            args: [log.transactionHash],
+          });
+          if (used) continue;
+          setTxHash(log.transactionHash);
+          setAmount(formatEth(log.args.amount));
+          sepoliaTx.track(log.transactionHash);
+          setStep(2);
+          savePayFlow(address, {
+            txHash: log.transactionHash,
+            amount: formatEth(log.args.amount),
+            step: 2,
+          });
+          setStatusNote(
+            "Found a Sepolia deposit that is not opened on Creditcoin yet. Verify & open — do not pay again.",
+          );
+          setResumeReady(true);
+          return;
+        }
+      } catch {
+        /* ignore scan errors */
+      }
+      setResumeReady(true);
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [address, creditClient, publicClient, hasActiveLine]);
+
+  useEffect(() => {
+    if (!address || !txHash || step < 2 || step === 4) return;
+    const persistStep = (step === 3 ? 3 : 2) as 2 | 3;
+    savePayFlow(address, {
+      txHash,
+      amount,
+      balanceTxHash,
+      attestedBalanceWei: attestedBalanceWei?.toString(),
+      creditTx,
+      step: persistStep,
+    });
+  }, [address, txHash, amount, balanceTxHash, attestedBalanceWei, creditTx, step]);
+
   async function onPay() {
     setError(null);
-    autoVerifyStarted.current = false;
+    autoAttemptHash.current = null;
+    provingRef.current = false;
+    setProving(false);
     setAttestPhase(null);
     setAttestMeta(null);
     setCreditTx(undefined);
     setBalanceTxHash(undefined);
     setAttestedBalanceWei(null);
+    setVerifyStartedAt(null);
     sepoliaTx.reset();
     if (!address) {
       setError("Connect a wallet first.");
+      return;
+    }
+    if (hasActiveLine) {
+      setError("You already have an active credit line. Withdraw or repay first.");
+      setStep(4);
       return;
     }
     if (config.paymentAddress.endsWith("0000")) {
@@ -109,6 +262,7 @@ export default function PayPage() {
       setTxHash(hash);
       sepoliaTx.track(hash);
       setStep(2);
+      savePayFlow(address, { txHash: hash, amount: amount || "0.01", step: 2 });
       journalActivity(address, {
         id: `${hash}-dep`,
         type: "Deposit paid",
@@ -159,21 +313,58 @@ export default function PayPage() {
     setStatusNote(null);
     setCreditTx(undefined);
     if (!address || !txHash) return;
+    if (provingRef.current) return;
     if (config.creditLineAddress.endsWith("0000")) {
       setError("CreditLine not configured yet.");
       return;
     }
+    provingRef.current = true;
+    setProving(true);
     try {
+      if (creditClient) {
+        const used = await creditClient.readContract({
+          address: config.creditLineAddress,
+          abi: creditLineAbi,
+          functionName: "usedTx",
+          args: [txHash],
+        });
+        if (used) {
+          const pos = await refetchPosition();
+          if (pos.data && Number(pos.data.status) === 1) {
+            clearPayFlow(address);
+            setStep(4);
+            setAttestPhase("done");
+            setStatusNote(null);
+            return;
+          }
+          setError(
+            "This Sepolia deposit was already used on Creditcoin. Start a fresh Pay deposit if you want a new line.",
+          );
+          setStep(0);
+          sepoliaTx.reset();
+          clearPayFlow(address);
+          return;
+        }
+      }
+
       setStep(3);
-      setVerifyStartedAt(Date.now());
+      if (!verifyStartedAt) setVerifyStartedAt(Date.now());
       const amountWei = parseEther(amount || "0.01");
 
       setStatusNote("Recording Sepolia ETH balance on-chain…");
-      const { hash: balHash, balanceWei } = balanceTxHash && attestedBalanceWei != null
-        ? { hash: balanceTxHash, balanceWei: attestedBalanceWei }
-        : await attestSepoliaBalance();
+      const { hash: balHash, balanceWei } =
+        balanceTxHash && attestedBalanceWei != null
+          ? { hash: balanceTxHash, balanceWei: attestedBalanceWei }
+          : await attestSepoliaBalance();
       setBalanceTxHash(balHash);
       setAttestedBalanceWei(balanceWei);
+      savePayFlow(address, {
+        txHash,
+        amount: amount || "0.01",
+        balanceTxHash: balHash,
+        attestedBalanceWei: balanceWei.toString(),
+        step: 3,
+      });
 
       if (chainId !== creditcoinTestnet.id) {
         await switchChainAsync({ chainId: creditcoinTestnet.id });
@@ -192,8 +383,8 @@ export default function PayPage() {
           if (phase === "waiting_attestation") {
             setStatusNote(
               parallel
-                ? "Attestcoin attestation for deposit + balance (~8–10 min once, parallel)…"
-                : "Attestcoin attestation (~8–10 min)…",
+                ? "Attestcoin attestation for deposit + balance (one ~8–20 min window)…"
+                : "Attestcoin attestation (~8–20 min)…",
             );
           }
           if (phase === "building_proof") {
@@ -204,7 +395,7 @@ export default function PayPage() {
         balanceProof = pair.balance.proof;
         setAttestMeta(pair.balance.meta);
         setAttestPhase("submitting");
-        setStatusNote("Both proofs ready. Opening credit on Creditcoin…");
+        setStatusNote("Both proofs ready. Confirm openCredit in MetaMask…");
       } else {
         depositProof = encodePaymentProof({
           txHash,
@@ -242,6 +433,9 @@ export default function PayPage() {
         ],
         chainId: creditcoinTestnet.id,
       });
+      if (creditClient) {
+        await creditClient.waitForTransactionReceipt({ hash: openHash });
+      }
       setCreditTx(openHash);
       journalActivity(address, {
         id: `${openHash}-open`,
@@ -252,30 +446,37 @@ export default function PayPage() {
         kind: "credit",
         href: `${config.explorerCreditcoin}/tx/${openHash}`,
       });
+      clearPayFlow(address);
       setStatusNote(null);
       if (config.attestcoin) setAttestPhase("done");
       setStep(4);
       setVerifyStartedAt(null);
+      void refetchPosition();
     } catch (e) {
       setError(friendlyError(e));
       setStatusNote(null);
       setAttestPhase(null);
-      setVerifyStartedAt(null);
       setStep(2);
-      autoVerifyStarted.current = false;
+      // Do not clear autoAttemptHash — prevents verify restart loop.
+      autoAttemptHash.current = txHash ?? autoAttemptHash.current;
+    } finally {
+      provingRef.current = false;
+      setProving(false);
     }
   }
 
   useEffect(() => {
-    if (!sepoliaTx.confirmed || step !== 2 || autoVerifyStarted.current || !txHash) return;
-    autoVerifyStarted.current = true;
+    if (!sepoliaTx.confirmed || step !== 2 || !txHash) return;
+    if (autoAttemptHash.current === txHash) return;
+    if (provingRef.current || hasActiveLine) return;
+    autoAttemptHash.current = txHash;
     void onProveAndOpen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sepoliaTx.confirmed, step, txHash]);
+  }, [sepoliaTx.confirmed, step, txHash, hasActiveLine]);
 
   const awaitingWallet = isSigning && !sepoliaTx.hash;
   const sepoliaConfirming = Boolean(sepoliaTx.hash && !sepoliaTx.confirmed && step >= 1 && step < 3);
-  const verifying = step === 3 || (sepoliaTx.confirmed && step === 2 && autoVerifyStarted.current);
+  const verifying = step === 3 || proving;
   const stage: 0 | 1 | 2 | 3 | 4 =
     step === 4 ? 4 : verifying ? 3 : sepoliaTx.confirmed ? 2 : sepoliaTx.hash ? 2 : step;
 
@@ -297,18 +498,52 @@ export default function PayPage() {
           </div>
         )}
 
+        {isConnected && hasActiveLine && (
+          <div className="mb-6">
+            <SuccessBanner
+              title="Credit line already open"
+              description="No need to verify again. Withdraw, redeem, or repay from here."
+              actions={
+                <>
+                  <Link
+                    href="/withdraw"
+                    className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                  >
+                    Withdraw
+                  </Link>
+                  <Link
+                    href="/overview"
+                    className="rounded-full border border-border px-4 py-2 text-[13px] font-medium"
+                  >
+                    Overview
+                  </Link>
+                </>
+              }
+            />
+          </div>
+        )}
+
+        {isConnected && lineClosed && step < 2 && resumeReady && !txHash && (
+          <div className="mb-6">
+            <SuccessBanner
+              title={`Ready to reopen · history bonus ${histCount >= 3 ? "+5%" : histCount >= 1 ? "+2.5%" : "0%"}`}
+              description={`${histCount} attested payment${histCount === 1 ? "" : "s"} on file. Pay a fresh deposit to open credit with the boosted LTV.`}
+            />
+          </div>
+        )}
+
         {sepoliaTx.confirmed && step >= 2 && step < 4 && txHash && (
           <div className="mb-6">
             <SuccessBanner
-              title="Deposit confirmed on Sepolia"
-              description={`${amount || "0.01"} ETH received. Attestcoin proofs are building — this usually takes 8–10 minutes.`}
+              title="Sepolia deposit ready — finish on Creditcoin"
+              description="Already paid on Sepolia. Do not pay again. Verify once and wait for Attestcoin (timer should climb, not reset)."
               href={`${config.explorerSepolia}/tx/${txHash}`}
               hrefLabel="View Sepolia payment"
             />
           </div>
         )}
 
-        {step === 4 && (
+        {step === 4 && !hasActiveLine && (
           <div className="mb-6">
             <SuccessBanner
               title="Credit line opened"
@@ -335,79 +570,82 @@ export default function PayPage() {
           </div>
         )}
 
-        {step < 4 && (
+        {!hasActiveLine && step < 4 && (
           <>
-        <label className="text-[11px] font-medium uppercase tracking-label text-muted">Amount (ETH)</label>
-        <input
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
-        />
-        <p className="mt-2 text-[12px] text-muted">
-          Credit LTV rises with attested Sepolia balance (85%/90%) and linked payment history (+2.5% /
-          +5%). Debt accrues 10% APR.{" "}
-          <a href="/score" className="text-brand hover:underline">
-            Link history first
-          </a>{" "}
-          for the bonus — use a fresh deposit tx to open.
-        </p>
-        <p className="mt-2 text-[12px] text-muted">
-          Faucet:{" "}
-          <a
-            className="text-text/80 underline-offset-2 hover:underline"
-            href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Sepolia ETH
-          </a>
-          {" · "}
-          <a
-            className="text-text/80 underline-offset-2 hover:underline"
-            href="https://discord.com/invite/creditcoin"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Creditcoin faucet
-          </a>
-        </p>
+            {step < 2 && (
+              <>
+                <label className="text-[11px] font-medium uppercase tracking-label text-muted">
+                  Amount (ETH)
+                </label>
+                <input
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
+                />
+                <p className="mt-2 text-[12px] text-muted">
+                  Credit LTV rises with attested Sepolia balance and linked payment history (+2.5% /
+                  +5%). Use a fresh deposit tx to open.
+                </p>
+              </>
+            )}
 
-        <div className="mt-8">
-          <ConfirmingStages step={stage === 0 ? 0 : stage} />
-        </div>
+            {(step >= 1 || txHash) && (
+              <div className="mt-8">
+                <ConfirmingStages step={stage === 0 ? 0 : stage} />
+              </div>
+            )}
 
-        <div className="mt-8 flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={onPay}
-            disabled={!isConnected || awaitingWallet || sepoliaConfirming || verifying || step === 4}
-            className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
-          >
-            {awaitingWallet
-              ? "Confirm in MetaMask…"
-              : sepoliaConfirming
-                ? "Confirming on Sepolia…"
-                : verifying
-                  ? "Verifying deposit + balance…"
-                  : step === 4
-                    ? "Credit ready"
-                    : "Pay deposit"}
-          </button>
-          {sepoliaTx.confirmed && step >= 2 && step < 4 && !verifying && (
-            <button
-              type="button"
-              onClick={onProveAndOpen}
-              className="rounded-full border border-border px-4 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03]"
-            >
-              Verify & open credit
-            </button>
-          )}
-          {verifying && step < 4 && (
-            <p className="text-center text-[12px] text-muted">
-              {statusNote || "Building Attestcoin proofs for deposit and balance…"}
-            </p>
-          )}
-        </div>
+            <div className="mt-8 flex flex-col gap-2">
+              {step < 2 && !txHash && (
+                <button
+                  type="button"
+                  onClick={onPay}
+                  disabled={!isConnected || awaitingWallet || sepoliaConfirming || verifying}
+                  className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+                >
+                  {awaitingWallet
+                    ? "Confirm in MetaMask…"
+                    : sepoliaConfirming
+                      ? "Confirming on Sepolia…"
+                      : "Pay deposit"}
+                </button>
+              )}
+              {sepoliaTx.confirmed && step >= 2 && step < 4 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => void onProveAndOpen()}
+                    disabled={proving}
+                    className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+                  >
+                    {proving
+                      ? attestPhase === "submitting"
+                        ? "Confirm in MetaMask…"
+                        : "Verifying… (keep this tab open)"
+                      : "Verify & open credit"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (provingRef.current) return;
+                      autoAttemptHash.current = null;
+                      setError(null);
+                      void onProveAndOpen();
+                    }}
+                    disabled={proving}
+                    className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03] disabled:opacity-50"
+                  >
+                    Retry verify (same Sepolia tx)
+                  </button>
+                </>
+              )}
+              {statusNote && <p className="text-center text-[12px] text-muted">{statusNote}</p>}
+              {verifyStartedAt && step < 4 && proving && (
+                <p className="text-center text-[12px] text-muted">
+                  Attestcoin often needs 8–20 min. Do not pay a second deposit.
+                </p>
+              )}
+            </div>
           </>
         )}
 

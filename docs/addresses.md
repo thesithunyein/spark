@@ -2,13 +2,13 @@
 
 ## Production (live site — credit-score stack)
 
-| Contract | Network | Address |
-|---|---|---|
-| SepoliaPayment | Ethereum Sepolia | `0x63F0c69cf9F8b53E8eDD141d07fF2eEd2237ccc4` |
-| AttestcoinPaymentVerifier | Creditcoin testnet | `0xF13205Bdf48A3159d4A46309C639930aE8faC130` |
-| CreditLine (history + score + LTV bonus) | Creditcoin testnet | `0x2C3585019B957b16459C409f34973b583267C742` |
-| SparkCredit (sCREDIT) | Creditcoin testnet | `0x1BaDE07F2F3295528a2F7316119813b6846dFfaD` |
-| BlockProver (USC precompile) | Creditcoin | `0x0000000000000000000000000000000000000FD2` |
+| Contract | Network | Address | Verified |
+|---|---|---|---|
+| SepoliaPayment | Ethereum Sepolia | `0x63F0c69cf9F8b53E8eDD141d07fF2eEd2237ccc4` | Yes (Blockscout) |
+| AttestcoinPaymentVerifier | Creditcoin testnet | `0xF13205Bdf48A3159d4A46309C639930aE8faC130` | Yes |
+| CreditLine (history + score + LTV bonus) | Creditcoin testnet | `0x2C3585019B957b16459C409f34973b583267C742` | Yes (Blockscout) |
+| SparkCredit (sCREDIT) | Creditcoin testnet | `0x1BaDE07F2F3295528a2F7316119813b6846dFfaD` | Yes |
+| BlockProver (USC precompile) | Creditcoin | `0x0000000000000000000000000000000000000FD2` | n/a |
 
 ## Legacy (Aug 13 dual-proof — finish open repay via Repay page)
 
