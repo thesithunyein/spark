@@ -24,6 +24,7 @@ import {
   type AttestcoinPhase,
   type AttestcoinProofMeta,
 } from "@/lib/usc";
+import { ensureCreditcoinChain, ensureSepoliaChain } from "@/lib/chains";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import {
@@ -58,10 +59,10 @@ export default function RepayPage() {
   const [attestMeta, setAttestMeta] = useState<Partial<AttestcoinProofMeta> | null>(null);
   const [verifyStartedAt, setVerifyStartedAt] = useState<number | null>(null);
   const [proving, setProving] = useState(false);
-  const [elapsedSec, setElapsedSec] = useState(0);
   const autoVerifyStarted = useRef(false);
   const autoAttemptHash = useRef<string | null>(null);
   const provingRef = useRef(false);
+  const lastAttestPhaseRef = useRef<AttestcoinPhase | "submitting" | null>(null);
   const resumeChecked = useRef(false);
   const amountWeiRef = useRef<bigint>(0n);
   const creditLineRef = useRef<`0x${string}`>(config.creditLineAddress);
@@ -181,7 +182,7 @@ export default function RepayPage() {
           amountWeiRef.current = parseEther(pending.amountLabel || "0");
           sepoliaTx.track(pending.txHash);
           setStep(2);
-          setStatusNote("Resumed unfinished Sepolia repay — verify once, do not pay again.");
+          setStatusNote("Resumed — tap Verify. Don't pay again.");
           return;
         } catch {
           /* try next line */
@@ -190,17 +191,6 @@ export default function RepayPage() {
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [address, creditClient, step, hasLegacy, status]);
-
-  useEffect(() => {
-    if (!verifyStartedAt || step === 4) {
-      setElapsedSec(0);
-      return;
-    }
-    const tick = () => setElapsedSec(Math.floor((Date.now() - verifyStartedAt) / 1000));
-    tick();
-    const id = window.setInterval(tick, 1000);
-    return () => window.clearInterval(id);
-  }, [verifyStartedAt, step]);
 
   useEffect(() => {
     if (!sepoliaTx.confirmed || step !== 2 || !sepoliaTx.hash) return;
@@ -219,6 +209,7 @@ export default function RepayPage() {
     provingRef.current = false;
     setAttestPhase(null);
     setAttestMeta(null);
+    lastAttestPhaseRef.current = null;
     setCreditTx(undefined);
     setVerifyStartedAt(null);
     sepoliaTx.reset();
@@ -228,7 +219,7 @@ export default function RepayPage() {
       return setError("Payment contract not configured.");
     }
     try {
-      if (chainId !== sepolia.id) await switchChainAsync({ chainId: sepolia.id });
+      if (chainId !== sepolia.id) await ensureSepoliaChain(switchChainAsync);
       const value = parseEther(amount || "0");
       if (value === 0n) return setError("Enter an amount greater than 0.");
       amountWeiRef.current = value;
@@ -297,11 +288,8 @@ export default function RepayPage() {
       setStep(3);
       if (!verifyStartedAt) setVerifyStartedAt(Date.now());
       saveRepayFlow(address, { txHash, amount: amount || "0", step: 3 });
-      if (chainId !== creditcoinTestnet.id) {
-        await switchChainAsync({ chainId: creditcoinTestnet.id });
-      }
 
-      // Prefer the on-chain Sepolia repayment amount (claim must match the paid tx).
+      // Repay amount from Sepolia receipt (claim must match paid tx).
       let amountWei = amountWeiRef.current || parseEther(amount || "0");
       if (sepoliaClient) {
         try {
@@ -342,24 +330,25 @@ export default function RepayPage() {
       if (config.attestcoin) {
         setAttestPhase("finding_tx");
         setAttestMeta(null);
-        setStatusNote("Waiting for Attestcoin attestation (often 8–20 min), then building USC proof…");
+        setStatusNote("Verifying… usually 8–20 min");
         const built = await buildAttestcoinProof(txHash, (phase, meta) => {
+          lastAttestPhaseRef.current = phase;
           setAttestPhase(phase);
           if (meta) setAttestMeta((prev) => ({ ...prev, ...meta }));
-          if (phase === "building_proof") {
-            setStatusNote("Attestation ready. Building USC proof…");
-          }
-          if (phase === "proof_ready") {
-            setStatusNote("Proof ready. Confirm repayCredit in MetaMask…");
-          }
+          if (phase === "building_proof") setStatusNote("Building proof…");
+          if (phase === "proof_ready") setStatusNote("Confirm in MetaMask");
         });
         proof = built.proof;
         setAttestMeta(built.meta);
+        lastAttestPhaseRef.current = "submitting";
         setAttestPhase("submitting");
-        setStatusNote("USC proof ready. Confirm in MetaMask on Creditcoin…");
+        setStatusNote("Confirm in MetaMask");
       } else {
         proof = encodePaymentProof({ txHash, payer: address, amountWei, kind: 2 });
       }
+
+      await ensureCreditcoinChain(switchChainAsync);
+
       const repayHash = await writeContractAsync({
         address: creditLine,
         abi: creditLineAbi,
@@ -417,11 +406,22 @@ export default function RepayPage() {
       }
       setVerifyStartedAt(null);
     } catch (e) {
-      // Stay on step 2 and do NOT clear autoAttemptHash — prevents 0–4s auto-retry loop.
       setError(friendlyError(e));
-      setStatusNote(null);
-      setAttestPhase(null);
-      setStep(2);
+      const lastPhase = lastAttestPhaseRef.current;
+      const pastAttestation =
+        lastPhase === "attested" ||
+        lastPhase === "building_proof" ||
+        lastPhase === "proof_ready" ||
+        lastPhase === "submitting";
+      if (pastAttestation) {
+        setStep(3);
+        setAttestPhase(lastPhase === "submitting" ? "submitting" : "proof_ready");
+        setStatusNote("Confirm in MetaMask or tap Retry.");
+      } else {
+        setStatusNote(null);
+        setAttestPhase(null);
+        setStep(2);
+      }
       autoVerifyStarted.current = true;
     } finally {
       provingRef.current = false;
@@ -450,8 +450,7 @@ export default function RepayPage() {
   function retryVerify() {
     if (provingRef.current) return;
     setError(null);
-    setAttestPhase(null);
-    setStep(2);
+    setStep(3);
     // Allow one more attempt for this same Sepolia hash.
     autoAttemptHash.current = null;
     autoVerifyStarted.current = true;
@@ -536,9 +535,7 @@ export default function RepayPage() {
           <div className="mb-6 rounded-xl border border-success/30 bg-success/10 p-4">
             <p className="text-[15px] font-medium text-text">Sepolia repayment confirmed</p>
             <p className="mt-1 text-[13px] text-muted">
-              {verifying
-                ? "Building Attestcoin proof and updating Creditcoin…"
-                : "Starting verification on Creditcoin…"}
+              {verifying ? "Verifying on Creditcoin…" : "Ready to verify on Creditcoin."}
             </p>
             {sepoliaTx.hash && (
               <a
@@ -609,8 +606,8 @@ export default function RepayPage() {
                   {verifying
                     ? attestPhase === "submitting"
                       ? "Confirm in MetaMask…"
-                      : "Verifying… (keep this tab open)"
-                    : "Verify repayment & close credit"}
+                      : "Verifying…"
+                    : "Verify & close"}
                 </button>
               )}
               {sepoliaTx.confirmed && step >= 2 && step < 4 && (
@@ -620,22 +617,12 @@ export default function RepayPage() {
                   disabled={proving}
                   className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03] disabled:opacity-50"
                 >
-                  Retry verify (same Sepolia tx)
+                  Retry verify
                 </button>
               )}
               {statusNote && (
                 <p className="text-center text-[12px] text-muted">{statusNote}</p>
               )}
-              {verifyStartedAt && step < 4 && (
-                <p className="text-center text-[12px] tabular-nums text-muted">
-                  Elapsed {Math.floor(elapsedSec / 60)}m {(elapsedSec % 60).toString().padStart(2, "0")}
-                  s — Attestcoin often needs 8–20 min. Do not repay again on Sepolia.
-                </p>
-              )}
-              <p className="text-center text-[12px] text-muted">
-                Do not make a second Sepolia repayment. If verify fails, wait a minute and click Retry
-                once — the timer should keep climbing, not reset every few seconds.
-              </p>
             </div>
           </>
         )}

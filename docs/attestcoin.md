@@ -16,7 +16,7 @@ Spark uses the **Attestcoin Protocol** (formerly USC) so data on Ethereum Sepoli
 
 Both call `AttestcoinPaymentVerifier.verifyPayment` → Creditcoin **BlockProver** (`0x…0FD2`) via `verifyAndEmit`. Invalid proofs revert. Each `txHash` can only be used once. Claim payer must equal `msg.sender`.
 
-Attested balance **sizes LTV**: ≥2× deposit → 90%, ≥1× → 85%, else base factor (80%). Debt accrues **10% APR**. `redeem` burns sCREDIT against debt; attested Sepolia repayment still closes the line.
+Attested balance **sizes LTV**: ≥2× deposit → 90%, ≥1× → 85%, else base factor (80%). **Payment history** adds +250 bps (≥1 linked payment) or +500 bps (≥3). **creditScore** = 650 + 40 × history count (cap 850). Debt accrues **10% APR**. `redeem` burns sCREDIT against debt; attested Sepolia repayment closes the line.
 
 ## Flow
 

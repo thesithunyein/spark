@@ -48,7 +48,12 @@ sequenceDiagram
   participant C as CreditLine
   U->>App: Pay_deposit
   App->>S: lock_tx
-  App->>A: wait_and_prove
-  A->>C: verify_proof
+  App->>S: attest_balance
+  App->>A: parallel_wait_and_prove
+  A->>C: openCredit_dual_proof
   C-->>U: credit_ready
 ```
+
+## Sequence — credit score
+
+Link past Sepolia payments via `submitAttestedPayment` (Attestcoin proof each). History raises `creditScore` and `historyBonusBps` before the next `openCredit`.

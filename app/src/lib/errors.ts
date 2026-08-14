@@ -30,6 +30,13 @@ export function friendlyError(err: unknown): string {
   }
 
   if (
+    msg.includes("does not match the target chain") ||
+    msg.includes("current chain of the wallet")
+  ) {
+    return "Wallet is on the wrong network. Approve switching to Creditcoin testnet in MetaMask, then click Retry verify.";
+  }
+
+  if (
     msg.includes("unsupported chain") ||
     (msg.includes("chain id") && msg.includes("support")) ||
     msg.includes("selected network is not supported")
@@ -49,7 +56,7 @@ export function friendlyError(err: unknown): string {
     msg.includes("timeout") &&
     (msg.includes("attest") || msg.includes("height") || msg.includes("wait"))
   ) {
-    return "Attestcoin is still catching up (can take 15–25 min). Click Verify again — do not repay a second time.";
+    return "Still verifying. Tap Retry — don't pay again.";
   }
 
   if (
@@ -65,13 +72,23 @@ export function friendlyError(err: unknown): string {
   if (
     msg.includes("contract not deployed") ||
     msg.includes("contract code is empty") ||
-    msg.includes("address is not a contract")
+    msg.includes("address is not a contract") ||
+    msg.includes("payment contract not configured") ||
+    msg.includes("creditline not configured")
   ) {
     return "Contracts are not configured yet.";
   }
 
-  if (msg.includes("0x0000000000000000000000000000000000000000")) {
-    return "Contracts are not configured yet.";
+  if (msg.includes("already used") || msg.includes("usedtx")) {
+    return "This Sepolia payment was already used on Creditcoin.";
+  }
+
+  if (msg.includes("active credit") || msg.includes("already open")) {
+    return "You already have an active credit line.";
+  }
+
+  if (msg.includes("reverted") && msg.includes("proof")) {
+    return "Proof failed on-chain. Tap Retry.";
   }
 
   // Strip viem noise / keep first useful sentence

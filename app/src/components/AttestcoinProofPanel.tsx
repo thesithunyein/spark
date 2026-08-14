@@ -10,10 +10,10 @@ import {
 } from "@/lib/usc";
 
 const PHASES: { id: AttestcoinPhase; label: string }[] = [
-  { id: "finding_tx", label: "Find Sepolia payment" },
-  { id: "waiting_attestation", label: "Wait for Attestcoin attestation" },
-  { id: "attested", label: "Height attested on Creditcoin" },
-  { id: "building_proof", label: "Build USC proof" },
+  { id: "finding_tx", label: "Find payment" },
+  { id: "waiting_attestation", label: "Wait for attestation" },
+  { id: "attested", label: "Attested on Creditcoin" },
+  { id: "building_proof", label: "Build proof" },
   { id: "proof_ready", label: "Proof ready" },
 ];
 
@@ -78,25 +78,13 @@ export function AttestcoinProofPanel({
   return (
     <div className="mt-5 rounded-xl border border-border bg-white/[0.02] p-4">
       <p className="text-[11px] font-medium uppercase tracking-label text-muted">
-        Attestcoin proof
-        {dualProof
-          ? " · deposit + balance"
-          : claim?.kind === "balance"
-            ? " · balance"
-            : claim?.kind === "deposit"
-              ? " · deposit"
-              : claim?.kind === "repay"
-                ? " · repay"
-                : ""}
+        Verification{dualProof ? " · deposit + balance" : claim?.kind ? ` · ${claim.kind}` : ""}
       </p>
 
-      {(waiting || verifyStartedAt) && (
+      {waiting && (
         <p className="mt-2 text-[13px] text-text/85">
-          {dualProof
-            ? "Waiting for Sepolia attestation (both proofs in parallel"
-            : "Often 8–20 min on Sepolia"}
-          <span className="text-muted"> · elapsed {formatElapsed(elapsed)}</span>
-          {dualProof ? ")" : ""}
+          Usually 8–20 min
+          <span className="text-muted"> · {formatElapsed(elapsed)}</span>
         </p>
       )}
 
@@ -116,9 +104,7 @@ export function AttestcoinProofPanel({
                 }
               />
               <span className={done || current ? "text-text" : "text-muted"}>
-                {item.id === "waiting_attestation"
-                  ? "Wait for Attestcoin attestation (often 8–20 min on Sepolia)"
-                  : item.label}
+                {item.label}
               </span>
             </li>
           );
@@ -134,7 +120,7 @@ export function AttestcoinProofPanel({
             }
           />
           <span className={phase === "submitting" || phase === "done" ? "text-text" : "text-muted"}>
-            {phase === "done" ? "Verified on Creditcoin" : "Submit to CreditLine → BlockProver"}
+            {phase === "done" ? "Done on Creditcoin" : "Submit on Creditcoin"}
           </span>
         </li>
       </ol>
@@ -193,7 +179,7 @@ export function AttestcoinProofPanel({
                 target="_blank"
                 rel="noreferrer"
               >
-                Sepolia payment tx
+                Sepolia tx
               </a>
             </div>
           )}
@@ -205,7 +191,7 @@ export function AttestcoinProofPanel({
                 target="_blank"
                 rel="noreferrer"
               >
-                Creditcoin verify tx
+                Creditcoin tx
               </a>
             </div>
           )}
