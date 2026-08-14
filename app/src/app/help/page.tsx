@@ -229,7 +229,7 @@ export default function HelpPage() {
           <p>
             Live contracts and env vars:{" "}
             <a
-              href="https://github.com/thesithunyein/spark-ctc/blob/main/docs/addresses.md"
+              href="https://github.com/thesithunyein/spark/blob/main/docs/addresses.md"
               target="_blank"
               rel="noreferrer"
               className="text-brand hover:underline"
@@ -242,12 +242,12 @@ export default function HelpPage() {
             </Link>
             . Repo:{" "}
             <a
-              href="https://github.com/thesithunyein/spark-ctc"
+              href="https://github.com/thesithunyein/spark"
               target="_blank"
               rel="noreferrer"
               className="text-brand hover:underline"
             >
-              github.com/thesithunyein/spark-ctc
+              github.com/thesithunyein/spark
             </a>
           </p>
         </Block>

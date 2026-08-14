@@ -25,7 +25,7 @@ Spark verifies Sepolia facts with **Attestcoin**, then unlocks or clears credit 
 - **Testnet note:** BlockProver proves inclusion; adapter matches event topics in tx bytes — production would strict-decode logs and bind amounts  
 
 ## Slide 6 — Product
-Live testnet app · spark.sithunyein.com · github.com/thesithunyein/spark-ctc  
+Live testnet app · spark.sithunyein.com · github.com/thesithunyein/spark  
 Not audited · Honest testnet economics (interest + redeem)  
 
 ## Slide 7 — Ask

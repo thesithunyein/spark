@@ -66,7 +66,7 @@ export default function SettingsPage() {
           </ul>
           <p className="pt-1">
             <a
-              href="https://github.com/thesithunyein/spark-ctc/blob/main/SECURITY.md"
+              href="https://github.com/thesithunyein/spark/blob/main/SECURITY.md"
               target="_blank"
               rel="noreferrer"
               className="text-brand hover:underline"

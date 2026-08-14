@@ -25,7 +25,7 @@
   ·
   <a href="https://spark.sithunyein.com/help">Help</a>
   ·
-  <a href="https://github.com/thesithunyein/spark-ctc">GitHub</a>
+  <a href="https://github.com/thesithunyein/spark">GitHub</a>
   ·
   <a href="LICENSE">MIT License</a>
 </p>

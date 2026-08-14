@@ -42,7 +42,7 @@ export default function AdvancedPage() {
           <p className="mt-4 text-[13px] text-muted">
             Credit cannot open or repay unless payment verification succeeds. See{" "}
             <a
-              href="https://github.com/thesithunyein/spark-ctc/blob/main/docs/attestcoin.md"
+              href="https://github.com/thesithunyein/spark/blob/main/docs/attestcoin.md"
               target="_blank"
               rel="noreferrer"
               className="text-brand hover:underline"
