@@ -9,15 +9,21 @@ import {
   type AttestcoinProofMeta,
 } from "@/lib/usc";
 
-const PHASES: { id: AttestcoinPhase; label: string }[] = [
-  { id: "finding_tx", label: "Find payment" },
-  { id: "waiting_attestation", label: "Wait for attestation" },
-  { id: "attested", label: "Attested on Creditcoin" },
-  { id: "building_proof", label: "Build proof" },
-  { id: "proof_ready", label: "Proof ready" },
+const STAGES = [
+  { id: "request", label: "Request" },
+  { id: "attest", label: "Attest" },
+  { id: "unlock", label: "Unlock" },
 ];
 
-const ORDER: AttestcoinPhase[] = PHASES.map((p) => p.id);
+const STAGE_OF: Record<string, number> = {
+  finding_tx: 0,
+  waiting_attestation: 1,
+  attested: 2,
+  building_proof: 2,
+  proof_ready: 2,
+  submitting: 2,
+  done: 2,
+};
 
 function shortHex(value: string, left = 6, right = 4) {
   if (value.length <= left + right + 2) return value;
@@ -79,18 +85,39 @@ export function AttestcoinProofPanel({
 
   if (!phase) return null;
 
-  const phaseIndex =
-    phase === "submitting" || phase === "done"
-      ? ORDER.length
-      : Math.max(0, ORDER.indexOf(phase));
+  const stageIdx = phase === "done" ? 3 : STAGE_OF[phase] ?? 0;
+  const stageSub: string[] = [
+    stageIdx > 0 || phase === "done" ? "Payment found" : "Locating payment",
+    stageIdx > 1 || phase === "done"
+      ? "Block attested"
+      : waiting
+        ? "Waiting for Attestcoin"
+        : "Queued",
+    phase === "done"
+      ? "Credit opened"
+      : stageIdx === 2
+        ? "Submitting to Creditcoin"
+        : "Queued",
+  ];
 
   return (
-    <div className="mt-5 border border-border bg-white/[0.02] p-4">
-      <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
-        Verification{dualProof ? " · deposit + balance" : claim?.kind ? ` · ${claim.kind}` : ""}
-      </p>
+    <div className="mt-5 border border-border bg-white/[0.02] p-4 sm:p-5">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
+          Verification{dualProof ? " · deposit + balance" : claim?.kind ? ` · ${claim.kind}` : ""}
+        </p>
+        {waiting && (
+          <span className="inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#3DDC97]">
+            <span className="relative flex h-1.5 w-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping bg-[#3DDC97] opacity-75" />
+              <span className="relative inline-flex h-1.5 w-1.5 bg-[#3DDC97]" />
+            </span>
+            Live · attestation running
+          </span>
+        )}
+      </div>
 
-      <p className="mt-2 flex items-center gap-2 font-mono text-[12px] text-white/85">
+      <p className="mt-3 flex flex-wrap items-center gap-x-2 gap-y-1 font-mono text-[12px] text-white/85">
         <span className="text-white/40">$</span>
         <span>
           {statusLine[phase] ?? "processing"}
@@ -102,52 +129,63 @@ export function AttestcoinProofPanel({
           </span>
         )}
       </p>
+
       {waiting && (
-        <span className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#3DDC97]">
-          <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping bg-[#3DDC97] opacity-75" />
-            <span className="relative inline-flex h-1.5 w-1.5 bg-[#3DDC97]" />
-          </span>
-          Live · attestation running
-        </span>
+        <div className="mt-3 h-px w-full animate-pulse overflow-hidden bg-white/20" aria-hidden />
       )}
 
-      <ol className="mt-3 space-y-2">
-        {PHASES.map((item, i) => {
-          const done = phaseIndex > i || phase === "done" || phase === "submitting";
-          const current = ORDER[i] === phase;
+      <div className="mt-4 grid grid-cols-3 gap-px border border-white/[0.12] bg-white/[0.12]">
+        {STAGES.map((st, i) => {
+          const done = stageIdx > i;
+          const active = stageIdx === i && phase !== "done";
           return (
-            <li key={item.id} className="flex items-start gap-2 text-[13px]">
-              <span
-                className={
-                  done
-                    ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand"
-                    : current
-                      ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand/60"
-                      : "mt-1.5 h-1.5 w-1.5 shrink-0 bg-white/15"
-                }
-              />
-              <span className={done || current ? "text-text" : "text-muted"}>
-                {item.label}
-              </span>
-            </li>
+            <div key={st.id} className={active ? "bg-white/[0.04]" : "bg-black"}>
+              <div className="p-3 sm:p-4">
+                <div className="flex items-center justify-between">
+                  <span
+                    className={
+                      done || active
+                        ? "font-mono text-[10px] tabular-nums text-white/70"
+                        : "font-mono text-[10px] tabular-nums text-white/25"
+                    }
+                  >
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  {done ? (
+                    <span className="font-mono text-[11px] text-[#3DDC97]">✓</span>
+                  ) : active ? (
+                    <span className="relative flex h-1.5 w-1.5">
+                      <span className="absolute inline-flex h-full w-full animate-ping bg-white opacity-60" />
+                      <span className="relative inline-flex h-1.5 w-1.5 bg-white" />
+                    </span>
+                  ) : (
+                    <span className="font-mono text-[10px] text-white/20">—</span>
+                  )}
+                </div>
+                <p
+                  className={
+                    done || active
+                      ? "mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white"
+                      : "mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white/30"
+                  }
+                >
+                  {st.label}
+                </p>
+                <p className="mt-1 text-[11px] leading-snug text-muted">{stageSub[i]}</p>
+              </div>
+            </div>
           );
         })}
-        <li className="flex items-start gap-2 text-[13px]">
-          <span
-            className={
-              phase === "done"
-                ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand"
-                : phase === "submitting"
-                  ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand/60"
-                  : "mt-1.5 h-1.5 w-1.5 shrink-0 bg-white/15"
-            }
-          />
-          <span className={phase === "submitting" || phase === "done" ? "text-text" : "text-muted"}>
-            {phase === "done" ? "Done on Creditcoin" : "Submit on Creditcoin"}
-          </span>
-        </li>
-      </ol>
+      </div>
+
+      {phase === "done" && (
+        <div className="mt-4 flex items-center gap-2 border border-[#3DDC97]/40 bg-[#3DDC97]/[0.06] px-3 py-2.5">
+          <span className="font-mono text-[12px] text-[#3DDC97]">✓</span>
+          <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#3DDC97]">
+            Credit opened on Creditcoin
+          </p>
+        </div>
+      )}
 
       {(claim || meta || paymentTx || creditTx) && (
         <dl className="mt-4 space-y-1.5 border-t border-border pt-3 text-[12px] text-muted">
