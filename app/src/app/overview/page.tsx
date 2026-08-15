@@ -18,7 +18,7 @@ export default function OverviewPage() {
   const { address, isConnected } = useAccount();
   const { items: recent } = usePaymentActivity("all");
 
-  const { data: position } = useReadContract({
+  const { data: position, isFetching: isFetchingPos } = useReadContract({
     address: config.creditLineAddress,
     abi: creditLineAbi,
     functionName: "getPosition",
@@ -31,7 +31,7 @@ export default function OverviewPage() {
     },
   });
 
-  const { data: score } = useReadContract({
+  const { data: score, isFetching: isFetchingScore } = useReadContract({
     address: config.creditLineAddress,
     abi: creditLineAbi,
     functionName: "creditScore",
@@ -44,7 +44,7 @@ export default function OverviewPage() {
     },
   });
 
-  const { data: hist } = useReadContract({
+  const { data: hist, isFetching: isFetchingHist } = useReadContract({
     address: config.creditLineAddress,
     abi: creditLineAbi,
     functionName: "getHistory",
@@ -137,11 +137,13 @@ export default function OverviewPage() {
         <MetricCard
           label="Credit available"
           value={`${formatEth(available)} sCREDIT`}
+          loading={isFetchingPos}
           hint={status === 1 ? "Ready to withdraw · 10% APR on debt" : status === 2 ? "Closed" : "—"}
         />
         <MetricCard
           label="Deposit locked"
           value={`${formatEth(deposit)} ETH`}
+          loading={isFetchingPos}
           hint={
             attestedBalance > 0n ? `Attested Sepolia bal ${formatEth(attestedBalance)} ETH` : undefined
           }
@@ -149,11 +151,13 @@ export default function OverviewPage() {
         <MetricCard
           label="Credit score"
           value={scoreN != null ? String(scoreN) : "—"}
+          loading={isFetchingScore || isFetchingHist}
           hint={histCount > 0 ? `${histCount} attested payment${histCount === 1 ? "" : "s"}` : "Link history to raise"}
         />
         <MetricCard
           label="Status"
           value={statusLabel(status)}
+          loading={isFetchingPos}
           hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT (accruing)` : undefined}
         />
       </div>

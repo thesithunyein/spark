@@ -60,7 +60,7 @@ export default function HomePage() {
           className="absolute inset-0 sm:hidden"
           style={{
             backgroundImage:
-              "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.85) 100%)",
+              "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.45) 30%, rgba(0,0,0,0.85) 100%)",
           }}
         />
       </div>
