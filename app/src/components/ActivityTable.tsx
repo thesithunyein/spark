@@ -11,7 +11,7 @@ function StatusBadge({ status }: { status: string }) {
       className={clsx(
         "inline-flex items-center gap-1 text-[11px] font-medium",
         ok && "text-success",
-        pending && "text-brand",
+        pending && "text-white",
         !ok && !pending && "text-muted",
       )}
     >
@@ -54,7 +54,7 @@ export function ActivityTable({ items }: { items: ActivityItem[] }) {
                     href={item.href}
                     target="_blank"
                     rel="noreferrer"
-                    className="text-[11px] text-muted hover:text-brand hover:underline"
+                    className="text-[11px] text-muted hover:text-white hover:underline"
                   >
                     View tx
                   </a>

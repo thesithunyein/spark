@@ -66,8 +66,10 @@ export default function HomePage() {
       </div>
 
       <header className="relative z-50 flex items-center justify-between gap-8 px-[clamp(20px,5vw,100px)] py-[clamp(20px,2.4vw,34px)]">
-        <Link href="/" className="text-[clamp(20px,1.75vw,30px)] font-extralight leading-none tracking-[0.16em] text-white">
-          SPARK
+        <Link href="/" className="flex items-center gap-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/brand/hex-logo.svg" alt="" width={34} height={34} className="h-[clamp(26px,2.2vw,38px)] w-[clamp(26px,2.2vw,38px)]" />
+          <span className="text-[clamp(20px,1.75vw,30px)] font-extralight leading-none tracking-[0.16em] text-white">SPARK</span>
         </Link>
         <div className="flex items-center gap-[clamp(24px,3.2vw,62px)]">
           <nav className="hidden items-center gap-[clamp(20px,2.8vw,56px)] lg:flex">
@@ -153,14 +155,14 @@ export default function HomePage() {
             {STEPS.map((s, i) => (
               <li key={s.n} className="flex items-center gap-3">
                 {i > 0 && <span className="mr-4 hidden h-px w-8 bg-white/25 sm:block" aria-hidden />}
-                <span className="font-mono text-[11px] text-[#ff6600]">{s.n}</span>
+                <span className="font-mono text-[11px] text-white">{s.n}</span>
                 <span className="text-[13px] text-white/95">{s.t}</span>
               </li>
             ))}
           </ol>
           <p className="mt-[clamp(26px,2.6vw,46px)] self-start text-[13px] text-white/70">
             New here?{" "}
-            <Link href="/help" className="text-white underline-offset-4 transition hover:text-[#ff6600] hover:underline">
+            <Link href="/help" className="text-white underline-offset-4 transition hover:text-white hover:underline">
               How Spark works
             </Link>
           </p>

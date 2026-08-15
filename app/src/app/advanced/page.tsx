@@ -22,13 +22,13 @@ export default function AdvancedPage() {
           <ul className="mt-4 space-y-2 break-all font-mono text-[11px] text-muted">
             <li>
               SepoliaPayment:{" "}
-              <a className="text-brand hover:underline" href={`${config.explorerSepolia}/address/${config.paymentAddress}`}>
+              <a className="text-white hover:underline" href={`${config.explorerSepolia}/address/${config.paymentAddress}`}>
                 {config.paymentAddress}
               </a>
             </li>
             <li>
               CreditLine:{" "}
-              <a className="text-brand hover:underline" href={`${config.explorerCreditcoin}/address/${config.creditLineAddress}`}>
+              <a className="text-white hover:underline" href={`${config.explorerCreditcoin}/address/${config.creditLineAddress}`}>
                 {config.creditLineAddress}
               </a>
             </li>
@@ -45,7 +45,7 @@ export default function AdvancedPage() {
               href="https://github.com/thesithunyein/spark/blob/main/docs/attestcoin.md"
               target="_blank"
               rel="noreferrer"
-              className="text-brand hover:underline"
+              className="text-white hover:underline"
             >
               docs/attestcoin.md
             </a>{" "}
@@ -54,7 +54,7 @@ export default function AdvancedPage() {
         </section>
 
         <p className="text-center text-[12px] text-muted">
-          <Link href="/settings" className="text-brand hover:underline">
+          <Link href="/settings" className="text-white hover:underline">
             Back to Settings
           </Link>
         </p>

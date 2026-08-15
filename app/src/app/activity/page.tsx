@@ -52,7 +52,7 @@ export default function ActivityPage() {
       {isConnected && !isConfigured() && (
         <div>
           <p className="text-[13px] text-muted">Contracts not configured. History appears after deploy.</p>
-          <Link href="/pay" className="mt-3 inline-flex text-[13px] font-medium text-brand hover:underline">
+          <Link href="/pay" className="mt-3 inline-flex text-[13px] font-medium text-white hover:underline">
             Explore Pay deposit →
           </Link>
         </div>
@@ -66,7 +66,7 @@ export default function ActivityPage() {
               <p className="text-[13px] text-muted">No activity yet</p>
               <Link
                 href="/pay"
-                className="mt-4 inline-flex bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+                className="mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
               >
                 Make your first deposit
               </Link>

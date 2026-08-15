@@ -27,7 +27,7 @@ export function SuccessBanner({
           {description && <p className="mt-1 text-[13px] leading-relaxed text-muted">{description}</p>}
           {href && (
             <a
-              className="mt-2 inline-block break-all text-[12px] font-medium text-brand hover:underline"
+              className="mt-2 inline-block break-all text-[12px] font-medium text-white hover:underline"
               href={href}
               target="_blank"
               rel="noreferrer"

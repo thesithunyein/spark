@@ -325,7 +325,7 @@ export default function WithdrawPage() {
             </p>
             <Link
               href="/pay"
-              className="mt-4 inline-flex bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+              className="mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
             >
               Pay deposit
             </Link>
@@ -346,7 +346,7 @@ export default function WithdrawPage() {
                   Confirmed on Creditcoin. Balances updated below.
                 </p>
                 <a
-                  className="mt-2 inline-block break-all text-[12px] text-brand hover:underline"
+                  className="mt-2 inline-block break-all text-[12px] text-white hover:underline"
                   href={`${config.explorerCreditcoin}/tx/${success.hash}`}
                   target="_blank"
                   rel="noreferrer"
@@ -370,7 +370,7 @@ export default function WithdrawPage() {
                     dismissSuccess();
                     setAmount(formatEther(walletWei < debtWei ? walletWei : debtWei));
                   }}
-                  className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+                  className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
                 >
                   Redeem against debt
                 </button>
@@ -411,7 +411,7 @@ export default function WithdrawPage() {
             <button
               type="button"
               onClick={onMax}
-              className="text-[12px] font-medium text-brand hover:underline"
+              className="text-[12px] font-medium text-white hover:underline"
             >
               Max available
             </button>
@@ -421,7 +421,7 @@ export default function WithdrawPage() {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           disabled={!hasActiveLine || isBusy}
-          className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
+          className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-white/50 disabled:opacity-50"
         />
 
         <p className="mt-3 text-[12px] text-muted">
@@ -446,7 +446,7 @@ export default function WithdrawPage() {
             type="button"
             onClick={onWithdraw}
             disabled={!hasActiveLine || isBusy || availableWei === 0n || Boolean(success)}
-            className=" bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
+            className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
           >
             {awaitingWallet && pendingAction === "withdraw"
               ? "Confirm in MetaMask…"
@@ -478,7 +478,7 @@ export default function WithdrawPage() {
           <div className="mt-5 space-y-2">
             <p className="break-all text-[12px] text-muted">
               <a
-                className="text-brand hover:underline"
+                className="text-white hover:underline"
                 href={`${config.explorerCreditcoin}/tx/${txHash}`}
                 target="_blank"
                 rel="noreferrer"
@@ -494,7 +494,7 @@ export default function WithdrawPage() {
                   if (!s) return;
                   void tryConfirmReceipt(s.hash, s.action, s.value);
                 }}
-                className="text-[12px] font-medium text-brand hover:underline"
+                className="text-[12px] font-medium text-white hover:underline"
               >
                 Check confirmation again
               </button>

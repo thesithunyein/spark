@@ -106,7 +106,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
           <p className="mt-3 text-[12px] text-muted">
             Install{" "}
             <a
-              className="text-brand hover:underline"
+              className="text-white hover:underline"
               href="https://metamask.io/download/"
               target="_blank"
               rel="noreferrer"

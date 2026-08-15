@@ -15,7 +15,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 function Step({ n, title, body }: { n: string; title: string; body: string }) {
   return (
     <li className="flex gap-4">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-brand/15 font-mono text-[11px] text-brand">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-white/15 font-mono text-[11px] text-white">
         {n}
       </span>
       <div>
@@ -56,7 +56,7 @@ export default function HelpPage() {
                 href="https://metamask.io/download/"
                 target="_blank"
                 rel="noreferrer"
-                className="text-brand hover:underline"
+                className="text-white hover:underline"
               >
                 install the extension
               </a>
@@ -68,7 +68,7 @@ export default function HelpPage() {
                 href="https://cloud.google.com/application/web3/faucet/ethereum/sepolia"
                 target="_blank"
                 rel="noreferrer"
-                className="text-brand hover:underline"
+                className="text-white hover:underline"
               >
                 Free faucet
               </a>
@@ -79,7 +79,7 @@ export default function HelpPage() {
                 href="https://discord.com/invite/creditcoin"
                 target="_blank"
                 rel="noreferrer"
-                className="text-brand hover:underline"
+                className="text-white hover:underline"
               >
                 Creditcoin Discord
               </a>{" "}
@@ -125,11 +125,11 @@ export default function HelpPage() {
           </ul>
           <p>
             Go to{" "}
-            <Link href="/score" className="text-brand hover:underline">
+            <Link href="/score" className="text-white hover:underline">
               Credit score
             </Link>{" "}
             to link past deposits/repays, then open a <em>fresh</em> deposit on{" "}
-            <Link href="/pay" className="text-brand hover:underline">
+            <Link href="/pay" className="text-white hover:underline">
               Pay deposit
             </Link>
             .
@@ -140,7 +140,7 @@ export default function HelpPage() {
           <ol className="list-inside list-decimal space-y-2">
             <li>Connect MetaMask.</li>
             <li>
-              <Link href="/overview" className="text-brand hover:underline">
+              <Link href="/overview" className="text-white hover:underline">
                 Overview
               </Link>{" "}
               — follow the checklist (gas faucets).
@@ -152,11 +152,11 @@ export default function HelpPage() {
           </ol>
           <p className="pt-2">
             History:{" "}
-            <Link href="/activity" className="text-brand hover:underline">
+            <Link href="/activity" className="text-white hover:underline">
               Payments
             </Link>
             . Contracts:{" "}
-            <Link href="/settings" className="text-brand hover:underline">
+            <Link href="/settings" className="text-white hover:underline">
               Settings
             </Link>
             .
@@ -232,12 +232,12 @@ export default function HelpPage() {
               href="https://github.com/thesithunyein/spark/blob/main/docs/addresses.md"
               target="_blank"
               rel="noreferrer"
-              className="text-brand hover:underline"
+              className="text-white hover:underline"
             >
               docs/addresses.md
             </a>
             . Integration notes:{" "}
-            <Link href="/advanced" className="text-brand hover:underline">
+            <Link href="/advanced" className="text-white hover:underline">
               Developers
             </Link>
             . Repo:{" "}
@@ -245,7 +245,7 @@ export default function HelpPage() {
               href="https://github.com/thesithunyein/spark"
               target="_blank"
               rel="noreferrer"
-              className="text-brand hover:underline"
+              className="text-white hover:underline"
             >
               github.com/thesithunyein/spark
             </a>
@@ -257,7 +257,7 @@ export default function HelpPage() {
           <p className="mt-2 text-[13px] text-muted">Connect MetaMask and pay a test deposit.</p>
           <Link
             href="/pay"
-            className="mt-5 inline-flex bg-brand px-5 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-white transition hover:bg-accent2"
+            className="mt-5 inline-flex bg-white px-5 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-black transition hover:bg-white/85"
           >
             Pay deposit
           </Link>

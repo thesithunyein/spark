@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="brand/logo.png" width="88" height="88" alt="Spark" />
+  <img src="brand/hex-logo.svg" width="96" height="96" alt="Spark" />
 </p>
 
 <h1 align="center">Spark</h1>
@@ -12,8 +12,8 @@
 
 <p align="center">
   <img alt="license" src="https://img.shields.io/badge/license-MIT-blue" />
-  <img alt="network" src="https://img.shields.io/badge/network-Sepolia%20%2B%20Creditcoin%20testnet-ff6600" />
-  <img alt="attestcoin" src="https://img.shields.io/badge/Attestcoin-USC-ff6600" />
+  <img alt="network" src="https://img.shields.io/badge/network-Sepolia%20%2B%20Creditcoin%20testnet-000000" />
+  <img alt="attestcoin" src="https://img.shields.io/badge/Attestcoin-USC-000000" />
   <img alt="ui" src="https://img.shields.io/badge/UI-Next.js%2015-black" />
   <img alt="contracts" src="https://img.shields.io/badge/contracts-Foundry-grey" />
   <img alt="status" src="https://img.shields.io/badge/status-testnet-yellow" />

@@ -158,7 +158,7 @@ export default function TransferPage() {
               onChange={(e) => setTo(e.target.value.trim())}
               placeholder="0x…"
               disabled={!isConnected}
-              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] outline-none transition focus:border-brand/50 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] outline-none transition focus:border-white/50 disabled:opacity-50"
             />
 
             <div className="mt-4 flex items-end justify-between gap-3">
@@ -169,7 +169,7 @@ export default function TransferPage() {
                 <button
                   type="button"
                   onClick={() => setAmount(formatEther(bal))}
-                  className="text-[12px] font-medium text-brand hover:underline"
+                  className="text-[12px] font-medium text-white hover:underline"
                 >
                   Max
                 </button>
@@ -179,14 +179,14 @@ export default function TransferPage() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={!isConnected || bal === 0n}
-              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-white/50 disabled:opacity-50"
             />
 
             <button
               type="button"
               onClick={onSend}
               disabled={!isConnected || awaitingWallet || confirming || bal === 0n || creditTx.confirmed}
-              className="mt-8 w-full bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
+              className="mt-8 w-full bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
             >
               {awaitingWallet
                 ? "Confirm in MetaMask…"
@@ -200,7 +200,7 @@ export default function TransferPage() {
             {bal === 0n && isConnected && (
               <p className="mt-3 text-[12px] text-muted">
                 No sCREDIT yet.{" "}
-                <Link href="/withdraw" className="text-brand hover:underline">
+                <Link href="/withdraw" className="text-white hover:underline">
                   Withdraw from your credit line
                 </Link>{" "}
                 first.
@@ -237,7 +237,7 @@ export default function TransferPage() {
                   className="mt-4 inline-flex items-center gap-2 border border-border px-4 py-2.5 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
                 >
                   {copied ? (
-                    <Check className="h-4 w-4 text-brand" />
+                    <Check className="h-4 w-4 text-white" />
                   ) : (
                     <Copy className="h-4 w-4 text-muted" />
                   )}

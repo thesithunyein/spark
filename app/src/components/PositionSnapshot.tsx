@@ -20,7 +20,7 @@ export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
   const available = credit > debt ? credit - debt : 0n;
   const rows = [
     { label: "Deposit", value: deposit, tone: "bg-white/20" },
-    { label: "Credit", value: credit, tone: "bg-brand" },
+    { label: "Credit", value: credit, tone: "bg-white" },
     { label: "Debt", value: debt, tone: "bg-white/40" },
     { label: "Available", value: available, tone: "bg-success" },
   ];

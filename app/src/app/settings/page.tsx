@@ -69,7 +69,7 @@ export default function SettingsPage() {
               href="https://github.com/thesithunyein/spark/blob/main/SECURITY.md"
               target="_blank"
               rel="noreferrer"
-              className="text-brand hover:underline"
+              className="text-white hover:underline"
             >
               Security policy →
             </a>
@@ -115,13 +115,13 @@ export default function SettingsPage() {
           <ul className="space-y-2 break-all font-mono text-[11px]">
             <li>
               SepoliaPayment:{" "}
-              <a className="text-brand hover:underline" href={`${config.explorerSepolia}/address/${config.paymentAddress}`} target="_blank" rel="noreferrer">
+              <a className="text-white hover:underline" href={`${config.explorerSepolia}/address/${config.paymentAddress}`} target="_blank" rel="noreferrer">
                 {config.paymentAddress}
               </a>
             </li>
             <li>
               CreditLine:{" "}
-              <a className="text-brand hover:underline" href={`${config.explorerCreditcoin}/address/${config.creditLineAddress}`} target="_blank" rel="noreferrer">
+              <a className="text-white hover:underline" href={`${config.explorerCreditcoin}/address/${config.creditLineAddress}`} target="_blank" rel="noreferrer">
                 {config.creditLineAddress}
               </a>
             </li>
@@ -131,7 +131,7 @@ export default function SettingsPage() {
 
         <p className="pt-2 text-center text-[12px] text-muted">
           Developer docs and Attestcoin notes →{" "}
-          <Link href="/advanced" className="text-brand hover:underline">
+          <Link href="/advanced" className="text-white hover:underline">
             Developers
           </Link>
         </p>

@@ -305,7 +305,7 @@ export function LinkHistoryPanel() {
             actions={
               <Link
                 href="/pay"
-                className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+                className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
               >
                 Pay deposit to open credit
               </Link>
@@ -349,7 +349,7 @@ export function LinkHistoryPanel() {
           type="button"
           onClick={() => void linkAll()}
           disabled={!isConnected || linking || isPending || found.length === 0}
-          className=" bg-brand px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-white transition hover:bg-accent2 disabled:opacity-50"
+          className=" bg-white px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-black transition hover:bg-white/85 disabled:opacity-50"
         >
           {linking ? "Linking…" : `Link ${found.length || ""} payment${found.length === 1 ? "" : "s"}`.trim()}
         </button>

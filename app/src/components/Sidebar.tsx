@@ -66,7 +66,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                         : "text-muted hover:bg-white/[0.03] hover:text-text",
                     )}
                   >
-                    <Icon className={clsx("h-[15px] w-[15px]", active ? "text-brand" : "text-muted")} strokeWidth={1.75} />
+                    <Icon className={clsx("h-[15px] w-[15px]", active ? "text-white" : "text-muted")} strokeWidth={1.75} />
                     {item.label}
                   </Link>
                 </li>

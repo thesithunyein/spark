@@ -14,7 +14,7 @@ export default function ScorePage() {
         <LinkHistoryPanel />
         <p className="text-[13px] text-muted">
           Tip: make 2–3 small deposits first, link them here, then{" "}
-          <Link href="/pay" className="text-brand hover:underline">
+          <Link href="/pay" className="text-white hover:underline">
             Pay deposit
           </Link>{" "}
           with a <em>new</em> tx to open credit at the boosted LTV.

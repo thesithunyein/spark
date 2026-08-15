@@ -5,13 +5,14 @@ export function Logo({ className, href = "/" }: { className?: string; href?: str
   return (
     <Link
       href={href}
-      className={clsx(
-        "inline-flex select-none items-center text-[15px] font-extralight leading-none tracking-[0.16em] text-white",
-        className,
-      )}
+      className={clsx("inline-flex select-none items-center gap-2.5", className)}
       aria-label="Spark home"
     >
-      SPARK
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/brand/hex-logo.svg" alt="" width={28} height={28} className="h-7 w-7" />
+      <span className="text-[15px] font-extralight leading-none tracking-[0.16em] text-white">
+        SPARK
+      </span>
     </Link>
   );
 }

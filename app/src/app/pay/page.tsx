@@ -525,7 +525,7 @@ export default function PayPage() {
                 <>
                   <Link
                     href="/withdraw"
-                    className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+                    className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
                   >
                     Withdraw
                   </Link>
@@ -572,7 +572,7 @@ export default function PayPage() {
                 <>
                   <Link
                     href="/withdraw"
-                    className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+                    className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
                   >
                     Withdraw credit
                   </Link>
@@ -598,7 +598,7 @@ export default function PayPage() {
                 <input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
+                  className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-white/50"
                 />
                 <p className="mt-2 text-[12px] text-muted">
                   Credit LTV rises with attested Sepolia balance and linked payment history (+2.5% /
@@ -619,7 +619,7 @@ export default function PayPage() {
                   type="button"
                   onClick={onPay}
                   disabled={!isConnected || awaitingWallet || sepoliaConfirming || verifying}
-                  className=" bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
+                  className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
                 >
                   {awaitingWallet
                     ? "Confirm in MetaMask…"
@@ -634,7 +634,7 @@ export default function PayPage() {
                     type="button"
                     onClick={() => void onProveAndOpen()}
                     disabled={proving}
-                    className=" bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
+                    className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
                   >
                     {proving
                       ? attestPhase === "submitting"
