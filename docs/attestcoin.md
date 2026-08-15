@@ -49,8 +49,9 @@ See [addresses.md](addresses.md).
 
 - Kind 3 (`BalanceAttested`) is a BlockProver-verified **snapshot** of Sepolia ETH at the moment `attestBalance` was mined. `openCredit` sizes LTV from that snapshot; there is no on-chain check that the balance is still current. The 8-20 minute attestation wait is a reorg-safety/UX choice, not an on-chain freshness bound.
 - After open, there is **no liquidation or health factor**. Interest accrues, but a position that goes underwater relative to a later Sepolia balance is not enforced on-chain in this version.
+- History bonus sizes LTV **at open**. Linking attested payments after open updates `creditScore`; it does not resize an active line.
 
-**Roadmap:** bind kind 3 proof `height` to the deposit proof window, re-attest balance on a cadence, and liquidate when attested health falls below a threshold.
+**Roadmap:** bind kind 3 proof `height` to the deposit proof window, re-attest balance on a cadence, and liquidate when attested health falls below a threshold. Optionally apply history bonus to an active line (`boostCredit`) after open.
 
 ## DoraHacks blurb
 
