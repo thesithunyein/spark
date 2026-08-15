@@ -41,7 +41,7 @@ export default function HomePage() {
     <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
         <video
-          className="h-full w-full object-cover object-center"
+          className="h-full w-full object-cover object-left"
           src={SPEAK_BG}
           autoPlay
           muted
