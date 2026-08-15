@@ -41,7 +41,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
           <Logo />
           <button
             type="button"
-            className="rounded-md p-1.5 text-muted transition hover:bg-white/[0.04] hover:text-text lg:hidden"
+            className="p-1.5 text-muted transition hover:bg-white/[0.04] hover:text-text lg:hidden"
             onClick={onClose}
             aria-label="Close"
           >
@@ -60,9 +60,9 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                     href={item.href}
                     onClick={onClose}
                     className={clsx(
-                      "flex items-center gap-2.5 rounded-lg px-3 py-2 text-[13px] transition-colors",
+                      "flex items-center gap-2.5 px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-colors",
                       active
-                        ? "bg-white/[0.06] font-medium text-text"
+                        ? "bg-white/[0.06] text-text"
                         : "text-muted hover:bg-white/[0.03] hover:text-text",
                     )}
                   >
@@ -76,7 +76,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         </nav>
 
         <div className="px-5 py-5">
-          <p className="text-[11px] leading-relaxed text-muted/80">Verified payment credit</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted/70">Verified payment credit</p>
         </div>
       </aside>
     </>

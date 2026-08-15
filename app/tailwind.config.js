@@ -4,12 +4,12 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        bg: "#09090B",
-        panel: "#111113",
-        panel2: "#18181B",
-        border: "rgba(255,255,255,0.08)",
-        muted: "#A1A1AA",
-        text: "#FAFAFA",
+        bg: "#000000",
+        panel: "#0C0C0E",
+        panel2: "#141417",
+        border: "rgba(255,255,255,0.14)",
+        muted: "rgba(255,255,255,0.62)",
+        text: "#FFFFFF",
         accent: "#FF6600",
         accent2: "#FF8533",
         brand: "#FF6600",
@@ -21,11 +21,13 @@ module.exports = {
         soft: "0 1px 0 rgba(255,255,255,0.04) inset",
       },
       fontFamily: {
-        sans: ["var(--font-geist)", "Segoe UI", "system-ui", "sans-serif"],
-        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
+        sans: ["var(--font-sans)", "Sora", "Helvetica Neue", "Arial", "sans-serif"],
+        mono: ["var(--font-mono)", "JetBrains Mono", "ui-monospace", "monospace"],
       },
       letterSpacing: {
         label: "0.08em",
+        wide2: "0.14em",
+        wide3: "0.22em",
       },
     },
   },

@@ -1,33 +1,47 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 const SPEAK_BG =
   "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4";
 
+const NAV_LINKS = [
+  { href: "/overview", label: "Overview" },
+  { href: "/score", label: "Score" },
+  { href: "/activity", label: "Activity" },
+  { href: "/help", label: "Help" },
+];
+
+const STEPS = [
+  { n: "01", t: "Pay deposit" },
+  { n: "02", t: "We verify" },
+  { n: "03", t: "Credit unlocks" },
+];
+
 export default function HomePage() {
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
-    const el = videoRef.current;
-    if (!el) return;
-    el.muted = true;
-    const play = () => {
-      void el.play().catch(() => {});
+    document.body.style.overflow = menuOpen ? "hidden" : "";
+    return () => {
+      document.body.style.overflow = "";
     };
-    play();
-    el.addEventListener("canplay", play);
-    return () => el.removeEventListener("canplay", play);
+  }, [menuOpen]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, []);
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-6 text-center">
-      <div className="absolute inset-0 z-0 overflow-hidden" aria-hidden>
+    <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
+      <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
         <video
-          ref={videoRef}
-          className="h-full w-full scale-105 object-cover"
+          className="h-full w-full object-cover object-center"
           src={SPEAK_BG}
           autoPlay
           muted
@@ -35,69 +49,129 @@ export default function HomePage() {
           playsInline
           preload="auto"
         />
-        <div className="absolute inset-0 bg-bg/55" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_rgba(9,9,11,0.72)_0%,_rgba(9,9,11,0.35)_45%,_transparent_75%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-bg/50 via-transparent to-bg/80" />
+        <div
+          className="absolute inset-0 hidden sm:block"
+          style={{
+            backgroundImage:
+              "linear-gradient(to right, transparent 0%, transparent 45%, rgba(0,0,0,0.45) 72%, rgba(0,0,0,0.75) 100%), linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 22%, transparent 78%, rgba(0,0,0,0.65) 100%)",
+          }}
+        />
+        <div
+          className="absolute inset-0 sm:hidden"
+          style={{
+            backgroundImage:
+              "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.75) 100%)",
+          }}
+        />
       </div>
 
-      <div className="relative z-10 flex flex-col items-center [text-shadow:0_2px_24px_rgba(0,0,0,0.85),0_1px_2px_rgba(0,0,0,0.9)]">
-        <Image
-          src="/brand/logo.png"
-          alt="Spark"
-          width={64}
-          height={64}
-          priority
-          className="rounded-[18px] shadow-[0_8px_40px_rgba(0,0,0,0.55)]"
-        />
-
-        <p className="mt-8 text-[13px] font-medium tracking-wide text-brand">Spark</p>
-
-        <h1 className="mt-3 max-w-xl text-[40px] font-medium leading-[1.1] tracking-tight text-white sm:text-[52px]">
-          Pay once.
-          <br />
-          Unlock credit.
-        </h1>
-
-        <p className="mt-5 max-w-sm text-[15px] leading-relaxed text-white/85">
-          We verify your payment so credit can open. No paperwork chase.
-        </p>
-
-        <div className="mt-9 flex flex-wrap items-center justify-center gap-3 [text-shadow:none]">
-          <Link
-            href="/pay"
-            className="inline-flex rounded-full bg-brand px-7 py-3 text-[14px] font-medium text-white transition hover:bg-accent2"
-          >
+      <header className="relative z-50 flex items-center justify-between gap-8 px-[clamp(20px,5vw,100px)] py-[clamp(20px,2.4vw,34px)]">
+        <Link href="/" className="text-[clamp(20px,1.75vw,30px)] font-extralight leading-none tracking-[0.16em] text-white">
+          SPARK
+        </Link>
+        <div className="flex items-center gap-[clamp(24px,3.2vw,62px)]">
+          <nav className="hidden items-center gap-[clamp(20px,2.8vw,56px)] lg:flex">
+            {NAV_LINKS.map((l) => (
+              <Link key={l.href} href={l.href} className="font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-colors duration-[250ms] hover:text-white/60">
+                {l.label}
+              </Link>
+            ))}
+          </nav>
+          <Link href="/pay" className="hidden border border-white/[0.26] px-[clamp(20px,1.8vw,32px)] py-[clamp(12px,1vw,17px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-colors duration-[250ms] hover:border-white/50 hover:bg-white/[0.05] lg:inline-flex">
             Get credit
           </Link>
-          <Link
-            href="/overview"
-            className="inline-flex rounded-full border border-white/25 bg-bg/55 px-7 py-3 text-[14px] font-medium text-white backdrop-blur-sm transition hover:bg-bg/70"
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-label={menuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={menuOpen}
+            aria-controls="mobileMenu"
+            className="relative h-11 w-11 lg:hidden"
           >
-            Overview
-          </Link>
+            <span className="absolute left-1/2 h-px w-[22px] -translate-x-1/2 bg-white transition-all duration-[450ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]" style={menuOpen ? { top: "22px", transform: "translateX(-50%) rotate(45deg)" } : { top: "16px" }} />
+            <span className="absolute left-1/2 top-[22px] h-px w-[22px] -translate-x-1/2 bg-white transition-all duration-[250ms]" style={menuOpen ? { opacity: 0, transform: "translateX(-50%) scaleX(0)" } : { opacity: 1 }} />
+            <span className="absolute left-1/2 h-px w-[22px] -translate-x-1/2 bg-white transition-all duration-[450ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]" style={menuOpen ? { top: "22px", transform: "translateX(-50%) rotate(-45deg)" } : { top: "28px" }} />
+          </button>
         </div>
+      </header>
 
-        <ol className="mt-16 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-[13px] text-white/75">
-          {[
-            { n: "01", t: "Pay deposit" },
-            { n: "02", t: "We verify" },
-            { n: "03", t: "Credit unlocks" },
-          ].map((s, i) => (
-            <li key={s.n} className="flex items-center gap-3">
-              {i > 0 && <span className="mr-5 hidden h-px w-8 bg-white/25 sm:block" aria-hidden />}
-              <span className="font-mono text-[11px] text-brand">{s.n}</span>
-              <span className="text-white/95">{s.t}</span>
-            </li>
-          ))}
-        </ol>
-
-        <p className="mt-10 text-[13px] text-white/70">
-          New here?{" "}
-          <Link href="/help" className="text-white underline-offset-4 transition hover:text-brand hover:underline">
-            How Spark works
+      <div
+        id="mobileMenu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Site menu"
+        aria-hidden={!menuOpen}
+        className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-2 bg-[rgba(4,4,6,0.94)] backdrop-blur-[28px] backdrop-saturate-150 transition-[clip-path,opacity] duration-[700ms] [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] lg:hidden"
+        style={{
+          clipPath: menuOpen ? "circle(150% at calc(100% - 42px) 42px)" : "circle(3% at calc(100% - 42px) 42px)",
+          opacity: menuOpen ? 1 : 0,
+          pointerEvents: menuOpen ? "auto" : "none",
+        }}
+        onClick={() => setMenuOpen(false)}
+      >
+        {[...NAV_LINKS.map((l) => ({ ...l, cta: false })), { href: "/pay", label: "Get credit", cta: true }].map((item, i) => (
+          <Link
+            key={item.label}
+            href={item.href}
+            onClick={() => setMenuOpen(false)}
+            className={item.cta ? "mt-6 border border-white/[0.26] px-10 py-4 font-mono text-[clamp(20px,5.5vw,28px)] uppercase tracking-[0.22em] text-white" : "py-1 font-mono text-[clamp(20px,5.5vw,28px)] uppercase tracking-[0.14em] text-white"}
+            style={{
+              opacity: menuOpen ? 1 : 0,
+              transform: menuOpen ? "translateY(0)" : "translateY(16px)",
+              transition: "opacity 0.4s ease, transform 0.5s cubic-bezier(0.16,1,0.3,1)",
+              transitionDelay: `${180 + i * 70}ms`,
+            }}
+          >
+            {item.label}
           </Link>
-        </p>
+        ))}
       </div>
+
+      <main className="relative z-10 flex min-h-0 items-center justify-end overflow-y-auto px-[clamp(20px,5vw,100px)] max-sm:justify-center">
+        <div className="flex w-[min(34vw,620px)] min-w-[380px] flex-col max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
+          <span className="inline-block self-start bg-white/[0.09] px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-white">
+            [ Verified credit ]
+          </span>
+          <h1 className="mt-[clamp(28px,3vw,52px)] text-[clamp(54px,6.2vw,118px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
+            SPARK
+          </h1>
+          <p className="mt-[clamp(14px,1.4vw,24px)] font-mono text-[clamp(11px,0.94vw,17px)] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
+            Pay once. Unlock credit.
+          </p>
+          <p className="mt-[clamp(14px,1.4vw,24px)] max-w-sm text-[15px] font-light leading-relaxed text-white/85">
+            We verify your payment so credit can open. No paperwork chase.
+          </p>
+          <div className="mt-[clamp(38px,4.6vw,82px)] flex flex-wrap items-center gap-3">
+            <Link href="/pay" className="bg-white/[0.10] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white transition-colors duration-[250ms] hover:bg-white/[0.17]">
+              Get credit
+            </Link>
+            <Link href="/overview" className="bg-white/[0.05] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/40 transition-colors duration-[250ms] hover:bg-white/[0.09] hover:text-white">
+              Overview
+            </Link>
+          </div>
+          <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-wrap items-center gap-x-8 gap-y-3">
+            {STEPS.map((s, i) => (
+              <li key={s.n} className="flex items-center gap-3">
+                {i > 0 && <span className="mr-4 hidden h-px w-8 bg-white/25 sm:block" aria-hidden />}
+                <span className="font-mono text-[11px] text-[#ff6600]">{s.n}</span>
+                <span className="text-[13px] text-white/95">{s.t}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="mt-[clamp(26px,2.6vw,46px)] self-start text-[13px] text-white/70">
+            New here?{" "}
+            <Link href="/help" className="text-white underline-offset-4 transition hover:text-[#ff6600] hover:underline">
+              How Spark works
+            </Link>
+          </p>
+        </div>
+      </main>
+
+      <footer className="relative z-10 border-t border-white/[0.14] px-[clamp(20px,5vw,100px)] py-[clamp(18px,1.7vw,30px)] text-center">
+        <p className="text-[clamp(12px,0.82vw,16px)] font-light leading-[1.5] text-white/60">
+          Spark verifies payments on Sepolia and opens credit on Creditcoin. Testnet prototype.
+        </p>
+      </footer>
     </div>
   );
 }

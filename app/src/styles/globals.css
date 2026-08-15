@@ -3,12 +3,12 @@
 @tailwind utilities;
 
 :root {
-  --bg: #09090b;
-  --panel: #111113;
-  --border: rgba(255, 255, 255, 0.08);
+  --bg: #000000;
+  --panel: #0c0c0e;
+  --border: rgba(255, 255, 255, 0.14);
   --brand: #ff6600;
-  --text: #fafafa;
-  --muted: #a1a1aa;
+  --text: #ffffff;
+  --muted: rgba(255, 255, 255, 0.62);
 }
 
 html,
@@ -16,11 +16,8 @@ body {
   background: var(--bg);
   color: var(--text);
   min-height: 100%;
-}
-
-body {
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -20%, rgba(255, 102, 0, 0.12), transparent 60%);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 * {
@@ -32,10 +29,27 @@ body {
   height: 6px;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.12);
-  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.26);
 }
 
 ::selection {
   background: rgba(255, 102, 0, 0.28);
+}
+
+:focus-visible {
+  outline: 1px solid rgba(255, 255, 255, 0.7);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

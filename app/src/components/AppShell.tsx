@@ -32,14 +32,14 @@ export function AppShell({
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              className="rounded-lg border border-border p-2 text-muted transition hover:text-text lg:hidden"
+              className="border border-border p-2 text-muted transition hover:text-text lg:hidden"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
             >
               <Menu className="h-4 w-4" />
             </button>
             <div className="min-w-0">
-              <h1 className="truncate text-[22px] font-medium tracking-tight text-text">{title}</h1>
+              <h1 className="truncate text-[22px] font-light tracking-[0.02em] text-text">{title}</h1>
               {subtitle && <p className="mt-1 max-w-lg text-[13px] leading-relaxed text-muted">{subtitle}</p>}
             </div>
           </div>

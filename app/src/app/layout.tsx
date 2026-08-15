@@ -1,10 +1,19 @@
 import type { Metadata } from "next";
-import { DM_Sans, JetBrains_Mono } from "next/font/google";
+import { Sora, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/lib/wagmi";
 import "@/styles/globals.css";
 
-const sans = DM_Sans({ subsets: ["latin"], variable: "--font-geist" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const sans = Sora({
+  subsets: ["latin"],
+  variable: "--font-sans",
+  display: "swap",
+});
+
+const mono = JetBrains_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Spark | Pay once. Unlock credit.",

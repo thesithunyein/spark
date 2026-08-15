@@ -55,6 +55,15 @@ export function AttestcoinProofPanel({
 }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const waiting = phase === "waiting_attestation";
+  const statusLine: Record<string, string> = {
+    finding_tx: "locating payment on Sepolia",
+    waiting_attestation: "waiting for Attestcoin to attest the block",
+    attested: "block attested on Creditcoin",
+    building_proof: "building BlockProver proof",
+    proof_ready: "proof ready",
+    submitting: "submitting on Creditcoin",
+    done: "credit opened on Creditcoin",
+  };
 
   useEffect(() => {
     if (!waiting && !verifyStartedAt) {
@@ -81,11 +90,26 @@ export function AttestcoinProofPanel({
         Verification{dualProof ? " · deposit + balance" : claim?.kind ? ` · ${claim.kind}` : ""}
       </p>
 
+      <p className="mt-2 flex items-center gap-2 font-mono text-[12px] text-white/85">
+        <span className="text-white/40">$</span>
+        <span>
+          {statusLine[phase] ?? "processing"}
+          <span className="ml-0.5 inline-block w-[7px] animate-pulse text-white/60">▍</span>
+        </span>
+        {waiting && (
+          <span className="tabular-nums text-white/40">
+            · usually 8–20 min · {formatElapsed(elapsed)}
+          </span>
+        )}
+      </p>
       {waiting && (
-        <p className="mt-2 text-[13px] text-text/85">
-          Usually 8–20 min
-          <span className="text-muted"> · {formatElapsed(elapsed)}</span>
-        </p>
+        <span className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#3DDC97]">
+          <span className="relative flex h-1.5 w-1.5">
+            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#3DDC97] opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#3DDC97]" />
+          </span>
+          Live · attestation running
+        </span>
       )}
 
       <ol className="mt-3 space-y-2">

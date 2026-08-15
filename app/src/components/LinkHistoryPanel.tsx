@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import {
   useAccount,
@@ -49,6 +49,28 @@ function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
 async function scanFromBlock(client: { getBlockNumber: () => Promise<bigint> }) {
   const latest = await withTimeout(client.getBlockNumber(), LOG_TIMEOUT_MS);
   return latest > LOG_LOOKBACK ? latest - LOG_LOOKBACK : 0n;
+}
+
+function useCountUp(value: number, durationMs = 700) {
+  const [display, setDisplay] = useState(value);
+  const prev = useRef(value);
+  useEffect(() => {
+    const from = prev.current;
+    const to = value;
+    if (from === to) return;
+    prev.current = to;
+    let raf = 0;
+    const start = performance.now();
+    const step = (now: number) => {
+      const t = Math.min(1, (now - start) / durationMs);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setDisplay(Math.round(from + (to - from) * eased));
+      if (t < 1) raf = requestAnimationFrame(step);
+    };
+    raf = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(raf);
+  }, [value, durationMs]);
+  return display;
 }
 
 export function LinkHistoryPanel() {
@@ -253,6 +275,8 @@ export function LinkHistoryPanel() {
   const volume = hist ? hist.volume : 0n;
   const scoreN = score != null ? Number(score) : 650;
   const bonus = bonusBps != null ? Number(bonusBps) : 0;
+  const scoreDisplay = useCountUp(scoreN);
+  const bonusDisplay = useCountUp(bonus);
   const allLinked = count > 0 && found.length === 0 && !scanning && !linking;
 
   return (
@@ -293,7 +317,7 @@ export function LinkHistoryPanel() {
       <div className="mt-5 grid gap-3 sm:grid-cols-3">
         <div>
           <p className="text-[11px] text-muted">Score</p>
-          <p className="mt-1 text-[22px] font-medium tabular-nums text-text">{scoreN}</p>
+          <p className="mt-1 text-[22px] font-medium tabular-nums text-text">{scoreDisplay}</p>
           <p className="text-[11px] text-muted">650 base · +40 / payment · cap 850</p>
         </div>
         <div>
@@ -303,7 +327,7 @@ export function LinkHistoryPanel() {
         </div>
         <div>
           <p className="text-[11px] text-muted">LTV bonus</p>
-          <p className="mt-1 text-[22px] font-medium tabular-nums text-text">+{(bonus / 100).toFixed(2)}%</p>
+          <p className="mt-1 text-[22px] font-medium tabular-nums text-text">+{(bonusDisplay / 100).toFixed(2)}%</p>
           <p className="text-[11px] text-muted">≥1 → +2.5% · ≥3 → +5%</p>
         </div>
       </div>
