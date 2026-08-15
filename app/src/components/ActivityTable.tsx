@@ -30,14 +30,14 @@ function StatusBadge({ status }: { status: string }) {
 export function ActivityTable({ items }: { items: ActivityItem[] }) {
   if (items.length === 0) {
     return (
-      <div className="rounded-2xl border border-dashed border-border px-5 py-10 text-center text-[13px] text-muted">
+      <div className=" border border-dashed border-border px-5 py-10 text-center text-[13px] text-muted">
         No payments yet
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-border bg-panel/80 shadow-soft">
+    <div className="overflow-hidden border border-border bg-panel/80 shadow-soft">
       <ul className="divide-y divide-border">
         {items.map((item) => (
           <li key={item.id} className="flex items-center justify-between gap-4 px-4 py-3.5 text-[13px]">

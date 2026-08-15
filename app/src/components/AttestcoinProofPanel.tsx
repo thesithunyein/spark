@@ -85,8 +85,8 @@ export function AttestcoinProofPanel({
       : Math.max(0, ORDER.indexOf(phase));
 
   return (
-    <div className="mt-5 rounded-xl border border-border bg-white/[0.02] p-4">
-      <p className="text-[11px] font-medium uppercase tracking-label text-muted">
+    <div className="mt-5 border border-border bg-white/[0.02] p-4">
+      <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
         Verification{dualProof ? " · deposit + balance" : claim?.kind ? ` · ${claim.kind}` : ""}
       </p>
 
@@ -105,8 +105,8 @@ export function AttestcoinProofPanel({
       {waiting && (
         <span className="mt-1 inline-flex items-center gap-1.5 font-mono text-[10px] uppercase tracking-[0.18em] text-[#3DDC97]">
           <span className="relative flex h-1.5 w-1.5">
-            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#3DDC97] opacity-75" />
-            <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#3DDC97]" />
+            <span className="absolute inline-flex h-full w-full animate-ping bg-[#3DDC97] opacity-75" />
+            <span className="relative inline-flex h-1.5 w-1.5 bg-[#3DDC97]" />
           </span>
           Live · attestation running
         </span>
@@ -121,10 +121,10 @@ export function AttestcoinProofPanel({
               <span
                 className={
                   done
-                    ? "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
+                    ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand"
                     : current
-                      ? "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand/60"
-                      : "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white/15"
+                      ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand/60"
+                      : "mt-1.5 h-1.5 w-1.5 shrink-0 bg-white/15"
                 }
               />
               <span className={done || current ? "text-text" : "text-muted"}>
@@ -137,10 +137,10 @@ export function AttestcoinProofPanel({
           <span
             className={
               phase === "done"
-                ? "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand"
+                ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand"
                 : phase === "submitting"
-                  ? "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brand/60"
-                  : "mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-white/15"
+                  ? "mt-1.5 h-1.5 w-1.5 shrink-0 bg-brand/60"
+                  : "mt-1.5 h-1.5 w-1.5 shrink-0 bg-white/15"
             }
           />
           <span className={phase === "submitting" || phase === "done" ? "text-text" : "text-muted"}>

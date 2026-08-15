@@ -503,7 +503,7 @@ export default function PayPage() {
       title="Pay deposit"
       subtitle="Prove deposit + Sepolia balance via Attestcoin, then unlock credit on Creditcoin."
     >
-      <div className="mx-auto max-w-md rounded-2xl border border-border bg-panel/80 p-7 shadow-soft">
+      <div className="mx-auto max-w-md border border-border bg-panel/80 p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet to pay</p>
@@ -525,13 +525,13 @@ export default function PayPage() {
                 <>
                   <Link
                     href="/withdraw"
-                    className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                    className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
                   >
                     Withdraw
                   </Link>
                   <Link
                     href="/overview"
-                    className="rounded-full border border-border px-4 py-2 text-[13px] font-medium"
+                    className=" border border-border px-4 py-2 text-[13px] font-medium"
                   >
                     Overview
                   </Link>
@@ -572,13 +572,13 @@ export default function PayPage() {
                 <>
                   <Link
                     href="/withdraw"
-                    className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                    className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
                   >
                     Withdraw credit
                   </Link>
                   <Link
                     href="/overview"
-                    className="rounded-full border border-border px-4 py-2 text-[13px] font-medium"
+                    className=" border border-border px-4 py-2 text-[13px] font-medium"
                   >
                     View overview
                   </Link>
@@ -592,13 +592,13 @@ export default function PayPage() {
           <>
             {step < 2 && (
               <>
-                <label className="text-[11px] font-medium uppercase tracking-label text-muted">
+                <label className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
                   Amount (ETH)
                 </label>
                 <input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
+                  className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50"
                 />
                 <p className="mt-2 text-[12px] text-muted">
                   Credit LTV rises with attested Sepolia balance and linked payment history (+2.5% /
@@ -619,7 +619,7 @@ export default function PayPage() {
                   type="button"
                   onClick={onPay}
                   disabled={!isConnected || awaitingWallet || sepoliaConfirming || verifying}
-                  className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+                  className=" bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
                 >
                   {awaitingWallet
                     ? "Confirm in MetaMask…"
@@ -634,7 +634,7 @@ export default function PayPage() {
                     type="button"
                     onClick={() => void onProveAndOpen()}
                     disabled={proving}
-                    className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+                    className=" bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
                   >
                     {proving
                       ? attestPhase === "submitting"
@@ -652,7 +652,7 @@ export default function PayPage() {
                       void onProveAndOpen();
                     }}
                     disabled={proving}
-                    className="rounded-full border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03] disabled:opacity-50"
+                    className=" border border-border px-4 py-3 text-[14px] font-medium transition hover:bg-white/[0.03] disabled:opacity-50"
                   >
                     Retry verify
                   </button>

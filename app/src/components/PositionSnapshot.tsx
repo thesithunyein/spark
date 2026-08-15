@@ -10,8 +10,8 @@ type Props = {
 export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
   if (empty) {
     return (
-      <div className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
-        <p className="text-[11px] font-medium uppercase tracking-label text-muted">Position</p>
+      <div className=" border border-border bg-panel/80 p-6 shadow-soft">
+        <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Position</p>
         <p className="mt-8 text-sm text-muted">No open position yet.</p>
       </div>
     );
@@ -27,8 +27,8 @@ export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
   const max = Math.max(...rows.map((r) => Number(r.value)), 1);
 
   return (
-    <div className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
-      <p className="text-[11px] font-medium uppercase tracking-label text-muted">Position</p>
+    <div className=" border border-border bg-panel/80 p-6 shadow-soft">
+      <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Position</p>
       <ul className="mt-6 space-y-5">
         {rows.map((row) => {
           const pct = Math.max(2, (Number(row.value) / max) * 100);
@@ -40,8 +40,8 @@ export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
                   {formatEth(row.value)} ETH
                 </span>
               </div>
-              <div className="h-1 overflow-hidden rounded-full bg-white/[0.06]">
-                <div className={`h-full rounded-full ${row.tone}`} style={{ width: `${pct}%` }} />
+              <div className="h-1 overflow-hidden bg-white/[0.06]">
+                <div className={`h-full ${row.tone}`} style={{ width: `${pct}%` }} />
               </div>
             </li>
           );

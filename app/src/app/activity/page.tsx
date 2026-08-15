@@ -36,8 +36,8 @@ export default function ActivityPage() {
             onClick={() => setFilter(t.id)}
             className={
               filter === t.id
-                ? "rounded-full bg-white/[0.08] px-3.5 py-1.5 text-[13px] font-medium text-text"
-                : "rounded-full px-3.5 py-1.5 text-[13px] text-muted transition hover:text-text"
+                ? " bg-white/[0.08] px-3.5 py-1.5 text-[13px] font-medium text-text"
+                : " px-3.5 py-1.5 text-[13px] text-muted transition hover:text-text"
             }
           >
             {t.label}
@@ -62,11 +62,11 @@ export default function ActivityPage() {
         <>
           {loading && <p className="mb-3 text-[12px] text-muted">Loading…</p>}
           {!loading && empty ? (
-            <div className="rounded-2xl border border-dashed border-border px-5 py-12 text-center">
+            <div className=" border border-dashed border-border px-5 py-12 text-center">
               <p className="text-[13px] text-muted">No activity yet</p>
               <Link
                 href="/pay"
-                className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                className="mt-4 inline-flex bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
               >
                 Make your first deposit
               </Link>

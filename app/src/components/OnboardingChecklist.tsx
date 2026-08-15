@@ -89,7 +89,7 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
   }
 
   return (
-    <div className="mb-8 rounded-2xl border border-border bg-panel/80 p-5 shadow-soft">
+    <div className="mb-8 border border-border bg-panel/80 p-5 shadow-soft">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[15px] font-medium text-text">Get started</p>
@@ -109,7 +109,7 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
                 href={step.href}
                 target="_blank"
                 rel="noreferrer"
-                className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/[0.03]"
+                className="flex items-center gap-3 px-2 py-2 transition hover:bg-white/[0.03]"
               >
                 <StepIcon done={step.done} />
                 <span>
@@ -122,7 +122,7 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
             ) : (
               <Link
                 href={step.href ?? "#"}
-                className="flex items-center gap-3 rounded-xl px-2 py-2 transition hover:bg-white/[0.03]"
+                className="flex items-center gap-3 px-2 py-2 transition hover:bg-white/[0.03]"
               >
                 <StepIcon done={step.done} />
                 <span>
@@ -144,7 +144,7 @@ function StepIcon({ done }: { done: boolean }) {
   return (
     <span
       className={clsx(
-        "flex h-6 w-6 shrink-0 items-center justify-center rounded-full",
+        "flex h-6 w-6 shrink-0 items-center justify-center",
         done ? "bg-success/20 text-success" : "border border-border text-muted",
       )}
     >

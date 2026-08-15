@@ -112,7 +112,7 @@ export default function TransferPage() {
 
   return (
     <AppShell title="Send & Receive" subtitle="Move sCREDIT between wallets on Creditcoin testnet.">
-      <div className="mx-auto max-w-md rounded-2xl border border-border bg-panel/80 p-7 shadow-soft">
+      <div className="mx-auto max-w-md border border-border bg-panel/80 p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet</p>
@@ -122,7 +122,7 @@ export default function TransferPage() {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-1 rounded-full border border-border p-1">
+        <div className="grid grid-cols-2 gap-1 border border-border p-1">
           {(["send", "receive"] as Tab[]).map((t) => (
             <button
               key={t}
@@ -132,7 +132,7 @@ export default function TransferPage() {
                 setError(null);
               }}
               className={clsx(
-                "rounded-full px-3 py-2 text-[13px] font-medium capitalize transition",
+                " px-3 py-2 text-[13px] font-medium capitalize transition",
                 tab === t ? "bg-brand text-white" : "text-muted hover:text-text",
               )}
             >
@@ -150,7 +150,7 @@ export default function TransferPage() {
 
         {tab === "send" && (
           <div className="mt-5">
-            <label className="text-[11px] font-medium uppercase tracking-label text-muted">
+            <label className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
               To address
             </label>
             <input
@@ -158,11 +158,11 @@ export default function TransferPage() {
               onChange={(e) => setTo(e.target.value.trim())}
               placeholder="0x…"
               disabled={!isConnected}
-              className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] outline-none transition focus:border-brand/50 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] outline-none transition focus:border-brand/50 disabled:opacity-50"
             />
 
             <div className="mt-4 flex items-end justify-between gap-3">
-              <label className="text-[11px] font-medium uppercase tracking-label text-muted">
+              <label className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
                 Amount (sCREDIT)
               </label>
               {bal > 0n && (
@@ -179,14 +179,14 @@ export default function TransferPage() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={!isConnected || bal === 0n}
-              className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
             />
 
             <button
               type="button"
               onClick={onSend}
               disabled={!isConnected || awaitingWallet || confirming || bal === 0n || creditTx.confirmed}
-              className="mt-8 w-full rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+              className="mt-8 w-full bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
             >
               {awaitingWallet
                 ? "Confirm in MetaMask…"
@@ -226,7 +226,7 @@ export default function TransferPage() {
                       alt="Wallet QR code"
                       width={180}
                       height={180}
-                      className="rounded-xl border border-border bg-white p-2"
+                      className=" border border-border bg-white p-2"
                     />
                   </div>
                 )}
@@ -234,7 +234,7 @@ export default function TransferPage() {
                 <button
                   type="button"
                   onClick={onCopy}
-                  className="mt-4 inline-flex items-center gap-2 rounded-full border border-border px-4 py-2.5 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+                  className="mt-4 inline-flex items-center gap-2 border border-border px-4 py-2.5 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
                 >
                   {copied ? (
                     <Check className="h-4 w-4 text-brand" />
@@ -266,7 +266,7 @@ export default function TransferPage() {
             <p className="text-[15px] font-medium text-text">Sent</p>
             <Link
               href="/activity"
-              className="mt-4 inline-flex rounded-full border border-border px-4 py-2 text-[13px] font-medium"
+              className="mt-4 inline-flex border border-border px-4 py-2 text-[13px] font-medium"
             >
               See payments
             </Link>

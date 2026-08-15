@@ -307,7 +307,7 @@ export default function WithdrawPage() {
       title="Withdraw"
       subtitle="Mint sCREDIT from your line, or redeem sCREDIT against accruing debt."
     >
-      <div className="mx-auto max-w-md rounded-2xl border border-border bg-panel/80 p-7 shadow-soft">
+      <div className="mx-auto max-w-md border border-border bg-panel/80 p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet to withdraw</p>
@@ -325,7 +325,7 @@ export default function WithdrawPage() {
             </p>
             <Link
               href="/pay"
-              className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+              className="mt-4 inline-flex bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
             >
               Pay deposit
             </Link>
@@ -333,9 +333,9 @@ export default function WithdrawPage() {
         )}
 
         {success && (
-          <div className="mb-6 rounded-xl border border-success/30 bg-success/10 p-4">
+          <div className="mb-6 border border-success/30 bg-success/10 p-4">
             <div className="flex items-start gap-3">
-              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-success/20 text-success">
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-success/20 text-success">
                 <Check className="h-4 w-4" />
               </span>
               <div className="min-w-0">
@@ -359,7 +359,7 @@ export default function WithdrawPage() {
               <button
                 type="button"
                 onClick={dismissSuccess}
-                className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text hover:bg-white/[0.03]"
+                className=" border border-border px-4 py-2 text-[13px] font-medium text-text hover:bg-white/[0.03]"
               >
                 {success.action === "withdraw" ? "Withdraw more" : "Redeem more"}
               </button>
@@ -370,14 +370,14 @@ export default function WithdrawPage() {
                     dismissSuccess();
                     setAmount(formatEther(walletWei < debtWei ? walletWei : debtWei));
                   }}
-                  className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                  className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
                 >
                   Redeem against debt
                 </button>
               )}
               <Link
                 href="/repay"
-                className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text hover:bg-white/[0.03]"
+                className=" border border-border px-4 py-2 text-[13px] font-medium text-text hover:bg-white/[0.03]"
               >
                 Repay on Sepolia
               </Link>
@@ -404,7 +404,7 @@ export default function WithdrawPage() {
         )}
 
         <div className="flex items-end justify-between gap-3">
-          <label className="text-[11px] font-medium uppercase tracking-label text-muted">
+          <label className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
             Amount (sCREDIT)
           </label>
           {hasActiveLine && availableWei > 0n && !isBusy && (
@@ -421,7 +421,7 @@ export default function WithdrawPage() {
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           disabled={!hasActiveLine || isBusy}
-          className="mt-2 w-full rounded-xl border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
+          className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-brand/50 disabled:opacity-50"
         />
 
         <p className="mt-3 text-[12px] text-muted">
@@ -446,7 +446,7 @@ export default function WithdrawPage() {
             type="button"
             onClick={onWithdraw}
             disabled={!hasActiveLine || isBusy || availableWei === 0n || Boolean(success)}
-            className="rounded-full bg-brand px-4 py-3 text-[14px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+            className=" bg-brand px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white transition hover:bg-accent2 disabled:opacity-50"
           >
             {awaitingWallet && pendingAction === "withdraw"
               ? "Confirm in MetaMask…"
@@ -464,7 +464,7 @@ export default function WithdrawPage() {
               debtWei === 0n ||
               Boolean(success)
             }
-            className="rounded-full border border-border px-4 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03] disabled:opacity-50"
+            className=" border border-border px-4 py-3 text-[14px] font-medium text-text transition hover:bg-white/[0.03] disabled:opacity-50"
           >
             {awaitingWallet && pendingAction === "redeem"
               ? "Confirm in MetaMask…"

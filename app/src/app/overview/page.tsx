@@ -75,19 +75,19 @@ export default function OverviewPage() {
         <div className="hidden gap-2 sm:flex">
           <Link
             href="/pay"
-            className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2"
+            className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-white transition hover:bg-accent2"
           >
             Pay deposit
           </Link>
           <Link
             href="/withdraw"
-            className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+            className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
           >
             Withdraw
           </Link>
           <Link
             href="/repay"
-            className="rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+            className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
           >
             Repay
           </Link>
@@ -110,7 +110,7 @@ export default function OverviewPage() {
             title={`Credit score ${scoreN ?? 650} · +${histCount >= 3 ? "5.00" : "2.50"}% LTV bonus`}
             description={`${histCount} attested payment${histCount === 1 ? "" : "s"} on file. Ready to open credit with a new deposit.`}
             actions={
-              <Link href="/pay" className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white">
+              <Link href="/pay" className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white">
                 Pay deposit
               </Link>
             }
@@ -126,7 +126,7 @@ export default function OverviewPage() {
           <p className="mt-1 text-[13px] text-muted">Pay a deposit, verify it, then credit unlocks.</p>
           <Link
             href="/pay"
-            className="mt-4 inline-flex rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+            className="mt-4 inline-flex bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
           >
             Pay deposit
           </Link>
@@ -173,7 +173,7 @@ export default function OverviewPage() {
         </div>
         <div className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] font-medium uppercase tracking-label text-muted">Activity</p>
+            <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Activity</p>
             <Link href="/activity" className="text-[12px] text-muted transition hover:text-text">
               View all
             </Link>
@@ -182,19 +182,19 @@ export default function OverviewPage() {
           <div className="mt-4 flex gap-2 sm:hidden">
             <Link
               href="/pay"
-              className="flex-1 rounded-full bg-brand px-3 py-2.5 text-center text-[13px] font-medium text-white"
+              className="flex-1 bg-brand px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.16em] text-white"
             >
               Pay deposit
             </Link>
             <Link
               href="/withdraw"
-              className="flex-1 rounded-full border border-border px-3 py-2.5 text-center text-[13px] font-medium"
+              className="flex-1 border border-border px-3 py-2.5 text-center text-[13px] font-medium"
             >
               Withdraw
             </Link>
             <Link
               href="/repay"
-              className="flex-1 rounded-full border border-border px-3 py-2.5 text-center text-[13px] font-medium"
+              className="flex-1 border border-border px-3 py-2.5 text-center text-[13px] font-medium"
             >
               Repay
             </Link>

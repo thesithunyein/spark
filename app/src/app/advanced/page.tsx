@@ -8,7 +8,7 @@ export default function AdvancedPage() {
   return (
     <AppShell title="Developers" subtitle="Networks, contracts, and Attestcoin integration notes.">
       <div className="mx-auto max-w-2xl space-y-3">
-        <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+        <section className=" border border-border bg-panel/80 p-6 shadow-soft">
           <h2 className="text-[15px] font-medium text-text">Networks</h2>
           <ul className="mt-4 space-y-2 text-[13px] text-muted">
             <li>Payment chain ID: {config.paymentChainId} (Sepolia)</li>
@@ -17,7 +17,7 @@ export default function AdvancedPage() {
           </ul>
         </section>
 
-        <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+        <section className=" border border-border bg-panel/80 p-6 shadow-soft">
           <h2 className="text-[15px] font-medium text-text">Contracts</h2>
           <ul className="mt-4 space-y-2 break-all font-mono text-[11px] text-muted">
             <li>
@@ -37,7 +37,7 @@ export default function AdvancedPage() {
           </ul>
         </section>
 
-        <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+        <section className=" border border-border bg-panel/80 p-6 shadow-soft">
           <h2 className="text-[15px] font-medium text-text">Attestcoin</h2>
           <p className="mt-4 text-[13px] text-muted">
             Credit cannot open or repay unless payment verification succeeds. See{" "}

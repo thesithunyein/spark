@@ -11,7 +11,7 @@ import { shortHash } from "@/lib/format";
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+    <section className=" border border-border bg-panel/80 p-6 shadow-soft">
       <h2 className="text-[15px] font-medium text-text">{title}</h2>
       <div className="mt-4 space-y-3 text-[13px] text-muted">{children}</div>
     </section>
@@ -42,7 +42,7 @@ export default function SettingsPage() {
               <button
                 type="button"
                 onClick={() => disconnect()}
-                className="mt-2 rounded-full border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+                className="mt-2 border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
               >
                 Disconnect wallet
               </button>
@@ -82,7 +82,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => switchChain({ chainId: sepolia.id })}
-              className={`rounded-full px-4 py-2 text-[13px] transition ${
+              className={` px-4 py-2 text-[13px] transition ${
                 onSepolia ? "bg-white/[0.08] text-text" : "border border-border text-muted hover:text-text"
               }`}
             >
@@ -91,7 +91,7 @@ export default function SettingsPage() {
             <button
               type="button"
               onClick={() => switchChain({ chainId: creditcoinTestnet.id })}
-              className={`rounded-full px-4 py-2 text-[13px] transition ${
+              className={` px-4 py-2 text-[13px] transition ${
                 onCredit ? "bg-white/[0.08] text-text" : "border border-border text-muted hover:text-text"
               }`}
             >

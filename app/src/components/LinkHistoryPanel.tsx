@@ -280,8 +280,8 @@ export function LinkHistoryPanel() {
   const allLinked = count > 0 && found.length === 0 && !scanning && !linking;
 
   return (
-    <div className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
-      <p className="text-[11px] font-medium uppercase tracking-label text-muted">
+    <div className=" border border-border bg-panel/80 p-6 shadow-soft">
+      <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
         Attested payment history
       </p>
       <p className="mt-2 text-[13px] leading-relaxed text-muted">
@@ -305,7 +305,7 @@ export function LinkHistoryPanel() {
             actions={
               <Link
                 href="/pay"
-                className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white"
+                className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
               >
                 Pay deposit to open credit
               </Link>
@@ -341,7 +341,7 @@ export function LinkHistoryPanel() {
           type="button"
           onClick={() => void scan()}
           disabled={!isConnected || scanning || linking}
-          className="rounded-full border border-border px-4 py-2.5 text-[13px] font-medium text-text transition hover:bg-white/[0.03] disabled:opacity-50"
+          className=" border border-border px-4 py-2.5 text-[13px] font-medium text-text transition hover:bg-white/[0.03] disabled:opacity-50"
         >
           {scanning ? "Scanning…" : "Scan Sepolia payments"}
         </button>
@@ -349,7 +349,7 @@ export function LinkHistoryPanel() {
           type="button"
           onClick={() => void linkAll()}
           disabled={!isConnected || linking || isPending || found.length === 0}
-          className="rounded-full bg-brand px-4 py-2.5 text-[13px] font-medium text-white transition hover:bg-accent2 disabled:opacity-50"
+          className=" bg-brand px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-white transition hover:bg-accent2 disabled:opacity-50"
         >
           {linking ? "Linking…" : `Link ${found.length || ""} payment${found.length === 1 ? "" : "s"}`.trim()}
         </button>

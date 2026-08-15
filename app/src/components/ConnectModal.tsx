@@ -64,7 +64,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
         aria-label="Close"
         onClick={onClose}
       />
-      <div className="relative w-full max-w-sm rounded-2xl border border-border bg-panel p-5 shadow-soft">
+      <div className="relative w-full max-w-sm border border-border bg-panel p-5 shadow-soft">
         <div className="mb-4 flex items-start justify-between">
           <div>
             <h2 className="text-[16px] font-medium text-text">Connect wallet</h2>
@@ -73,7 +73,7 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-1.5 text-muted hover:bg-white/[0.04] hover:text-text"
+            className=" p-1.5 text-muted hover:bg-white/[0.04] hover:text-text"
           >
             <X className="h-4 w-4" />
           </button>
@@ -85,9 +85,9 @@ export function ConnectModal({ open, onClose }: { open: boolean; onClose: () => 
               type="button"
               disabled={!injected || isPending || !hasMetaMask}
               onClick={connectMetaMask}
-              className="flex w-full items-center gap-3 rounded-xl border border-border px-4 py-3 text-left transition hover:bg-white/[0.03] disabled:opacity-40"
+              className="flex w-full items-center gap-3 border border-border px-4 py-3 text-left transition hover:bg-white/[0.03] disabled:opacity-40"
             >
-              <span className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-lg bg-white/[0.04]">
+              <span className="flex h-9 w-9 items-center justify-center overflow-hidden bg-white/[0.04]">
                 {/* Official MetaMask fox icon (from MetaMask extension brand assets) */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src="/brand/metamask.png" alt="MetaMask" width={20} height={20} className="h-5 w-5" />

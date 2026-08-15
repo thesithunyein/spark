@@ -5,7 +5,7 @@ import { AppShell } from "@/components/AppShell";
 
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <section className="rounded-2xl border border-border bg-panel/80 p-6 shadow-soft">
+    <section className=" border border-border bg-panel/80 p-6 shadow-soft">
       <h2 className="text-[15px] font-medium text-text">{title}</h2>
       <div className="mt-4 space-y-3 text-[13px] leading-relaxed text-muted">{children}</div>
     </section>
@@ -15,7 +15,7 @@ function Block({ title, children }: { title: string; children: React.ReactNode }
 function Step({ n, title, body }: { n: string; title: string; body: string }) {
   return (
     <li className="flex gap-4">
-      <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-brand/15 font-mono text-[11px] text-brand">
+      <span className="flex h-7 w-7 shrink-0 items-center justify-center bg-brand/15 font-mono text-[11px] text-brand">
         {n}
       </span>
       <div>
@@ -252,12 +252,12 @@ export default function HelpPage() {
           </p>
         </Block>
 
-        <div className="rounded-2xl border border-dashed border-border px-6 py-8 text-center">
+        <div className=" border border-dashed border-border px-6 py-8 text-center">
           <p className="text-[15px] font-medium text-text">Ready to try?</p>
           <p className="mt-2 text-[13px] text-muted">Connect MetaMask and pay a test deposit.</p>
           <Link
             href="/pay"
-            className="mt-5 inline-flex rounded-full bg-brand px-5 py-2.5 text-[13px] font-medium text-white transition hover:bg-accent2"
+            className="mt-5 inline-flex bg-brand px-5 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-white transition hover:bg-accent2"
           >
             Pay deposit
           </Link>

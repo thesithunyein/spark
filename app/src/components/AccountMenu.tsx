@@ -43,7 +43,7 @@ export function AccountMenu() {
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-full border border-border px-3 py-1.5 text-[12px] transition hover:bg-white/[0.03]"
+        className="flex items-center gap-2 border border-border px-3 py-1.5 text-[12px] transition hover:bg-white/[0.03]"
         aria-expanded={open}
         aria-haspopup="menu"
       >
@@ -55,10 +55,10 @@ export function AccountMenu() {
       {open && (
         <div
           role="menu"
-          className="absolute right-0 z-50 mt-2 w-64 rounded-2xl border border-border bg-panel p-2 shadow-soft"
+          className="absolute right-0 z-50 mt-2 w-64 border border-border bg-panel p-2 shadow-soft"
         >
           <div className="border-b border-border px-3 py-3">
-            <p className="text-[11px] font-medium uppercase tracking-label text-muted">Account</p>
+            <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Account</p>
             <p className="mt-1 break-all font-mono text-[12px] text-text">{address}</p>
             <p className="mt-1 text-[11px] text-muted">Wallet is your identity. No password stored.</p>
           </div>
@@ -69,7 +69,7 @@ export function AccountMenu() {
                 type="button"
                 role="menuitem"
                 onClick={() => void copyAddress()}
-                className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-text transition hover:bg-white/[0.04]"
+                className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-text transition hover:bg-white/[0.04]"
               >
                 {copied ? <Check className="h-4 w-4 text-success" /> : <Copy className="h-4 w-4 text-muted" />}
                 {copied ? "Copied" : "Copy address"}
@@ -80,7 +80,7 @@ export function AccountMenu() {
                 href="/settings"
                 role="menuitem"
                 onClick={() => setOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-text transition hover:bg-white/[0.04]"
+                className="flex items-center gap-2 px-3 py-2 text-[13px] text-text transition hover:bg-white/[0.04]"
               >
                 <Settings className="h-4 w-4 text-muted" />
                 Settings
@@ -94,7 +94,7 @@ export function AccountMenu() {
               <button
                 type="button"
                 onClick={() => switchChain({ chainId: sepolia.id })}
-                className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] transition ${
+                className={`flex-1 px-2 py-1.5 text-[11px] transition ${
                   onSepolia ? "bg-white/[0.08] text-text" : "text-muted hover:bg-white/[0.04]"
                 }`}
               >
@@ -103,7 +103,7 @@ export function AccountMenu() {
               <button
                 type="button"
                 onClick={() => switchChain({ chainId: creditcoinTestnet.id })}
-                className={`flex-1 rounded-lg px-2 py-1.5 text-[11px] transition ${
+                className={`flex-1 px-2 py-1.5 text-[11px] transition ${
                   onCredit ? "bg-white/[0.08] text-text" : "text-muted hover:bg-white/[0.04]"
                 }`}
               >
@@ -120,7 +120,7 @@ export function AccountMenu() {
                 disconnect();
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-[13px] text-red-400 transition hover:bg-white/[0.04]"
+              className="flex w-full items-center gap-2 px-3 py-2 text-[13px] text-red-400 transition hover:bg-white/[0.04]"
             >
               <LogOut className="h-4 w-4" />
               Disconnect

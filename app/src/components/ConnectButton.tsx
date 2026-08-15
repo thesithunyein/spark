@@ -18,7 +18,7 @@ export function ConnectButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="rounded-full bg-brand px-4 py-2 text-[13px] font-medium text-white transition hover:bg-accent2"
+        className=" bg-brand px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-white transition hover:bg-accent2"
       >
         Connect wallet
       </button>

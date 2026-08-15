@@ -29,7 +29,7 @@ export function PaymentHistoryStrip({
   return (
     <div className="mt-6 border-t border-border pt-5">
       <div className="mb-3 flex items-center justify-between">
-        <p className="text-[11px] font-medium uppercase tracking-label text-muted">{title}</p>
+        <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">{title}</p>
         <Link href="/activity" className="text-[12px] text-muted transition hover:text-text">
           View all
         </Link>
