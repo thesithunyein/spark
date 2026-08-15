@@ -10,6 +10,9 @@ const NAV_LINKS = [
   { href: "/help", label: "Help" },
 ];
 
+const ROBOT_BG =
+  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260411_104032_69319010-2458-492b-b04d-b40a5dfa4482.mp4";
+
 const STEPS = [
   { n: "01", t: "Pay deposit" },
   { n: "02", t: "We verify" },
@@ -56,18 +59,27 @@ export default function HomePage() {
   return (
     <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
+        <video
+          className="h-full w-full scale-[1.55] -translate-x-[25%] translate-y-[4%] object-cover object-center grayscale"
+          src={ROBOT_BG}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="auto"
+        />
         <div
-          className="absolute inset-0 opacity-70"
+          className="absolute inset-0 hidden sm:block"
           style={{
-            backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)",
-            backgroundSize: "34px 34px",
+            backgroundImage:
+              "linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.30) 38%, rgba(0,0,0,0.62) 66%, rgba(0,0,0,0.88) 100%), linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 22%, transparent 80%, rgba(0,0,0,0.75) 100%)",
           }}
         />
         <div
-          className="absolute inset-0"
+          className="absolute inset-0 sm:hidden"
           style={{
             backgroundImage:
-              "radial-gradient(120% 90% at 12% 8%, rgba(255,255,255,0.05) 0%, transparent 55%)",
+              "linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.85) 100%)",
           }}
         />
       </div>
@@ -139,7 +151,7 @@ export default function HomePage() {
       <main className="relative z-10 flex min-h-0 overflow-y-auto px-[clamp(20px,5vw,100px)]">
         <div className="m-auto grid w-full max-w-[1180px] items-center gap-[clamp(36px,5vw,72px)] py-[clamp(20px,3vw,40px)] lg:grid-cols-[1.05fr_1fr] lg:gap-[clamp(48px,6vw,96px)]">
           <div className="order-2 lg:order-1">
-            <div className="border border-white/[0.12] bg-white/[0.02]">
+            <div className="border border-white/[0.14] bg-black/65 backdrop-blur-md">
               <div className="flex items-center justify-between border-b border-white/[0.12] px-6 py-4">
                 <span className="flex items-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">
                   <LiveDot /> Live · attested
