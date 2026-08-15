@@ -45,6 +45,13 @@ See [addresses.md](addresses.md).
 - Prover API: `NEXT_PUBLIC_PROVER_URL` (default `https://proof-gen-api.cc3-testnet.creditcoin.network`)
 - App helper: `app/src/lib/usc.ts`
 
+## Honest limits (Fall 2026)
+
+- Kind 3 (`BalanceAttested`) is a BlockProver-verified **snapshot** of Sepolia ETH at the moment `attestBalance` was mined. `openCredit` sizes LTV from that snapshot; there is no on-chain check that the balance is still current. The 8-20 minute attestation wait is a reorg-safety/UX choice, not an on-chain freshness bound.
+- After open, there is **no liquidation or health factor**. Interest accrues, but a position that goes underwater relative to a later Sepolia balance is not enforced on-chain in this version.
+
+**Roadmap:** bind kind 3 proof `height` to the deposit proof window, re-attest balance on a cadence, and liquidate when attested health falls below a threshold.
+
 ## DoraHacks blurb
 
 > Spark is DeFi credit that only unlocks after Attestcoin verifies **two** Sepolia facts via Creditcoin BlockProver: the deposit payment and the borrower’s on-chain ETH balance. Balance attestation sizes LTV trustlessly. Debt accrues interest; repayments are Attestcoin-gated. No oracle — verified payment history and solvency drive the credit decision.
