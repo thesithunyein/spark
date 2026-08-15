@@ -3,9 +3,6 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-const SPEAK_BG =
-  "https://d8j0ntlcm91z4.cloudfront.net/user_38xzZboKViGWJOttwIXH07lWA1P/hf_20260506_031045_0e1165dd-ab48-46e3-ad3d-5fe77f217647.mp4";
-
 const NAV_LINKS = [
   { href: "/overview", label: "Overview" },
   { href: "/score", label: "Score" },
@@ -18,6 +15,25 @@ const STEPS = [
   { n: "02", t: "We verify" },
   { n: "03", t: "Credit unlocks" },
 ];
+
+function Cell({ label, value, hint }: { label: string; value: string; hint: string }) {
+  return (
+    <div className="bg-black p-4">
+      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">{label}</p>
+      <p className="mt-2 text-[18px] font-medium leading-none text-white">{value}</p>
+      <p className="mt-2 text-[11px] text-white/50">{hint}</p>
+    </div>
+  );
+}
+
+function LiveDot() {
+  return (
+    <span className="relative mr-2 inline-flex h-1.5 w-1.5 align-middle">
+      <span className="absolute inline-flex h-full w-full animate-ping bg-white/50" />
+      <span className="relative inline-flex h-1.5 w-1.5 bg-white" />
+    </span>
+  );
+}
 
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -40,27 +56,18 @@ export default function HomePage() {
   return (
     <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
-        <video
-          className="h-full w-full object-cover object-center -translate-x-[16%] translate-y-[20%] scale-[0.88] origin-bottom-left grayscale sm:-translate-x-[22%] sm:translate-y-[24%] sm:scale-[0.85] sm:origin-bottom-left"
-          src={SPEAK_BG}
-          autoPlay
-          muted
-          loop
-          playsInline
-          preload="auto"
-        />
         <div
-          className="absolute inset-0 hidden sm:block"
+          className="absolute inset-0 opacity-70"
           style={{
-            backgroundImage:
-              "linear-gradient(to right, transparent 0%, transparent 45%, rgba(0,0,0,0.45) 72%, rgba(0,0,0,0.75) 100%), linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, transparent 22%, transparent 78%, rgba(0,0,0,0.65) 100%)",
+            backgroundImage: "radial-gradient(rgba(255,255,255,0.07) 1px, transparent 1px)",
+            backgroundSize: "34px 34px",
           }}
         />
         <div
-          className="absolute inset-0 sm:hidden"
+          className="absolute inset-0"
           style={{
             backgroundImage:
-              "linear-gradient(to bottom, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.25) 30%, rgba(0,0,0,0.75) 100%)",
+              "radial-gradient(120% 90% at 12% 8%, rgba(255,255,255,0.05) 0%, transparent 55%)",
           }}
         />
       </div>
@@ -129,43 +136,87 @@ export default function HomePage() {
         ))}
       </div>
 
-      <main className="relative z-10 flex min-h-0 items-center justify-end overflow-y-auto px-[clamp(20px,5vw,100px)] max-sm:justify-center">
-        <div className="flex w-[min(34vw,620px)] min-w-[380px] flex-col max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
-          <span className="inline-block self-start bg-white/[0.09] px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-white">
-            [ Verified credit ]
-          </span>
-          <h1 className="mt-[clamp(28px,3vw,52px)] text-[clamp(54px,6.2vw,118px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
-            SPARK
-          </h1>
-          <p className="mt-[clamp(14px,1.4vw,24px)] font-mono text-[clamp(11px,0.94vw,17px)] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
-            Pay once. Unlock credit.
-          </p>
-          <p className="mt-[clamp(14px,1.4vw,24px)] max-w-sm text-[15px] font-light leading-relaxed text-white/85">
-            We verify your payment so credit can open. No paperwork chase.
-          </p>
-          <div className="mt-[clamp(38px,4.6vw,82px)] flex flex-wrap items-center gap-3">
-            <Link href="/pay" className="bg-white/[0.10] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white transition-colors duration-[250ms] hover:bg-white/[0.17]">
-              Get credit
-            </Link>
-            <Link href="/overview" className="bg-white/[0.05] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/40 transition-colors duration-[250ms] hover:bg-white/[0.09] hover:text-white">
-              Overview
-            </Link>
+      <main className="relative z-10 flex min-h-0 overflow-y-auto px-[clamp(20px,5vw,100px)]">
+        <div className="m-auto grid w-full max-w-[1180px] items-center gap-[clamp(36px,5vw,72px)] py-[clamp(20px,3vw,40px)] lg:grid-cols-[1.05fr_1fr] lg:gap-[clamp(48px,6vw,96px)]">
+          <div className="order-2 lg:order-1">
+            <div className="border border-white/[0.12] bg-white/[0.02]">
+              <div className="flex items-center justify-between border-b border-white/[0.12] px-6 py-4">
+                <span className="flex items-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">
+                  <LiveDot /> Live · attested
+                </span>
+                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Credit line</span>
+              </div>
+              <div className="p-6 sm:p-8">
+                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/50">Credit available</p>
+                <p className="mt-3 text-[clamp(34px,3.6vw,50px)] font-extralight leading-none tracking-tight text-white">
+                  0.0095 <span className="text-white/60">sCREDIT</span>
+                </p>
+                <p className="mt-3 text-[13px] text-white/60">Ready to withdraw · 10% APR on debt</p>
+                <div className="mt-7 grid grid-cols-3 gap-px border border-white/[0.12] bg-white/[0.12]">
+                  <Cell label="Deposit locked" value="0.01 ETH" hint="On Sepolia" />
+                  <Cell label="Credit score" value="82" hint="+5% LTV bonus" />
+                  <Cell label="Status" value="ACTIVE" hint="3 verified" />
+                </div>
+                <div className="mt-7">
+                  <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
+                    <span>LTV · history bonus applied</span>
+                    <span>95%</span>
+                  </div>
+                  <div className="mt-2 h-px w-full bg-white/10">
+                    <div className="h-px w-[95%] bg-white" />
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center justify-between border-t border-white/[0.12] px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
+                <span>Sepolia deposit</span>
+                <span aria-hidden>→</span>
+                <span>Attestcoin</span>
+                <span aria-hidden>→</span>
+                <span>Creditcoin line</span>
+              </div>
+            </div>
+            <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
+              Sample position · connect a wallet to see yours
+            </p>
           </div>
-          <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-nowrap items-center gap-x-3 sm:gap-x-4">
-            {STEPS.map((s, i) => (
-              <li key={s.n} className="flex items-center gap-2">
-                {i > 0 && <span className="mr-1 h-px w-5 bg-white/25" aria-hidden />}
-                <span className="font-mono text-[11px] text-white">{s.n}</span>
-                <span className="text-[13px] text-white/95">{s.t}</span>
-              </li>
-            ))}
-          </ol>
-          <p className="mt-[clamp(26px,2.6vw,46px)] self-start text-[13px] text-white/70">
-            New here?{" "}
-            <Link href="/help" className="text-white underline-offset-4 transition hover:text-white hover:underline">
-              How Spark works
-            </Link>
-          </p>
+
+          <div className="order-1 lg:order-2">
+            <span className="inline-block self-start bg-white/[0.09] px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-white">
+              [ Verified credit ]
+            </span>
+            <h1 className="mt-[clamp(28px,3vw,52px)] text-[clamp(54px,6.2vw,118px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
+              SPARK
+            </h1>
+            <p className="mt-[clamp(14px,1.4vw,24px)] font-mono text-[clamp(11px,0.94vw,17px)] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
+              Pay once. Unlock credit.
+            </p>
+            <p className="mt-[clamp(14px,1.4vw,24px)] max-w-sm text-[15px] font-light leading-relaxed text-white/85">
+              Pay a small deposit on Sepolia. Attestcoin verifies it on-chain, then a credit line unlocks on Creditcoin. No credit check, no paperwork.
+            </p>
+            <div className="mt-[clamp(38px,4.6vw,82px)] flex flex-wrap items-center gap-3">
+              <Link href="/pay" className="bg-white px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-black transition-colors duration-[250ms] hover:bg-white/85">
+                Get credit
+              </Link>
+              <Link href="/overview" className="border border-white/[0.26] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/70 transition-colors duration-[250ms] hover:border-white/50 hover:bg-white/[0.05] hover:text-white">
+                Overview
+              </Link>
+            </div>
+            <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-nowrap items-center gap-x-3 sm:gap-x-4">
+              {STEPS.map((s, i) => (
+                <li key={s.n} className="flex items-center gap-2">
+                  {i > 0 && <span className="mr-1 h-px w-5 bg-white/25" aria-hidden />}
+                  <span className="font-mono text-[11px] text-white">{s.n}</span>
+                  <span className="text-[13px] text-white/95">{s.t}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-[clamp(26px,2.6vw,46px)] self-start text-[13px] text-white/70">
+              New here?{" "}
+              <Link href="/help" className="text-white underline-offset-4 transition hover:text-white hover:underline">
+                How Spark works
+              </Link>
+            </p>
+          </div>
         </div>
       </main>
 
