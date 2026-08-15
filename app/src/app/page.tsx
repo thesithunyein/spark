@@ -19,25 +19,6 @@ const STEPS = [
   { n: "03", t: "Credit unlocks" },
 ];
 
-function Cell({ label, value, hint }: { label: string; value: string; hint: string }) {
-  return (
-    <div className="bg-black p-4">
-      <p className="font-mono text-[10px] uppercase tracking-[0.14em] text-white/50">{label}</p>
-      <p className="mt-2 text-[18px] font-medium leading-none text-white">{value}</p>
-      <p className="mt-2 text-[11px] text-white/50">{hint}</p>
-    </div>
-  );
-}
-
-function LiveDot() {
-  return (
-    <span className="relative mr-2 inline-flex h-1.5 w-1.5 align-middle">
-      <span className="absolute inline-flex h-full w-full animate-ping bg-white/50" />
-      <span className="relative inline-flex h-1.5 w-1.5 bg-white" />
-    </span>
-  );
-}
-
 export default function HomePage() {
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -148,51 +129,9 @@ export default function HomePage() {
         ))}
       </div>
 
-      <main className="relative z-10 flex min-h-0 overflow-y-auto px-[clamp(20px,5vw,100px)]">
-        <div className="m-auto grid w-full max-w-[1180px] items-center gap-[clamp(36px,5vw,72px)] py-[clamp(20px,3vw,40px)] lg:grid-cols-[1.05fr_1fr] lg:gap-[clamp(48px,6vw,96px)]">
-          <div className="order-2 lg:order-1">
-            <div className="border border-white/[0.14] bg-black/65 backdrop-blur-md">
-              <div className="flex items-center justify-between border-b border-white/[0.12] px-6 py-4">
-                <span className="flex items-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/70">
-                  <LiveDot /> Live · attested
-                </span>
-                <span className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/40">Credit line</span>
-              </div>
-              <div className="p-6 sm:p-8">
-                <p className="font-mono text-[11px] uppercase tracking-[0.14em] text-white/50">Credit available</p>
-                <p className="mt-3 text-[clamp(34px,3.6vw,50px)] font-extralight leading-none tracking-tight text-white">
-                  0.0095 <span className="text-white/60">sCREDIT</span>
-                </p>
-                <p className="mt-3 text-[13px] text-white/60">Ready to withdraw · 10% APR on debt</p>
-                <div className="mt-7 grid grid-cols-3 gap-px border border-white/[0.12] bg-white/[0.12]">
-                  <Cell label="Deposit locked" value="0.01 ETH" hint="On Sepolia" />
-                  <Cell label="Credit score" value="82" hint="+5% LTV bonus" />
-                  <Cell label="Status" value="ACTIVE" hint="3 verified" />
-                </div>
-                <div className="mt-7">
-                  <div className="flex items-center justify-between font-mono text-[10px] uppercase tracking-[0.18em] text-white/50">
-                    <span>LTV · history bonus applied</span>
-                    <span>95%</span>
-                  </div>
-                  <div className="mt-2 h-px w-full bg-white/10">
-                    <div className="h-px w-[95%] bg-white" />
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center justify-between border-t border-white/[0.12] px-6 py-3 font-mono text-[10px] uppercase tracking-[0.18em] text-white/40">
-                <span>Sepolia deposit</span>
-                <span aria-hidden>→</span>
-                <span>Attestcoin</span>
-                <span aria-hidden>→</span>
-                <span>Creditcoin line</span>
-              </div>
-            </div>
-            <p className="mt-3 text-center font-mono text-[10px] uppercase tracking-[0.18em] text-white/35">
-              Sample position · connect a wallet to see yours
-            </p>
-          </div>
+      <main className="relative z-10 flex min-h-0 items-center justify-end overflow-y-auto px-[clamp(20px,5vw,100px)] max-sm:justify-center">
+        <div className="flex w-[min(34vw,620px)] min-w-[380px] flex-col py-[clamp(24px,3vw,48px)] max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
 
-          <div className="order-1 lg:order-2">
             <span className="inline-block self-start bg-white/[0.09] px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-white">
               [ Verified credit ]
             </span>
@@ -228,7 +167,6 @@ export default function HomePage() {
                 How Spark works
               </Link>
             </p>
-          </div>
         </div>
       </main>
 
