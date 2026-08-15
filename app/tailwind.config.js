@@ -10,14 +10,14 @@ module.exports = {
         border: "rgba(255,255,255,0.14)",
         muted: "rgba(255,255,255,0.62)",
         text: "#FFFFFF",
-        accent: "#FF6600",
-        accent2: "#FF8533",
-        brand: "#FF6600",
+        accent: "#FFFFFF",
+        accent2: "#F4F4F5",
+        brand: "#FFFFFF",
         success: "#3DDC97",
         warn: "#F5A524",
       },
       boxShadow: {
-        glow: "0 0 40px rgba(255, 102, 0, 0.18)",
+        glow: "0 0 40px rgba(255,255,255,0.12)",
         soft: "0 1px 0 rgba(255,255,255,0.04) inset",
       },
       fontFamily: {

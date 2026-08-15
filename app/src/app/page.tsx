@@ -41,7 +41,7 @@ export default function HomePage() {
     <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
         <video
-          className="h-full w-full object-cover object-center -translate-x-[18%] translate-y-[24%] sm:-translate-x-[24%] sm:translate-y-[28%]"
+          className="h-full w-full object-cover object-center -translate-x-[16%] translate-y-[20%] scale-[0.88] origin-bottom-left grayscale sm:-translate-x-[22%] sm:translate-y-[24%] sm:scale-[0.85] sm:origin-bottom-left"
           src={SPEAK_BG}
           autoPlay
           muted
@@ -151,10 +151,10 @@ export default function HomePage() {
               Overview
             </Link>
           </div>
-          <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-wrap items-center gap-x-8 gap-y-3">
+          <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-nowrap items-center gap-x-3 sm:gap-x-4">
             {STEPS.map((s, i) => (
-              <li key={s.n} className="flex items-center gap-3">
-                {i > 0 && <span className="mr-4 hidden h-px w-8 bg-white/25 sm:block" aria-hidden />}
+              <li key={s.n} className="flex items-center gap-2">
+                {i > 0 && <span className="mr-1 h-px w-5 bg-white/25" aria-hidden />}
                 <span className="font-mono text-[11px] text-white">{s.n}</span>
                 <span className="text-[13px] text-white/95">{s.t}</span>
               </li>
