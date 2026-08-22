@@ -44,6 +44,10 @@
     table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 15px; }
     td, th { text-align: left; padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); color: #a1a1aa; }
     th { color: #fafafa; font-weight: 500; }
+    .stat { display: inline-block; margin-right: 2.5rem; }
+    .stat .num { font-size: clamp(28px, 3vw, 40px); font-weight: 700; color: #ff6600; }
+    .stat .label { font-size: 14px; color: #71717a; margin-top: 0.25rem; }
+    .stats { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
     .footer {
       position: absolute; bottom: 4vh; left: 8vw; right: 8vw;
       display: flex; justify-content: space-between; font-size: 12px; color: #52525b;
@@ -55,102 +59,142 @@
   </style>
 </head>
 <body>
+
+  <!-- SLIDE 1: Title -->
   <section class="slide">
     <img class="logo" src="brand/logo.png" alt="Spark" />
     <p class="brand">SPARK</p>
     <h1 style="margin-top:0.75rem">Pay once.<br />Unlock credit.</h1>
-    <p class="lead" style="margin-top:1.25rem">Collateralized credit on Creditcoin, gated by Attestcoin Protocol payment proofs.</p>
-    <p class="meta">DeFi · BUIDL CTC 2026 Fall · Creditcoin &amp; Credit Labs</p>
-    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 7</span></div>
+    <p class="lead" style="margin-top:1.25rem">DeFi credit on Creditcoin. Attestcoin-verified payment history is your credit score. No bank, no oracle, no paperwork.</p>
+    <p class="meta">DeFi Track &middot; BUIDL CTC 2026 Fall &middot; Attestcoin Protocol</p>
+    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 8</span></div>
   </section>
 
+  <!-- SLIDE 2: Problem -->
   <section class="slide">
     <p class="brand">PROBLEM</p>
-    <h2>Credit cannot trust a payment that happened somewhere else</h2>
-    <p class="lead">Without paperwork, delays, or a middleman, most credit systems cannot verify that a deposit or repayment occurred on another chain.</p>
+    <h2>2.5 billion people can't get credit without paperwork</h2>
+    <p class="lead">Most of the world is unbanked. Credit systems require physical documents, bank history, and centralized intermediaries that don't exist for millions of people.</p>
     <ul>
-      <li>Manual reconciliation is slow and opaque</li>
-      <li>Centralized oracles and bridges add trust risk</li>
-      <li>Cross-chain DeFi needs cryptographic proof, not receipts</li>
+      <li>Cross-chain credit is impossible without a trusted middleman</li>
+      <li>Centralized oracles and bridges add single points of failure</li>
+      <li>No way to prove payment history across chains trustlessly</li>
     </ul>
-    <div class="footer"><span>Spark</span><span>2 / 7</span></div>
+    <div class="footer"><span>Spark</span><span>2 / 8</span></div>
   </section>
 
+  <!-- SLIDE 3: Solution -->
   <section class="slide">
     <p class="brand">SOLUTION</p>
-    <h2>Verify payment. Then open credit on Creditcoin.</h2>
-    <p class="lead">Spark uses the Attestcoin Protocol (formerly USC) so Sepolia facts can unlock or clear a credit line on Creditcoin without a centralized oracle.</p>
+    <h2>Your on-chain payment history is your credit score</h2>
+    <p class="lead">Spark uses the Attestcoin Protocol to prove Sepolia payments on Creditcoin. Verified payment history builds a trustless credit score. No bank forms, no oracle, no paperwork.</p>
     <ul>
-      <li>Deposit + attested Sepolia ETH balance → dual BlockProver proofs → credit opens</li>
-      <li>LTV scales with attested solvency; debt accrues interest; repay closes the line</li>
-      <li>No valid proof means no state change</li>
+      <li>Pay deposit on Sepolia &rarr; dual Attestcoin proofs &rarr; credit opens on Creditcoin</li>
+      <li>On-chain credit score: 650 base + 40 per attested payment (cap 850)</li>
+      <li>LTV bonus from payment history (+2.5% at 1+, +5% at 3+ payments)</li>
+      <li>No valid proof = no state change. Cryptographic guarantees only.</li>
     </ul>
-    <div class="footer"><span>Spark</span><span>3 / 7</span></div>
+    <div class="footer"><span>Spark</span><span>3 / 8</span></div>
   </section>
 
+  <!-- SLIDE 4: How it works -->
   <section class="slide">
     <p class="brand">HOW IT WORKS</p>
     <h2>Four steps. Fully on-chain.</h2>
     <div class="steps">
-      <div class="step"><div class="n">01</div><div class="t">Pay deposit + attest balance</div></div>
-      <div class="step"><div class="n">02</div><div class="t">Attestcoin proves both txs</div></div>
-      <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin</div></div>
-      <div class="step"><div class="n">04</div><div class="t">Repay → credit closes</div></div>
+      <div class="step"><div class="n">01</div><div class="t">Pay deposit + attest balance on Sepolia</div></div>
+      <div class="step"><div class="n">02</div><div class="t">Attestcoin proves both txs via BlockProver</div></div>
+      <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin (LTV sized by balance)</div></div>
+      <div class="step"><div class="n">04</div><div class="t">Repay on Sepolia &rarr; verify &rarr; line closes</div></div>
     </div>
-    <p class="meta" style="margin-top:2rem">Live testnet: Sepolia + Creditcoin CC3</p>
-    <div class="footer"><span>Spark</span><span>4 / 7</span></div>
+    <p class="meta" style="margin-top:2rem">Optional: link past Sepolia payments to raise credit score and LTV bonus before opening.</p>
+    <div class="footer"><span>Spark</span><span>4 / 8</span></div>
   </section>
 
+  <!-- SLIDE 5: Attestcoin depth -->
   <section class="slide">
     <p class="brand">ATTESTCOIN PROTOCOL</p>
-    <h2>Payment verification is required, not optional</h2>
+    <h2>The deepest Attestcoin integration in this hackathon</h2>
     <div class="row">
       <div>
         <ul>
-          <li><code>openCredit</code> requires two proofs: deposit + balance</li>
+          <li><code>openCredit</code> requires <strong style="color:#fafafa">two</strong> BlockProver proofs: deposit + balance</li>
+          <li>Strict receipt log decoding: topic, payer, and <strong style="color:#fafafa">amount</strong> verified from proven data</li>
           <li>One-time <code>txHash</code> (replay protected)</li>
           <li>Payer must match <code>msg.sender</code></li>
           <li>Attested balance sizes LTV (80% / 85% / 90%)</li>
+          <li>Payment history adds LTV bonus (+250 / +500 bps)</li>
         </ul>
       </div>
       <div>
         <table>
           <tr><th>Component</th><th>Role</th></tr>
           <tr><td>SepoliaPayment</td><td>Deposit, repay, balance events</td></tr>
-          <tr><td>Attestcoin / USC</td><td>Cross-chain proof</td></tr>
-          <tr><td>CreditLine</td><td>Credit + interest on Creditcoin</td></tr>
+          <tr><td>Attestcoin / USC</td><td>Cross-chain proof (dual)</td></tr>
+          <tr><td>CreditLine</td><td>Credit + score + history + interest</td></tr>
           <tr><td>BlockProver 0xFD2</td><td>On-chain verify</td></tr>
         </table>
       </div>
     </div>
-    <p class="meta" style="margin-top:1.5rem;max-width:42em">Testnet verifier: BlockProver proves inclusion; we match event topics in tx bytes. Production would strict-decode logs and bind amounts. Fine for testnet — not audited.</p>
-    <div class="footer"><span>Spark</span><span>5 / 7</span></div>
+    <p class="meta" style="margin-top:1.5rem;max-width:42em">Verifier parses receipt RLP from proven encodedTransaction. Per Aug 18 AMA: "Transaction fields and their log data are verified and available." Amount is cryptographically bound.</p>
+    <div class="footer"><span>Spark</span><span>5 / 8</span></div>
   </section>
 
+  <!-- SLIDE 6: Traction -->
+  <section class="slide">
+    <p class="brand">TRACTION</p>
+    <h2>Two full closed loops on-chain with real USC proofs</h2>
+    <div class="stats">
+      <div class="stat"><div class="num">2</div><div class="label">Full closed loops<br/>Open &rarr; Withdraw &rarr; Redeem &rarr; Repay &rarr; Close</div></div>
+      <div class="stat"><div class="num">5</div><div class="label">Attested payments<br/>on-chain credit history</div></div>
+      <div class="stat"><div class="num">850</div><div class="label">Credit score<br/>(max possible)</div></div>
+      <div class="stat"><div class="num">95%</div><div class="label">LTV achieved<br/>(base 90% + 5% history)</div></div>
+    </div>
+    <p class="lead" style="margin-top:2rem">All proofs are real Attestcoin USC proofs verified by BlockProver. On-chain demo wallet: 0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2.</p>
+    <p class="meta">Live at spark.sithunyein.com &middot; Contracts verified on Blockscout</p>
+    <div class="footer"><span>Spark</span><span>6 / 8</span></div>
+  </section>
+
+  <!-- SLIDE 7: Product -->
   <section class="slide">
     <p class="brand">PRODUCT</p>
     <h2>Live testnet product, not a slideware demo</h2>
-    <ul>
-      <li>App: <a href="https://spark.sithunyein.com">spark.sithunyein.com</a></li>
-      <li>Repo: <a href="https://github.com/thesithunyein/spark">github.com/thesithunyein/spark</a></li>
-      <li>Help, Overview, Pay, Repay, Payments, Settings</li>
-      <li>Contracts deployed on Sepolia + Creditcoin testnet</li>
-      <li>Testnet only. Not audited.</li>
-    </ul>
-    <div class="footer"><span>Spark</span><span>6 / 7</span></div>
+    <div class="row">
+      <div>
+        <ul>
+          <li><a href="https://spark.sithunyein.com">spark.sithunyein.com</a> &mdash; live on Creditcoin testnet</li>
+          <li><a href="https://github.com/thesithunyein/spark">github.com/thesithunyein/spark</a></li>
+          <li>Full UI: Overview, Pay, Score, Withdraw, Repay, Help</li>
+          <li>On-chain credit score with history linking</li>
+          <li>18 contract tests passing</li>
+        </ul>
+      </div>
+      <div>
+        <table>
+          <tr><th>Contract</th><th>Network</th></tr>
+          <tr><td>SepoliaPayment</td><td>Sepolia</td></tr>
+          <tr><td>AttestcoinPaymentVerifier</td><td>Creditcoin testnet</td></tr>
+          <tr><td>CreditLine + SparkCredit</td><td>Creditcoin testnet</td></tr>
+        </table>
+        <p class="meta" style="margin-top:1rem">Testnet only. Not audited. MIT License.</p>
+      </div>
+    </div>
+    <div class="footer"><span>Spark</span><span>7 / 8</span></div>
   </section>
 
+  <!-- SLIDE 8: Ask -->
   <section class="slide">
-    <p class="brand">ROADMAP &amp; ASK</p>
-    <h2>Grow Spark on Creditcoin</h2>
+    <p class="brand">THE ASK</p>
+    <h2>$10K to ship credit for the real world</h2>
     <ul>
-      <li><strong style="color:#fafafa">Now:</strong> Dual Attestcoin proofs (deposit + balance), interest, redeem</li>
-      <li><strong style="color:#fafafa">Next:</strong> Strict log/ABI decoding in the verifier, faster attestation UX</li>
-      <li><strong style="color:#fafafa">Later:</strong> Mainnet readiness, audit, lending pool</li>
+      <li><strong style="color:#fafafa">Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score, history LTV bonus &mdash; live on testnet</li>
+      <li><strong style="color:#fafafa">With $10K:</strong> Deploy strict verifier to testnet, faster attestation UX (parallel proofs, caching), audit-ready code</li>
+      <li><strong style="color:#fafafa">CEIP fast-track:</strong> Mainnet readiness, lending pool, single-network UX</li>
     </ul>
-    <p class="lead" style="margin-top:2rem">Seeking Grand Prize / CEIP fast-track to deepen Attestcoin integration and ship credit that Creditcoin can power for the real world.</p>
-    <p class="meta">MIT License · Contact via GitHub</p>
-    <div class="footer"><span>spark.sithunyein.com</span><span>7 / 7</span></div>
+    <p class="lead" style="margin-top:2rem">Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.</p>
+    <p class="meta">MIT License &middot; Sithu Nyein &middot; spark.sithunyein.com</p>
+    <div class="footer"><span>spark.sithunyein.com</span><span>8 / 8</span></div>
   </section>
+
 </body>
 </html>

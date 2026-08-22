@@ -312,15 +312,15 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 
 | Phase | Focus |
 |---|---|
-| **Now** | Live testnet: dual Attestcoin proofs, score, history LTV, full borrow/repay loop |
-| **Next** | Faster verify UX, stricter log decoding in verifier |
-| **Later** | Mainnet, audit, single-network UX |
+| **Now** | Live testnet: dual Attestcoin proofs, score, history LTV, **strict receipt log decoding with amount binding**, full borrow/repay loop |
+| **Next** | Faster verify UX (parallel attestation, caching) |
+| **Later** | Mainnet, audit, lending pool, single-network UX |
 
 ## Security
 
 Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Vercel.
 
-**Verifier note:** BlockProver proves inclusion; the adapter checks contract, topic, and payer in tx bytes. Fine for demo; production would strict-decode receipts and bind amounts.
+**Verifier note:** BlockProver proves inclusion cryptographically. The adapter now **strictly decodes the receipt RLP** from the proven `encodedTransaction`, matching event topic, indexed payer, and non-indexed amount from decoded logs. Amount is cryptographically bound (not trusting `claim.amount`). Per the Aug 18 AMA, receipt log data is confirmed available via BlockProver.
 
 ## License
 

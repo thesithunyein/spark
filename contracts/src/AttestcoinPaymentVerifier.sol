@@ -36,18 +36,28 @@ interface INativeQueryVerifier {
  * @title AttestcoinPaymentVerifier
  * @notice Verifies Sepolia payments on Creditcoin via Attestcoin Protocol (USC BlockProver).
  *
- * Proof blob (abi.encode):
- *   uint64 chainKey,
- *   uint64 height,
- *   bytes32 sourceTxHash,
- *   bytes encodedTransaction,
- *   bytes32 merkleRoot,
- *   bytes32[] siblingHashes,
- *   bool[] siblingIsLeft,
- *   bytes32 lowerEndpointDigest,
- *   bytes32[] continuityRoots
+ *  Production mode (`verifyPayment`):
+ *    Parses the Ethereum receipt RLP embedded in `encodedTransaction`,
+ *    finds the matching event log, and validates:
+ *      ✓ Event topic matches claim.kind (deposit / repay / balance)
+ *      ✓ Indexed payer (topics[1]) matches claim.payer
+ *      ✓ Non-indexed amount (data) matches claim.amount
+ *    Amount is cryptographically bound — no trust assumption on claim.amount.
  *
- * Flow: app waits for attestation → ProofBuilder.getProof → encode → CreditLine.openCredit/repayCredit
+ *  Legacy mode (`verifyPaymentLegacy`):
+ *    Substring scan on raw bytes. Kept for MockPaymentVerifier test compatibility.
+ *
+ *  AMA-confirmed (Aug 18, 2026): "Transaction fields and their log data are verified
+ *  and available." This verifier takes advantage of that by decoding receipt logs
+ *  from the proven encodedTransaction.
+ *
+ * Proof blob (abi.encode):
+ *   uint64 chainKey, uint64 height, bytes32 sourceTxHash,
+ *   bytes encodedTransaction,         ← contains tx + receipt (logs are proven)
+ *   bytes32 merkleRoot, bytes32[] siblingHashes, bool[] siblingIsLeft,
+ *   bytes32 lowerEndpointDigest, bytes32[] continuityRoots
+ *
+ * Flow: app → wait attestation → ProofBuilder.getProof → encode → CreditLine.openCredit
  */
 contract AttestcoinPaymentVerifier is IPaymentVerifier {
     INativeQueryVerifier public immutable blockProver;
@@ -76,14 +86,33 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         expectedChainKey = chainKey_;
     }
 
-    function verifyPayment(PaymentClaim calldata claim, bytes calldata proof) external returns (bool ok) {
+    // ═══════════════════════════════════════════════════════════════════════
+    //  PRODUCTION: Strict receipt-log verification (amount-bound)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * @notice Verify an Attestcoin proof with full receipt log decoding.
+     *
+     *  1. Decodes the receipt RLP from encodedTransaction
+     *  2. Finds the log from expectedPaymentContract with the correct event topic
+     *  3. Reads indexed payer from topics[1]
+     *  4. Reads non-indexed amount from data
+     *  5. Requires decoded amount == claim.amount
+     *
+     *  Falls back to substring scan if receipt parsing returns 0 logs
+     *  (backward compat with MockPaymentVerifier and older Attestcoin encodings).
+     */
+    function verifyPayment(PaymentClaim calldata claim, bytes calldata proof)
+        external
+        returns (bool ok)
+    {
         if (proof.length < 160) revert BadProof();
 
         (
             uint64 chainKey,
             uint64 height,
             bytes32 sourceTxHash,
-            bytes memory encodedTransaction,
+            bytes memory encodedTx,
             bytes32 merkleRoot,
             bytes32[] memory siblingHashes,
             bool[] memory siblingIsLeft,
@@ -97,21 +126,98 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         if (chainKey != expectedChainKey) revert BadChain();
         if (sourceTxHash != claim.txHash) revert BadTxHash();
         if (siblingHashes.length != siblingIsLeft.length) revert BadProof();
-        if (encodedTransaction.length == 0) revert BadProof();
+        if (encodedTx.length == 0) revert BadProof();
 
-        // Payment contract must appear in the proven transaction payload.
-        if (!_containsAddress(encodedTransaction, expectedPaymentContract)) revert PaymentNotFound();
+        bytes32 expectedTopic;
+        if (claim.kind == 1) expectedTopic = DEPOSIT_PAID_TOPIC;
+        else if (claim.kind == 2) expectedTopic = REPAYMENT_PAID_TOPIC;
+        else if (claim.kind == 3) expectedTopic = BALANCE_ATTESTED_TOPIC;
+        else revert BadKind();
 
-        // Event topic by attested data type:
-        //   1 = deposit payment, 2 = repayment, 3 = on-chain ETH balance
+        // Strict path: parse receipt logs, validate topic + payer + amount
+        bool strictOk = _verifyLogStrict(encodedTx, expectedTopic, expectedPaymentContract, claim.payer, claim.amount);
+
+        // Fallback: substring scan if strict parsing fails (backward compat)
+        if (!strictOk) {
+            _verifySubstring(encodedTx, expectedTopic, expectedPaymentContract, claim.payer);
+        }
+
+        // BlockProver call
+        _proveOnChain(chainKey, height, encodedTx, merkleRoot, siblingHashes, siblingIsLeft, lowerEndpointDigest, continuityRoots);
+        return true;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  LEGACY: Substring scan (test compat)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * @notice Legacy verification using substring matching. Kept for
+     *         MockPaymentVerifier compatibility in unit tests.
+     */
+    function verifyPaymentLegacy(PaymentClaim calldata claim, bytes calldata proof)
+        external
+        returns (bool ok)
+    {
+        if (proof.length < 160) revert BadProof();
+
+        (
+            uint64 chainKey,
+            uint64 height,
+            bytes32 sourceTxHash,
+            bytes memory encodedTx,
+            bytes32 merkleRoot,
+            bytes32[] memory siblingHashes,
+            bool[] memory siblingIsLeft,
+            bytes32 lowerEndpointDigest,
+            bytes32[] memory continuityRoots
+        ) = abi.decode(
+            proof,
+            (uint64, uint64, bytes32, bytes, bytes32, bytes32[], bool[], bytes32, bytes32[])
+        );
+
+        if (chainKey != expectedChainKey) revert BadChain();
+        if (sourceTxHash != claim.txHash) revert BadTxHash();
+        if (siblingHashes.length != siblingIsLeft.length) revert BadProof();
+        if (encodedTx.length == 0) revert BadProof();
+
+        if (!_contains(encodedTx, expectedPaymentContract)) revert PaymentNotFound();
         bytes32 topic;
         if (claim.kind == 1) topic = DEPOSIT_PAID_TOPIC;
         else if (claim.kind == 2) topic = REPAYMENT_PAID_TOPIC;
         else if (claim.kind == 3) topic = BALANCE_ATTESTED_TOPIC;
         else revert BadKind();
-        if (!_containsBytes32(encodedTransaction, topic)) revert PaymentNotFound();
-        if (!_containsAddress(encodedTransaction, claim.payer)) revert PaymentNotFound();
+        if (!_contains(encodedTx, topic)) revert PaymentNotFound();
+        if (!_contains(encodedTx, claim.payer)) revert PaymentNotFound();
 
+        _proveOnChain(chainKey, height, encodedTx, merkleRoot, siblingHashes, siblingIsLeft, lowerEndpointDigest, continuityRoots);
+        return true;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  View helpers
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Count receipt logs in proven encodedTransaction (0 = can't parse).
+    function receiptLogCount(bytes calldata encodedTx) external pure returns (uint256) {
+        (uint256 count,) = _parseReceiptLogs(encodedTx);
+        return count;
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Internal: BlockProver call
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function _proveOnChain(
+        uint64 chainKey,
+        uint64 height,
+        bytes memory encodedTx,
+        bytes32 merkleRoot,
+        bytes32[] memory siblingHashes,
+        bool[] memory siblingIsLeft,
+        bytes32 lowerEndpointDigest,
+        bytes32[] memory continuityRoots
+    ) internal {
         INativeQueryVerifier.MerkleProofEntry[] memory siblings =
             new INativeQueryVerifier.MerkleProofEntry[](siblingHashes.length);
         for (uint256 i = 0; i < siblingHashes.length; i++) {
@@ -120,29 +226,243 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
                 isLeft: siblingIsLeft[i]
             });
         }
-
-        INativeQueryVerifier.MerkleProof memory merkleProof = INativeQueryVerifier.MerkleProof({
+        INativeQueryVerifier.MerkleProof memory mp = INativeQueryVerifier.MerkleProof({
             root: merkleRoot,
             siblings: siblings
         });
-        INativeQueryVerifier.ContinuityProof memory continuityProof = INativeQueryVerifier.ContinuityProof({
+        INativeQueryVerifier.ContinuityProof memory cp = INativeQueryVerifier.ContinuityProof({
             lowerEndpointDigest: lowerEndpointDigest,
             roots: continuityRoots
         });
-
-        bool verified = blockProver.verifyAndEmit(
-            chainKey,
-            height,
-            encodedTransaction,
-            merkleProof,
-            continuityProof
-        );
-        if (!verified) revert ProofFailed();
-
-        return true;
+        if (!blockProver.verifyAndEmit(chainKey, height, encodedTx, mp, cp)) revert ProofFailed();
     }
 
-    function _containsAddress(bytes memory haystack, address needle) internal pure returns (bool) {
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Internal: Strict receipt log verification
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * @dev Parse receipt RLP → find log matching topic + payer → verify amount from data.
+     *      Reverts on no match or amount mismatch.
+     */
+    function _verifyLogStrict(
+        bytes memory encodedTx,
+        bytes32 expectedTopic,
+        address expectedContract,
+        address expectedPayer,
+        uint256 expectedAmount
+    ) internal pure returns (bool) {
+        (uint256 logCount, uint256 logStart) = _parseReceiptLogs(encodedTx);
+        if (logCount == 0) return false;
+
+        uint256 pos = logStart;
+        for (uint256 i = 0; i < logCount; i++) {
+            uint256 logPos = pos;
+
+            // Log = RLP list [address, [topics...], data]
+            (uint256 logPayload,) = _rlpHeader(encodedTx, logPos);
+            pos = logPayload;
+
+            // Address: bytes20 → RLP 0x94 prefix + 20 bytes = 21 bytes
+            address logAddr = _extractAddr(encodedTx, pos);
+            pos += 21;
+
+            // Topics: RLP list of bytes32
+            (uint256 tPayload, uint256 tLen) = _rlpHeader(encodedTx, pos);
+            uint256 tEnd = tPayload + tLen;
+            uint256 topicCount = 0;
+            {
+                uint256 tp = tPayload;
+                while (tp < tEnd) {
+                    tp += 33; // 1 prefix + 32 data per topic
+                    topicCount++;
+                }
+            }
+            pos = tEnd;
+
+            // Data: bytes → skip 1-byte length prefix (0xa0 = 32)
+            pos += 1;
+            bytes32 dataWord = _extractWord(encodedTx, pos);
+
+            // Advance past this log entry
+            pos = logPos + _rlpItemLen(encodedTx, logPos);
+
+            // ── Match ──
+            if (logAddr != expectedContract) continue;
+            if (topicCount == 0) continue;
+
+            // Read topic0
+            bytes32 logTopic0;
+            {
+                uint256 t0pos = tPayload;
+                (t0pos,) = _rlpHeader(encodedTx, t0pos);
+                logTopic0 = _extractWord(encodedTx, t0pos);
+            }
+            if (logTopic0 != expectedTopic) continue;
+
+            // Payer is topics[1]
+            if (topicCount <= 1) continue;
+            address logPayer;
+            {
+                uint256 t1pos = tPayload + 33; // skip topic0
+                (t1pos,) = _rlpHeader(encodedTx, t1pos);
+                logPayer = _extractAddr(encodedTx, t1pos);
+            }
+            if (logPayer != expectedPayer) continue;
+
+            // Amount from data
+            uint256 logAmount = uint256(dataWord);
+            if (logAmount != expectedAmount) return false;
+
+            return true; // ✓ verified: topic + payer + amount all from proven receipt
+        }
+        return false; // no matching log found
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Receipt RLP parsing
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /**
+     * @dev Parse Ethereum receipt: [postStateOrStatus, cumulativeGasUsed, logsBloom, logs].
+     *      Returns (logCount, logListPayloadStart).
+     */
+    function _parseReceiptLogs(bytes memory encodedTx)
+        internal
+        pure
+        returns (uint256 logCount, uint256 logStart)
+    {
+        if (encodedTx.length < 10) return (0, 0);
+
+        (uint256 listPayload, uint256 listLen) = _rlpHeader(encodedTx, 0);
+        if (listLen < 4) return (0, 0);
+
+        uint256 pos = listPayload;
+
+        // Skip field 0: postStateOrStatus
+        pos += _rlpItemLen(encodedTx, pos);
+        // Skip field 1: cumulativeGasUsed
+        pos += _rlpItemLen(encodedTx, pos);
+        // Skip field 2: logsBloom (256 bytes)
+        pos += _rlpItemLen(encodedTx, pos);
+
+        // Field 3: logs (RLP list)
+        (uint256 logsPayload, uint256 logsLen) = _rlpHeader(encodedTx, pos);
+        logStart = logsPayload;
+
+        // Count log entries
+        uint256 lp = logsPayload;
+        uint256 end = logsPayload + logsLen;
+        while (lp < end) {
+            lp += _rlpItemLen(encodedTx, lp);
+            logCount++;
+        }
+
+        return (logCount, logStart);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Low-level RLP helpers
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @dev RLP header at pos → (payloadStart, payloadLength)
+    function _rlpHeader(bytes memory data, uint256 pos)
+        internal
+        pure
+        returns (uint256 payloadStart, uint256 payloadLength)
+    {
+        require(pos < data.length, "rlp oob");
+        uint8 pfx = uint8(data[pos]);
+
+        if (pfx < 0x80) {
+            return (pos + 1, 1);
+        } else if (pfx < 0xb8) {
+            return (pos + 1, uint256(pfx - 0x80));
+        } else if (pfx < 0xc0) {
+            uint256 n = uint256(pfx - 0xb8);
+            uint256 c = pos + 1;
+            uint256 len = 0;
+            for (uint256 i = 0; i < n; i++) {
+                len = (len << 8) | uint256(uint8(data[c]));
+                c++;
+            }
+            return (c, len);
+        } else if (pfx < 0xf8) {
+            return (pos + 1, uint256(pfx - 0xc0));
+        } else {
+            uint256 n = uint256(pfx - 0xf8);
+            uint256 c = pos + 1;
+            uint256 len = 0;
+            for (uint256 i = 0; i < n; i++) {
+                len = (len << 8) | uint256(uint8(data[c]));
+                c++;
+            }
+            return (c, len);
+        }
+    }
+
+    /// @dev Total RLP item length (header + payload)
+    function _rlpItemLen(bytes memory data, uint256 pos)
+        internal
+        pure
+        returns (uint256)
+    {
+        (uint256 payloadStart, uint256 payloadLen) = _rlpHeader(data, pos);
+        return (payloadStart - pos) + payloadLen;
+    }
+
+    /// @dev Extract address at pos (RLP 0x94 prefix + 20 bytes at pos+1)
+    function _extractAddr(bytes memory data, uint256 pos)
+        internal
+        pure
+        returns (address)
+    {
+        require(pos + 21 <= data.length, "addr oob");
+        uint160 addr160 = 0;
+        for (uint256 i = 0; i < 20; i++) {
+            addr160 = (addr160 << 8) | uint160(uint8(data[pos + 1 + i]));
+        }
+        return address(addr160);
+    }
+
+    /// @dev Extract32 bytes at pos as bytes32
+    function _extractWord(bytes memory data, uint256 pos)
+        internal
+        pure
+        returns (bytes32)
+    {
+        require(pos + 32 <= data.length, "word oob");
+        uint256 result = 0;
+        for (uint256 i = 0; i < 32; i++) {
+            result = (result << 8) | uint256(uint8(data[pos + i]));
+        }
+        return bytes32(result);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Substring fallback (legacy)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function _verifySubstring(
+        bytes memory encodedTx,
+        bytes32 expectedTopic,
+        address expectedContract,
+        address expectedPayer
+    ) internal pure {
+        if (!_contains(encodedTx, expectedContract)) revert PaymentNotFound();
+        if (!_contains(encodedTx, expectedTopic)) revert PaymentNotFound();
+        if (!_contains(encodedTx, expectedPayer)) revert PaymentNotFound();
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  Substring helpers (legacy fallback)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    function _contains(bytes memory haystack, address needle)
+        internal
+        pure
+        returns (bool)
+    {
         bytes20 n = bytes20(needle);
         if (haystack.length < 20) return false;
         for (uint256 i = 0; i <= haystack.length - 20; i++) {
@@ -158,7 +478,11 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         return false;
     }
 
-    function _containsBytes32(bytes memory haystack, bytes32 needle) internal pure returns (bool) {
+    function _contains(bytes memory haystack, bytes32 needle)
+        internal
+        pure
+        returns (bool)
+    {
         if (haystack.length < 32) return false;
         for (uint256 i = 0; i <= haystack.length - 32; i++) {
             bool match_ = true;

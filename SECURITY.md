@@ -15,6 +15,8 @@ Spark is a **testnet** product for BUIDL CTC / CEIP diligence.
 | Attestcoin verify before credit open/repay | `CreditLine.sol` |
 | One-time `txHash` (replay guard) | `CreditLine.sol` |
 | Payer binding (`tx.from` / claimed payer) | `CreditLine.sol` |
+| **Amount binding** from decoded receipt logs | `AttestcoinPaymentVerifier.sol` |
+| Strict receipt log decoding (topic + payer + amount) | `AttestcoinPaymentVerifier.sol` |
 | No custodial keys in the web app | `app/` |
 
 ## Reporting

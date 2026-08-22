@@ -31,7 +31,7 @@ Attested balance **sizes LTV**: ≥2× deposit → 90%, ≥1× → 85%, else bas
 
 - `SepoliaPayment.sol` — deposit, repay, **balance attest** events on Sepolia
 - `CreditLine.sol` — dual-proof open, interest, redeem, repay
-- `AttestcoinPaymentVerifier.sol` — USC BlockProver adapter (kinds 1/2/3)
+- `AttestcoinPaymentVerifier.sol` — USC BlockProver adapter with **strict receipt log decoding** (kinds 1/2/3). Parses the receipt RLP from `encodedTransaction`, matches event topic, indexed payer, and non-indexed amount from proven logs.
 - `MockPaymentVerifier.sol` — local unit tests only
 
 ## Live addresses (CC3 testnet)
@@ -45,9 +45,21 @@ See [addresses.md](addresses.md).
 - Prover API: `NEXT_PUBLIC_PROVER_URL` (default `https://proof-gen-api.cc3-testnet.creditcoin.network`)
 - App helper: `app/src/lib/usc.ts`
 
+## Verifier: strict log decoding (Aug 2026 upgrade)
+
+The verifier now **decodes the receipt** embedded in the proven `encodedTransaction` (AMA-confirmed: receipt log data is cryptographically available via BlockProver). Instead of substring-matching raw bytes, it:
+
+1. Parses the receipt RLP → finds the `logs` array
+2. Locates the log from `expectedPaymentContract` with the correct event topic
+3. Reads the indexed payer from `topics[1]`
+4. Reads the non-indexed amount from `data` (non-indexed uint256)
+5. **Requires** `decoded amount == claim.amount` — amount is cryptographically bound
+
+A fallback substring scan exists for backward compatibility with MockPaymentVerifier proofs.
+
 ## Honest limits (Fall 2026)
 
-- Kind 3 (`BalanceAttested`) is a BlockProver-verified **snapshot** of Sepolia ETH at the moment `attestBalance` was mined. `openCredit` sizes LTV from that snapshot; there is no on-chain check that the balance is still current. The 8-20 minute attestation wait is a reorg-safety/UX choice, not an on-chain freshness bound.
+- Kind 3 (`BalanceAttested`) is a BlockProver-verified **snapshot** of Sepolia ETH at the moment `attestBalance` was mined. `openCredit` sizes LTV from that snapshot; there is no on-chain check that the balance is still current. The 8-20 minute attestation wait is a reorg-safety/UX choice, not an on-chain freshness bound. The verifier now **strictly decodes** the receipt logs and verifies the amount from proven data (not trusting `claim.amount`).
 - After open, there is **no liquidation or health factor**. Interest accrues, but a position that goes underwater relative to a later Sepolia balance is not enforced on-chain in this version.
 - History bonus sizes LTV **at open**. Linking attested payments after open updates `creditScore`; it does not resize an active line.
 

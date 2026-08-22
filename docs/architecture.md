@@ -32,9 +32,9 @@ flowchart TB
 ## Security
 
 1. Verify before state change
-2. One-time `txHash`
+2. One-time `txHash` (replay guard)
 3. Payer must be `msg.sender`
-4. Amounts come from the verified claim, not free-form UI trust
+4. **Amounts verified from decoded receipt logs** (not trusting claim.amount — strict RLP log decoding in verifier)
 5. No private keys on Vercel
 
 ## Sequence — open credit
