@@ -9,8 +9,8 @@
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
-      background: #0a0a0a;
-      color: #fafafa;
+      background: #000;
+      color: #fff;
     }
     .slide {
       width: 100vw;
@@ -20,38 +20,83 @@
       flex-direction: column;
       justify-content: center;
       page-break-after: always;
-      background:
-        radial-gradient(ellipse 70% 50% at 50% -10%, rgba(255, 102, 0, 0.18), transparent 55%),
-        #0a0a0a;
+      background: #000;
       position: relative;
     }
     .slide:last-child { page-break-after: auto; }
-    .brand { color: #ff6600; font-weight: 600; letter-spacing: 0.04em; font-size: 14px; }
-    h1 { font-size: clamp(36px, 5.5vw, 64px); font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
-    h2 { font-size: clamp(28px, 3.5vw, 42px); font-weight: 600; letter-spacing: -0.02em; margin-bottom: 1.2rem; }
-    p, li { font-size: clamp(16px, 1.6vw, 22px); line-height: 1.5; color: #a1a1aa; }
-    .lead { color: #e4e4e7; max-width: 36em; }
+    .badge {
+      display: inline-block;
+      align-self: flex-start;
+      background: rgba(255,255,255,0.09);
+      padding: 10px 18px;
+      font-family: ui-monospace, monospace;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.2em;
+      color: #fff;
+    }
+    h1 {
+      font-size: clamp(54px, 6.2vw, 118px);
+      font-weight: 200;
+      letter-spacing: 0.03em;
+      line-height: 0.95;
+      color: #fff;
+    }
+    h2 {
+      font-size: clamp(32px, 4vw, 52px);
+      font-weight: 300;
+      letter-spacing: 0.02em;
+      line-height: 1.1;
+      color: #fff;
+      margin-bottom: 1.2rem;
+    }
+    .subtitle {
+      font-family: ui-monospace, monospace;
+      font-size: clamp(12px, 1vw, 17px);
+      font-weight: 300;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.4;
+    }
+    p, li { font-size: clamp(15px, 1.4vw, 20px); line-height: 1.6; color: rgba(255,255,255,0.75); font-weight: 300; }
+    .lead { max-width: 38em; }
     ul { list-style: none; display: grid; gap: 0.85rem; margin-top: 1rem; }
-    li::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ff6600; margin-right: 12px; vertical-align: middle; }
-    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-top: 2rem; }
-    .step { border: 1px solid rgba(255,255,255,0.08); border-radius: 16px; padding: 1.25rem; background: rgba(17,17,19,0.8); }
-    .step .n { font-family: ui-monospace, monospace; color: #ff6600; font-size: 13px; margin-bottom: 0.5rem; }
-    .step .t { color: #fafafa; font-size: 18px; font-weight: 500; }
-    .meta { margin-top: 2rem; font-size: 14px; color: #71717a; }
-    a { color: #ff6600; text-decoration: none; }
-    .logo { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 1.5rem; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: start; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 15px; }
-    td, th { text-align: left; padding: 0.65rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); color: #a1a1aa; }
-    th { color: #fafafa; font-weight: 500; }
+    li::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); margin-right: 12px; vertical-align: middle; }
+    .steps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-top: 2rem; }
+    .step {
+      border: 1px solid rgba(255,255,255,0.14);
+      border-radius: 14px;
+      padding: 1.25rem;
+      background: rgba(255,255,255,0.03);
+    }
+    .step .n { font-family: ui-monospace, monospace; color: rgba(255,255,255,0.4); font-size: 12px; letter-spacing: 0.12em; margin-bottom: 0.5rem; }
+    .step .t { color: #fff; font-size: 17px; font-weight: 300; }
+    .meta { margin-top: 2rem; font-size: 13px; color: rgba(255,255,255,0.4); }
+    a { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+    .logo { width: 38px; height: 38px; margin-bottom: 1.5rem; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2.5rem; align-items: start; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 14px; }
+    td, th { text-align: left; padding: 0.6rem 0; border-bottom: 1px solid rgba(255,255,255,0.1); color: rgba(255,255,255,0.6); }
+    th { color: #fff; font-weight: 400; }
     .stat { display: inline-block; margin-right: 2.5rem; }
-    .stat .num { font-size: clamp(28px, 3vw, 40px); font-weight: 700; color: #ff6600; }
-    .stat .label { font-size: 14px; color: #71717a; margin-top: 0.25rem; }
+    .stat .num { font-size: clamp(32px, 3.5vw, 48px); font-weight: 200; color: #fff; }
+    .stat .label { font-size: 13px; color: rgba(255,255,255,0.45); margin-top: 0.25rem; line-height: 1.4; }
     .stats { display: flex; gap: 1rem; margin-top: 2rem; flex-wrap: wrap; }
     .footer {
       position: absolute; bottom: 4vh; left: 8vw; right: 8vw;
-      display: flex; justify-content: space-between; font-size: 12px; color: #52525b;
+      display: flex; justify-content: space-between; font-size: 12px; color: rgba(255,255,255,0.25);
+      font-family: ui-monospace, monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
     }
+    code {
+      font-family: ui-monospace, monospace;
+      font-size: 0.9em;
+      color: rgba(255,255,255,0.55);
+    }
+    strong { color: #fff; font-weight: 400; }
+    .divider { width: 48px; height: 1px; background: rgba(255,255,255,0.2); margin: 1.5rem 0; }
     @media print {
       .slide { width: 11in; height: 8.5in; }
       body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -62,21 +107,22 @@
 
   <!-- SLIDE 1: Title -->
   <section class="slide">
-    <img class="logo" src="brand/logo.png" alt="Spark" />
-    <p class="brand">SPARK</p>
-    <h1 style="margin-top:0.75rem">Pay once.<br />Unlock credit.</h1>
-    <p class="lead" style="margin-top:1.25rem">DeFi credit on Creditcoin. Attestcoin-verified payment history is your credit score. No bank, no oracle, no paperwork.</p>
-    <p class="meta">DeFi Track &middot; BUIDL CTC 2026 Fall &middot; Attestcoin Protocol</p>
+    <img class="logo" src="brand/hex-logo.svg" alt="Spark" />
+    <span class="badge">[ Verified credit ]</span>
+    <h1 style="margin-top: 2rem;">SPARK</h1>
+    <p class="subtitle" style="margin-top: 1.2rem;">Pay once. Unlock credit.</p>
+    <p class="lead" style="margin-top: 1.5rem; font-size: clamp(16px, 1.5vw, 22px);">Pay a deposit on Sepolia. Attestcoin verifies it on-chain. A credit line unlocks on Creditcoin. No credit check, no paperwork, no bank.</p>
+    <p class="meta" style="margin-top: 2.5rem;">DeFi Track &middot; BUIDL CTC 2026 Fall &middot; Attestcoin Protocol</p>
     <div class="footer"><span>spark.sithunyein.com</span><span>1 / 8</span></div>
   </section>
 
   <!-- SLIDE 2: Problem -->
   <section class="slide">
-    <p class="brand">PROBLEM</p>
-    <h2>2.5 billion people can't get credit without paperwork</h2>
+    <span class="badge">Problem</span>
+    <h2 style="margin-top: 2rem;">2.5 billion people can't get credit without paperwork</h2>
     <p class="lead">Most of the world is unbanked. Credit systems require physical documents, bank history, and centralized intermediaries that don't exist for millions of people.</p>
     <ul>
-      <li>Cross-chain credit is impossible without a trusted middleman</li>
+      <li>Cross-chain credit requires a trusted middleman that doesn't exist</li>
       <li>Centralized oracles and bridges add single points of failure</li>
       <li>No way to prove payment history across chains trustlessly</li>
     </ul>
@@ -85,8 +131,8 @@
 
   <!-- SLIDE 3: Solution -->
   <section class="slide">
-    <p class="brand">SOLUTION</p>
-    <h2>Your on-chain payment history is your credit score</h2>
+    <span class="badge">Solution</span>
+    <h2 style="margin-top: 2rem;">Your on-chain payment history is your credit score</h2>
     <p class="lead">Spark uses the Attestcoin Protocol to prove Sepolia payments on Creditcoin. Verified payment history builds a trustless credit score. No bank forms, no oracle, no paperwork.</p>
     <ul>
       <li>Pay deposit on Sepolia &rarr; dual Attestcoin proofs &rarr; credit opens on Creditcoin</li>
@@ -99,27 +145,27 @@
 
   <!-- SLIDE 4: How it works -->
   <section class="slide">
-    <p class="brand">HOW IT WORKS</p>
-    <h2>Four steps. Fully on-chain.</h2>
+    <span class="badge">How it works</span>
+    <h2 style="margin-top: 2rem;">Four steps. Fully on-chain.</h2>
     <div class="steps">
       <div class="step"><div class="n">01</div><div class="t">Pay deposit + attest balance on Sepolia</div></div>
       <div class="step"><div class="n">02</div><div class="t">Attestcoin proves both txs via BlockProver</div></div>
       <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin (LTV sized by balance)</div></div>
       <div class="step"><div class="n">04</div><div class="t">Repay on Sepolia &rarr; verify &rarr; line closes</div></div>
     </div>
-    <p class="meta" style="margin-top:2rem">Optional: link past Sepolia payments to raise credit score and LTV bonus before opening.</p>
+    <p class="meta" style="margin-top: 2rem;">Optional: link past Sepolia payments to raise credit score and LTV bonus before opening.</p>
     <div class="footer"><span>Spark</span><span>4 / 8</span></div>
   </section>
 
   <!-- SLIDE 5: Attestcoin depth -->
   <section class="slide">
-    <p class="brand">ATTESTCOIN PROTOCOL</p>
-    <h2>The deepest Attestcoin integration in this hackathon</h2>
+    <span class="badge">Attestcoin Protocol</span>
+    <h2 style="margin-top: 2rem;">Deep Attestcoin integration with strict receipt verification</h2>
     <div class="row">
       <div>
         <ul>
-          <li><code>openCredit</code> requires <strong style="color:#fafafa">two</strong> BlockProver proofs: deposit + balance</li>
-          <li>Strict receipt log decoding: topic, payer, and <strong style="color:#fafafa">amount</strong> verified from proven data</li>
+          <li><code>openCredit</code> requires <strong>two</strong> BlockProver proofs: deposit + balance</li>
+          <li>Strict receipt log decoding: topic, payer, and <strong>amount</strong> verified from proven data</li>
           <li>One-time <code>txHash</code> (replay protected)</li>
           <li>Payer must match <code>msg.sender</code></li>
           <li>Attested balance sizes LTV (80% / 85% / 90%)</li>
@@ -136,29 +182,29 @@
         </table>
       </div>
     </div>
-    <p class="meta" style="margin-top:1.5rem;max-width:42em">Verifier parses receipt RLP from proven encodedTransaction. Per Aug 18 AMA: "Transaction fields and their log data are verified and available." Amount is cryptographically bound.</p>
+    <p class="meta" style="margin-top: 1.5rem; max-width: 42em;">Verifier parses receipt RLP from proven encodedTransaction. Per Aug 18 AMA: "Transaction fields and their log data are verified and available." Amount is cryptographically bound.</p>
     <div class="footer"><span>Spark</span><span>5 / 8</span></div>
   </section>
 
   <!-- SLIDE 6: Traction -->
   <section class="slide">
-    <p class="brand">TRACTION</p>
-    <h2>Two full closed loops on-chain with real USC proofs</h2>
+    <span class="badge">Traction</span>
+    <h2 style="margin-top: 2rem;">Two full closed loops on-chain with real USC proofs</h2>
     <div class="stats">
       <div class="stat"><div class="num">2</div><div class="label">Full closed loops<br/>Open &rarr; Withdraw &rarr; Redeem &rarr; Repay &rarr; Close</div></div>
       <div class="stat"><div class="num">5</div><div class="label">Attested payments<br/>on-chain credit history</div></div>
       <div class="stat"><div class="num">850</div><div class="label">Credit score<br/>(max possible)</div></div>
       <div class="stat"><div class="num">95%</div><div class="label">LTV achieved<br/>(base 90% + 5% history)</div></div>
     </div>
-    <p class="lead" style="margin-top:2rem">All proofs are real Attestcoin USC proofs verified by BlockProver. On-chain demo wallet: 0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2.</p>
+    <p class="lead" style="margin-top: 2rem;">All proofs are real Attestcoin USC proofs verified by BlockProver. On-chain demo wallet: 0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2.</p>
     <p class="meta">Live at spark.sithunyein.com &middot; Contracts verified on Blockscout</p>
     <div class="footer"><span>Spark</span><span>6 / 8</span></div>
   </section>
 
   <!-- SLIDE 7: Product -->
   <section class="slide">
-    <p class="brand">PRODUCT</p>
-    <h2>Live testnet product, not a slideware demo</h2>
+    <span class="badge">Product</span>
+    <h2 style="margin-top: 2rem;">Live testnet product, not a slideware demo</h2>
     <div class="row">
       <div>
         <ul>
@@ -176,7 +222,7 @@
           <tr><td>AttestcoinPaymentVerifier</td><td>Creditcoin testnet</td></tr>
           <tr><td>CreditLine + SparkCredit</td><td>Creditcoin testnet</td></tr>
         </table>
-        <p class="meta" style="margin-top:1rem">Testnet only. Not audited. MIT License.</p>
+        <p class="meta" style="margin-top: 1rem;">Testnet only. Not audited. MIT License.</p>
       </div>
     </div>
     <div class="footer"><span>Spark</span><span>7 / 8</span></div>
@@ -184,15 +230,15 @@
 
   <!-- SLIDE 8: Ask -->
   <section class="slide">
-    <p class="brand">THE ASK</p>
-    <h2>$10K to ship credit for the real world</h2>
+    <span class="badge">The Ask</span>
+    <h2 style="margin-top: 2rem;">$10K to ship credit for the real world</h2>
     <ul>
-      <li><strong style="color:#fafafa">Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score, history LTV bonus &mdash; live on testnet</li>
-      <li><strong style="color:#fafafa">With $10K:</strong> Deploy strict verifier to testnet, faster attestation UX (parallel proofs, caching), audit-ready code</li>
-      <li><strong style="color:#fafafa">CEIP fast-track:</strong> Mainnet readiness, lending pool, single-network UX</li>
+      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score, history LTV bonus &mdash; live on testnet</li>
+      <li><strong>With $10K:</strong> Deploy strict verifier to testnet, faster attestation UX (parallel proofs, caching), audit-ready code</li>
+      <li><strong>CEIP fast-track:</strong> Mainnet readiness, lending pool, single-network UX</li>
     </ul>
-    <p class="lead" style="margin-top:2rem">Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.</p>
-    <p class="meta">MIT License &middot; Sithu Nyein &middot; spark.sithunyein.com</p>
+    <p class="lead" style="margin-top: 2rem; font-size: clamp(16px, 1.5vw, 22px);">Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.</p>
+    <p class="meta" style="margin-top: 2rem;">MIT License &middot; Sithu Nyein &middot; spark.sithunyein.com</p>
     <div class="footer"><span>spark.sithunyein.com</span><span>8 / 8</span></div>
   </section>
 
