@@ -75,7 +75,7 @@ export default function OverviewPage() {
         <div className="hidden gap-2 sm:flex">
           <Link
             href="/pay"
-            className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-black transition hover:bg-white/85"
+            className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-black"
           >
             Pay deposit
           </Link>
@@ -110,7 +110,7 @@ export default function OverviewPage() {
             title={`Credit score ${scoreN ?? 650} · +${histCount >= 3 ? "5.00" : "2.50"}% LTV bonus`}
             description={`${histCount} attested payment${histCount === 1 ? "" : "s"} on file. Ready to open credit with a new deposit.`}
             actions={
-              <Link href="/pay" className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
+              <Link href="/pay" className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
                 Pay deposit
               </Link>
             }
@@ -186,7 +186,7 @@ export default function OverviewPage() {
           <div className="mt-4 flex gap-2 sm:hidden">
             <Link
               href="/pay"
-              className="flex-1 bg-white px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+              className="btn-shine flex-1 bg-white px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.16em] text-black"
             >
               Pay deposit
             </Link>

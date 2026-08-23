@@ -525,7 +525,7 @@ export default function RepayPage() {
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">No active credit line</p>
             <p className="mt-1 text-[13px] text-muted">Open credit with a deposit before you can repay.</p>
-            <Link href="/pay" className="mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
+            <Link href="/pay" className="btn-shine mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
               Pay deposit
             </Link>
           </div>
@@ -660,7 +660,7 @@ export default function RepayPage() {
             <p className="text-[15px] font-medium text-text">Loan closed</p>
             <p className="mt-1 text-[13px] text-muted">Debt cleared on Creditcoin.</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link href="/overview" className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
+              <Link href="/overview" className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
                 Back to overview
               </Link>
               <Link href="/score" className=" border border-border px-4 py-2 text-[13px] font-medium">

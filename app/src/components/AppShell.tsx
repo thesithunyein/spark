@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 import { Menu } from "lucide-react";
 import { ConnectButton } from "./ConnectButton";
 import { Sidebar } from "./Sidebar";
@@ -18,6 +19,7 @@ export function AppShell({
   actions?: React.ReactNode;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <div className="flex min-h-screen bg-bg">
@@ -32,24 +34,30 @@ export function AppShell({
           <div className="flex min-w-0 items-center gap-3">
             <button
               type="button"
-              className="border border-border p-2 text-muted transition hover:text-text lg:hidden"
+              className="border border-border p-2 text-muted transition hover:bg-white/[0.04] hover:text-text lg:hidden"
               onClick={() => setMenuOpen(true)}
               aria-label="Open menu"
             >
               <Menu className="h-4 w-4" />
             </button>
-            <div className="min-w-0">
+            <div key={`heading-${pathname}`} className="anim anim-fade-up min-w-0">
               <h1 className="truncate text-[22px] font-light tracking-[0.02em] text-text">{title}</h1>
               {subtitle && <p className="mt-1 max-w-lg text-[13px] leading-relaxed text-muted">{subtitle}</p>}
             </div>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            {actions}
+            <div key={`actions-${pathname}`} className="anim anim-fade-up anim-delay-1 flex items-center gap-2">
+              {actions}
+            </div>
             <ConnectButton />
           </div>
         </header>
-        <main className="flex-1 px-5 py-8 sm:px-8">{children}</main>
+        <main className="flex-1 px-5 py-8 sm:px-8">
+          <div key={`content-${pathname}`} className="anim anim-fade-up stagger">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
-}
+}

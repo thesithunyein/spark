@@ -17,9 +17,9 @@ export function SuccessBanner({
   actions,
 }: SuccessBannerProps) {
   return (
-    <div className=" border border-success/30 bg-success/10 p-4">
+    <div className="card-hover anim anim-scale-in border border-success/30 bg-success/10 p-4">
       <div className="flex items-start gap-3">
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center bg-success/20 text-success">
+        <span className="anim anim-scale-in flex h-8 w-8 shrink-0 items-center justify-center bg-success/20 text-success">
           <Check className="h-4 w-4" strokeWidth={2.5} />
         </span>
         <div className="min-w-0 flex-1">

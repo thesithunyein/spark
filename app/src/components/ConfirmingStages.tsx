@@ -16,12 +16,13 @@ export function ConfirmingStages({ step }: { step: 0 | 1 | 2 | 3 | 4 }) {
           <li key={label} className="flex flex-col items-center gap-2 text-center">
             <span
               className={clsx(
-                "flex h-8 w-8 items-center justify-center text-[12px] font-medium transition",
+                "relative flex h-8 w-8 items-center justify-center text-[12px] font-medium transition",
                 done && "bg-success/20 text-success",
                 current && "bg-brand/20 text-brand ring-2 ring-brand/40",
                 upcoming && "border border-border bg-white/[0.02] text-muted",
               )}
             >
+              {current && <span className="pulse-dot absolute inset-0 rounded-full bg-brand/20" aria-hidden />}
               {done ? <Check className="h-4 w-4" strokeWidth={2.5} /> : n}
             </span>
             <span

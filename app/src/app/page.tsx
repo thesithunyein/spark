@@ -41,7 +41,8 @@ export default function HomePage() {
     <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
         <video
-          className="h-full w-full scale-[1.55] -translate-x-[25%] translate-y-[4%] object-cover object-center grayscale"
+          className="anim anim-fade-in h-full w-full scale-[1.55] -translate-x-[25%] translate-y-[4%] object-cover object-center grayscale"
+          style={{ animationDelay: "200ms", animationDuration: "1.2s" }}
           src={ROBOT_BG}
           autoPlay
           muted
@@ -74,12 +75,12 @@ export default function HomePage() {
         <div className="flex items-center gap-[clamp(24px,3.2vw,62px)]">
           <nav className="hidden items-center gap-[clamp(20px,2.8vw,56px)] lg:flex">
             {NAV_LINKS.map((l) => (
-              <Link key={l.href} href={l.href} className="font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-colors duration-[250ms] hover:text-white/60">
+              <Link key={l.href} href={l.href} className="link-underline font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-colors duration-[250ms] hover:text-white/60">
                 {l.label}
               </Link>
             ))}
           </nav>
-          <Link href="/pay" className="hidden border border-white/[0.26] px-[clamp(20px,1.8vw,32px)] py-[clamp(12px,1vw,17px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-colors duration-[250ms] hover:border-white/50 hover:bg-white/[0.05] lg:inline-flex">
+          <Link href="/pay" className="link-underline hidden border border-white/[0.26] px-[clamp(20px,1.8vw,32px)] py-[clamp(12px,1vw,17px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,transform] duration-[300ms] hover:border-white/50 hover:bg-white/[0.05] lg:inline-flex">
             Get credit
           </Link>
           <button
@@ -130,7 +131,7 @@ export default function HomePage() {
       </div>
 
       <main className="relative z-10 flex min-h-0 items-center justify-end overflow-y-auto px-[clamp(20px,5vw,100px)] max-sm:justify-center">
-        <div className="flex w-[min(34vw,620px)] min-w-[380px] flex-col py-[clamp(24px,3vw,48px)] max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
+        <div className="stagger flex w-[min(34vw,620px)] min-w-[380px] flex-col py-[clamp(24px,3vw,48px)] max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
 
             <span className="inline-block self-start bg-white/[0.09] px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-white">
               [ Verified credit ]
@@ -145,16 +146,16 @@ export default function HomePage() {
               Pay a small deposit on Sepolia. Attestcoin verifies it on-chain, then a credit line unlocks on Creditcoin. No credit check, no paperwork.
             </p>
             <div className="mt-[clamp(38px,4.6vw,82px)] flex flex-wrap items-center gap-3">
-              <Link href="/pay" className="bg-white px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-black transition-colors duration-[250ms] hover:bg-white/85">
+              <Link href="/pay" className="btn-shine bg-white px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-black">
                 Get credit
               </Link>
-              <Link href="/overview" className="border border-white/[0.26] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/70 transition-colors duration-[250ms] hover:border-white/50 hover:bg-white/[0.05] hover:text-white">
+              <Link href="/overview" className="border border-white/[0.26] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/70 transition-[border-color,background-color,color,transform] duration-[300ms] hover:border-white/50 hover:bg-white/[0.05] hover:text-white active:scale-[0.98]">
                 Overview
               </Link>
             </div>
             <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-nowrap items-center gap-x-3 sm:gap-x-4">
               {STEPS.map((s, i) => (
-                <li key={s.n} className="flex items-center gap-2">
+                <li key={s.n} className="flex items-center gap-2 transition-transform duration-300 hover:translate-x-0.5">
                   {i > 0 && <span className="mr-1 h-px w-5 bg-white/25" aria-hidden />}
                   <span className="font-mono text-[11px] text-white">{s.n}</span>
                   <span className="text-[13px] text-white/95">{s.t}</span>
@@ -163,7 +164,7 @@ export default function HomePage() {
             </ol>
             <p className="mt-[clamp(26px,2.6vw,46px)] self-start text-[13px] text-white/70">
               New here?{" "}
-              <Link href="/help" className="text-white underline-offset-4 transition hover:text-white hover:underline">
+              <Link href="/help" className="link-underline text-white transition hover:text-white">
                 How Spark works
               </Link>
             </p>

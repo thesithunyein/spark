@@ -280,7 +280,7 @@ export function LinkHistoryPanel() {
   const allLinked = count > 0 && found.length === 0 && !scanning && !linking;
 
   return (
-    <div className=" border border-border bg-panel/80 p-6 shadow-soft">
+    <div className="card-hover anim anim-scale-in border border-border bg-panel/80 p-6 shadow-soft">
       <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
         Attested payment history
       </p>
@@ -305,7 +305,7 @@ export function LinkHistoryPanel() {
             actions={
               <Link
                 href="/pay"
-                className=" bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+                className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
               >
                 Pay deposit to open credit
               </Link>

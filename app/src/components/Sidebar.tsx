@@ -33,11 +33,11 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
       )}
       <aside
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col border-r border-border bg-bg/95 backdrop-blur-xl transition-transform duration-200 lg:static lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-[220px] flex-col border-r border-border bg-bg/95 backdrop-blur-xl transition-transform duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] lg:static lg:translate-x-0",
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
-        <div className="flex items-center justify-between px-5 py-6">
+        <div className="anim anim-fade-in flex items-center justify-between px-5 py-6">
           <Logo />
           <button
             type="button"
@@ -60,13 +60,27 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                     href={item.href}
                     onClick={onClose}
                     className={clsx(
-                      "flex items-center gap-2.5 px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-colors",
+                      "relative flex items-center gap-2.5 px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-300 hover:translate-x-0.5",
                       active
                         ? "bg-white/[0.06] text-text"
                         : "text-muted hover:bg-white/[0.03] hover:text-text",
                     )}
                   >
-                    <Icon className={clsx("h-[15px] w-[15px]", active ? "text-white" : "text-muted")} strokeWidth={1.75} />
+                    {/* Active indicator bar */}
+                    <span
+                      className={clsx(
+                        "absolute left-0 top-1/2 h-4 w-px -translate-y-1/2 bg-white transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+                        active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0",
+                      )}
+                      aria-hidden
+                    />
+                    <Icon
+                      className={clsx(
+                        "h-[15px] w-[15px] transition-transform duration-300",
+                        active ? "text-white" : "text-muted",
+                      )}
+                      strokeWidth={1.75}
+                    />
                     {item.label}
                   </Link>
                 </li>
@@ -76,9 +90,11 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
         </nav>
 
         <div className="px-5 py-5">
-          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted/70">Verified payment credit</p>
+          <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted/70">
+            Verified payment credit
+          </p>
         </div>
       </aside>
     </>
   );
-}
+}

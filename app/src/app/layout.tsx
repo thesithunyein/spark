@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Sora, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/lib/wagmi";
+import { CursorGlow } from "@/components/CursorGlow";
+import { RouteSweep } from "@/components/RouteSweep";
 import "@/styles/globals.css";
 
 const sans = Sora({
@@ -26,6 +28,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${sans.variable} ${mono.variable}`}>
       <body className="font-sans antialiased">
+        <CursorGlow />
+        <RouteSweep />
         <Providers>{children}</Providers>
       </body>
     </html>

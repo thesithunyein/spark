@@ -10,7 +10,7 @@ type Props = {
 export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
   if (empty) {
     return (
-      <div className=" border border-border bg-panel/80 p-6 shadow-soft">
+      <div className="card-hover anim anim-scale-in border border-border bg-panel/80 p-6 shadow-soft">
         <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Position</p>
         <p className="mt-8 text-sm text-muted">No open position yet.</p>
       </div>
@@ -27,7 +27,7 @@ export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
   const max = Math.max(...rows.map((r) => Number(r.value)), 1);
 
   return (
-    <div className=" border border-border bg-panel/80 p-6 shadow-soft">
+    <div className="card-hover anim anim-scale-in border border-border bg-panel/80 p-6 shadow-soft">
       <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Position</p>
       <ul className="mt-6 space-y-5">
         {rows.map((row) => {
@@ -41,7 +41,10 @@ export function PositionSnapshot({ deposit, credit, debt, empty }: Props) {
                 </span>
               </div>
               <div className="h-1 overflow-hidden bg-white/[0.06]">
-                <div className={`h-full ${row.tone}`} style={{ width: `${pct}%` }} />
+                <div
+                  className={`bar-grow h-full ${row.tone}`}
+                  style={{ width: `${pct}%`, animationDelay: `${rows.indexOf(row) * 90}ms` }}
+                />
               </div>
             </li>
           );

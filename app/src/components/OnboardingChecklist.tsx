@@ -89,7 +89,7 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
   }
 
   return (
-    <div className="mb-8 border border-border bg-panel/80 p-5 shadow-soft">
+    <div className="card-hover anim anim-scale-in mb-8 border border-border bg-panel/80 p-5 shadow-soft">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-[15px] font-medium text-text">Get started</p>
