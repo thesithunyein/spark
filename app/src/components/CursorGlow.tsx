@@ -11,6 +11,7 @@ import { useEffect, useRef, useState } from "react";
 export function CursorGlow() {
   const glowRef = useRef<HTMLDivElement>(null);
   const ringRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
   const [enabled, setEnabled] = useState(false);
 
   useEffect(() => {
@@ -44,16 +45,19 @@ export function CursorGlow() {
 
     const loop = () => {
       // Glow lags further behind for a soft ambient feel; ring is tighter.
-      glow.x += (pos.x - glow.x) * 0.09;
-      glow.y += (pos.y - glow.y) * 0.09;
-      ring.x += (pos.x - ring.x) * 0.35;
-      ring.y += (pos.y - ring.y) * 0.35;
+      glow.x += (pos.x - glow.x) * 0.11;
+      glow.y += (pos.y - glow.y) * 0.11;
+      ring.x += (pos.x - ring.x) * 0.42;
+      ring.y += (pos.y - ring.y) * 0.42;
 
       if (glowRef.current) {
-        glowRef.current.style.transform = `translate3d(${glow.x - 280}px, ${glow.y - 280}px, 0)`;
+        glowRef.current.style.transform = `translate3d(${glow.x - 300}px, ${glow.y - 300}px, 0)`;
       }
       if (ringRef.current) {
-        ringRef.current.style.transform = `translate3d(${ring.x - 11}px, ${ring.y - 11}px, 0)`;
+        ringRef.current.style.transform = `translate3d(${ring.x - 14}px, ${ring.y - 14}px, 0)`;
+      }
+      if (dotRef.current) {
+        dotRef.current.style.transform = `translate3d(${ring.x - 2}px, ${ring.y - 2}px, 0)`;
       }
       raf = requestAnimationFrame(loop);
     };
@@ -81,18 +85,25 @@ export function CursorGlow() {
       {/* Ambient glow */}
       <div
         ref={glowRef}
-        className="cg-glow absolute left-0 top-0 h-[560px] w-[560px] opacity-60 will-change-transform"
+        className="cg-glow absolute left-0 top-0 h-[600px] w-[600px] opacity-80 will-change-transform"
         style={{
           background:
-            "radial-gradient(circle, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.025) 40%, transparent 68%)",
+            "radial-gradient(circle, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.04) 40%, transparent 68%)",
         }}
       />
-      {/* Tracking ring centered via translate3d (-11px for 22px size) */}
+      {/* Tracking ring (28px, centered via translate3d) */}
       <div
         ref={ringRef}
-        className="absolute left-0 top-0 h-[22px] w-[22px] will-change-transform"
+        className="absolute left-0 top-0 h-[28px] w-[28px] will-change-transform"
       >
-        <div className="cg-ring-inner h-full w-full rounded-full border border-white/30" />
+        <div className="cg-ring-inner h-full w-full rounded-full border border-white/50 shadow-[0_0_12px_rgba(255,255,255,0.35)]" />
+      </div>
+      {/* Center dot for a crisp anchor */}
+      <div
+        ref={dotRef}
+        className="absolute left-0 top-0 h-1 w-1 will-change-transform"
+      >
+        <div className="h-full w-full rounded-full bg-white/90 shadow-[0_0_6px_rgba(255,255,255,0.9)]" />
       </div>
     </div>
   );

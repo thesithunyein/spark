@@ -60,7 +60,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                     href={item.href}
                     onClick={onClose}
                     className={clsx(
-                      "relative flex items-center gap-2.5 px-3 py-2 font-mono text-[12px] uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-300 hover:translate-x-0.5",
+                      "relative flex items-center gap-2.5 px-3 py-2.5 font-mono text-[12px] uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-300 hover:translate-x-0.5",
                       active
                         ? "bg-white/[0.06] text-text"
                         : "text-muted hover:bg-white/[0.03] hover:text-text",
