@@ -133,7 +133,7 @@ export default function TransferPage() {
               }}
               className={clsx(
                 " px-3 py-2 text-[13px] font-medium capitalize transition",
-                tab === t ? "bg-brand text-white" : "text-muted hover:text-text",
+                tab === t ? "bg-accent text-white shadow-[0_0_14px_rgba(139,92,246,0.35)]" : "text-muted hover:text-text hover:bg-white/[0.04]",
               )}
             >
               {t}
@@ -158,7 +158,7 @@ export default function TransferPage() {
               onChange={(e) => setTo(e.target.value.trim())}
               placeholder="0x…"
               disabled={!isConnected}
-              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] outline-none transition focus:border-white/50 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] text-text outline-none transition focus:border-accent/60 disabled:opacity-50"
             />
 
             <div className="mt-4 flex items-end justify-between gap-3">
@@ -179,7 +179,7 @@ export default function TransferPage() {
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
               disabled={!isConnected || bal === 0n}
-              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-white/50 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums text-text outline-none transition focus:border-accent/60 disabled:opacity-50"
             />
 
             <button

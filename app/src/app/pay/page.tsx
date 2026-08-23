@@ -598,7 +598,7 @@ export default function PayPage() {
                 <input
                   value={amount}
                   onChange={(e) => setAmount(e.target.value)}
-                  className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums outline-none transition focus:border-white/50"
+                  className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums text-text outline-none transition focus:border-accent/60"
                 />
                 <p className="mt-2 text-[12px] text-muted">
                   Credit LTV rises with attested Sepolia balance and linked payment history (+2.5% /
