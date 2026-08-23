@@ -307,7 +307,7 @@ export default function WithdrawPage() {
       title="Withdraw"
       subtitle="Mint sCREDIT from your line, or redeem sCREDIT against accruing debt."
     >
-      <div className="mx-auto max-w-md border border-border bg-panel/80 p-7 shadow-soft">
+      <div className="mx-auto max-w-md border border-border bg-panel/80 p-5 sm:p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet to withdraw</p>

@@ -61,7 +61,7 @@ export function AppShell({
             <ConnectButton />
           </div>
         </header>
-        <main className="relative flex-1 px-5 py-8 sm:px-8">
+        <main className="relative flex-1 px-4 py-6 sm:px-8 sm:py-8" style={{ paddingBottom: 'max(1.5rem, env(safe-area-inset-bottom))' }}>
           <div key={`content-${pathname}`} className="anim anim-fade-up stagger">
             {children}
           </div>

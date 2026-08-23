@@ -131,7 +131,7 @@ export default function HomePage() {
       </div>
 
       <main className="relative z-10 flex min-h-0 items-center justify-end overflow-y-auto px-[clamp(20px,5vw,100px)] max-sm:justify-center">
-        <div className="stagger flex w-[min(34vw,620px)] min-w-[380px] flex-col py-[clamp(24px,3vw,48px)] max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
+        <div className="stagger flex w-[min(34vw,620px)] flex-col py-[clamp(24px,3vw,48px)] max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
 
             <span className="inline-block self-start border border-accent/50 bg-accent/10 px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-accent3">
               [ Verified credit ]
@@ -153,7 +153,7 @@ export default function HomePage() {
                 Overview
               </Link>
             </div>
-            <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-nowrap items-center gap-x-3 sm:gap-x-4">
+            <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
               {STEPS.map((s, i) => (
                 <li key={s.n} className="flex items-center gap-2 transition-transform duration-300 hover:translate-x-0.5">
                   {i > 0 && <span className="mr-1 h-px w-5 bg-white/25" aria-hidden />}
@@ -171,7 +171,7 @@ export default function HomePage() {
         </div>
       </main>
 
-      <footer className="relative z-10 border-t border-white/[0.14] px-[clamp(20px,5vw,100px)] py-[clamp(18px,1.7vw,30px)] text-center">
+      <footer className="relative z-10 border-t border-white/[0.14] px-[clamp(20px,5vw,100px)] py-[clamp(18px,1.7vw,30px)] text-center" style={{ paddingBottom: 'max(1.25rem, env(safe-area-inset-bottom))' }}>
         <p className="text-[clamp(12px,0.82vw,16px)] font-light leading-[1.5] text-white/60">
           Spark verifies payments on Sepolia and opens credit on Creditcoin. <span className="text-accent3">Testnet prototype.</span>
         </p>

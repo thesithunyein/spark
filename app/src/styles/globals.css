@@ -43,6 +43,7 @@ html {
 /* Pointer affordance on interactive elements */
 a, button, [role="button"], input, textarea, select, label, summary {
   cursor: pointer;
+  touch-action: manipulation;
 }
 
 ::selection {

@@ -112,7 +112,7 @@ export default function TransferPage() {
 
   return (
     <AppShell title="Send & Receive" subtitle="Move sCREDIT between wallets on Creditcoin testnet.">
-      <div className="mx-auto max-w-md border border-border bg-panel/80 p-7 shadow-soft">
+      <div className="mx-auto max-w-md border border-border bg-panel/80 p-5 sm:p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet</p>
@@ -158,7 +158,7 @@ export default function TransferPage() {
               onChange={(e) => setTo(e.target.value.trim())}
               placeholder="0x…"
               disabled={!isConnected}
-              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[14px] text-text outline-none transition focus:border-accent/60 disabled:opacity-50"
+              className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 font-mono text-[13px] sm:text-[14px] text-text outline-none transition focus:border-accent/60 disabled:opacity-50"
             />
 
             <div className="mt-4 flex items-end justify-between gap-3">
@@ -230,7 +230,7 @@ export default function TransferPage() {
                     />
                   </div>
                 )}
-                <p className="mt-5 break-all font-mono text-[12px] text-text/90">{address}</p>
+                <p className="mt-5 break-all font-mono text-[11px] sm:text-[12px] text-text/90">{address}</p>
                 <button
                   type="button"
                   onClick={onCopy}

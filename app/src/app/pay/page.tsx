@@ -503,7 +503,7 @@ export default function PayPage() {
       title="Pay deposit"
       subtitle="Prove deposit + Sepolia balance via Attestcoin, then unlock credit on Creditcoin."
     >
-      <div className="mx-auto max-w-md border border-border bg-panel/80 p-7 shadow-soft">
+      <div className="mx-auto max-w-md border border-border bg-panel/80 p-5 sm:p-7 shadow-soft">
         {!isConnected && (
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">Connect a wallet to pay</p>
