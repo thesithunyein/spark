@@ -41,7 +41,7 @@ export default function HomePage() {
     <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
         <video
-          className="anim anim-fade-in h-full w-full scale-[1.55] -translate-x-[25%] translate-y-[4%] object-cover object-center grayscale"
+          className="anim anim-fade-in h-full w-full scale-[1.55] -translate-x-[25%] translate-y-[4%] object-cover object-center"
           style={{ animationDelay: "200ms", animationDuration: "1.2s" }}
           src={ROBOT_BG}
           autoPlay
@@ -54,7 +54,7 @@ export default function HomePage() {
           className="absolute inset-0 hidden sm:block"
           style={{
             backgroundImage:
-              "linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0.30) 38%, rgba(0,0,0,0.62) 66%, rgba(0,0,0,0.88) 100%), linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, transparent 22%, transparent 80%, rgba(0,0,0,0.75) 100%)",
+              "linear-gradient(to right, rgba(0,0,0,0.10) 0%, rgba(0,0,0,0.22) 38%, rgba(0,0,0,0.55) 66%, rgba(0,0,0,0.84) 100%), linear-gradient(to bottom, rgba(0,0,0,0.45) 0%, transparent 22%, transparent 80%, rgba(0,0,0,0.7) 100%)",
           }}
         />
         <div

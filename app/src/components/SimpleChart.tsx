@@ -20,12 +20,12 @@ export function SimpleChart({ points }: { points: number[] }) {
         <svg viewBox={`0 0 ${w} ${h}`} className="h-44 w-full">
           <defs>
             <linearGradient id="sparkFill" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FF6600" stopOpacity="0.35" />
-              <stop offset="100%" stopColor="#FF6600" stopOpacity="0" />
+              <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.25" />
+              <stop offset="100%" stopColor="#FFFFFF" stopOpacity="0" />
             </linearGradient>
           </defs>
           <polygon points={area} fill="url(#sparkFill)" />
-          <polyline points={line} fill="none" stroke="#FF6600" strokeWidth="2.5" />
+          <polyline points={line} fill="none" stroke="#FFFFFF" strokeWidth="2" />
         </svg>
       )}
     </div>
