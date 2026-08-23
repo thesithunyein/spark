@@ -525,7 +525,7 @@ export default function PayPage() {
                 <>
                   <Link
                     href="/withdraw"
-                    className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+                    className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
                   >
                     Withdraw
                   </Link>
@@ -572,7 +572,7 @@ export default function PayPage() {
                 <>
                   <Link
                     href="/withdraw"
-                    className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+                    className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
                   >
                     Withdraw credit
                   </Link>
@@ -619,7 +619,7 @@ export default function PayPage() {
                   type="button"
                   onClick={onPay}
                   disabled={!isConnected || awaitingWallet || sepoliaConfirming || verifying}
-                  className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
+                  className="btn-shine px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white disabled:opacity-50"
                 >
                   {awaitingWallet
                     ? "Confirm in MetaMask…"
@@ -634,7 +634,7 @@ export default function PayPage() {
                     type="button"
                     onClick={() => void onProveAndOpen()}
                     disabled={proving}
-                    className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
+                    className="btn-shine px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white disabled:opacity-50"
                   >
                     {proving
                       ? attestPhase === "submitting"

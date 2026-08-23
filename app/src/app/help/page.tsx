@@ -257,7 +257,7 @@ export default function HelpPage() {
           <p className="mt-2 text-[13px] text-muted">Connect MetaMask and pay a test deposit.</p>
           <Link
             href="/pay"
-            className="mt-5 inline-flex bg-white px-5 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-black transition hover:bg-white/85"
+            className="btn-shine mt-5 inline-flex px-5 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-white"
           >
             Pay deposit
           </Link>

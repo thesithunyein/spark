@@ -66,7 +66,7 @@ export default function ActivityPage() {
               <p className="text-[13px] text-muted">No activity yet</p>
               <Link
                 href="/pay"
-                className="btn-shine mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+                className="btn-shine mt-4 inline-flex px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
               >
                 Make your first deposit
               </Link>

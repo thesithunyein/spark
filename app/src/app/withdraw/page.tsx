@@ -325,7 +325,7 @@ export default function WithdrawPage() {
             </p>
             <Link
               href="/pay"
-              className="btn-shine mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+              className="btn-shine mt-4 inline-flex px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
             >
               Pay deposit
             </Link>
@@ -370,7 +370,7 @@ export default function WithdrawPage() {
                     dismissSuccess();
                     setAmount(formatEther(walletWei < debtWei ? walletWei : debtWei));
                   }}
-                  className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+                  className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
                 >
                   Redeem against debt
                 </button>
@@ -446,7 +446,7 @@ export default function WithdrawPage() {
             type="button"
             onClick={onWithdraw}
             disabled={!hasActiveLine || isBusy || availableWei === 0n || Boolean(success)}
-            className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
+            className="btn-shine px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white disabled:opacity-50"
           >
             {awaitingWallet && pendingAction === "withdraw"
               ? "Confirm in MetaMask…"

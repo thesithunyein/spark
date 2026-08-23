@@ -22,7 +22,16 @@ export function AppShell({
   const pathname = usePathname();
 
   return (
-    <div className="flex min-h-screen bg-bg">
+    <div className="relative flex min-h-screen bg-bg">
+      {/* Subtle purple ambient background, echoing the landing video's palette */}
+      <div
+        aria-hidden
+        className="pointer-events-none fixed inset-0"
+        style={{
+          background:
+            "radial-gradient(ellipse 90% 55% at 50% -10%, rgba(139, 92, 246, 0.10), transparent 60%), radial-gradient(ellipse 60% 45% at 100% 110%, rgba(124, 58, 237, 0.07), transparent 60%)",
+        }}
+      />
       <Sidebar open={menuOpen} onClose={() => setMenuOpen(false)} />
       <div className="flex min-w-0 flex-1 flex-col">
         {!isConfigured() && (
@@ -52,7 +61,7 @@ export function AppShell({
             <ConnectButton />
           </div>
         </header>
-        <main className="flex-1 px-5 py-8 sm:px-8">
+        <main className="relative flex-1 px-5 py-8 sm:px-8">
           <div key={`content-${pathname}`} className="anim anim-fade-up stagger">
             {children}
           </div>

@@ -14,7 +14,7 @@ export function MetricCard({
 }) {
   return (
     <div className="card-hover anim anim-scale-in border border-border bg-panel/80 p-6 shadow-soft">
-      <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted transition-colors duration-300 group-hover:text-text/80">
+      <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-accent3 transition-colors duration-300 group-hover:text-accent2">
         {label}
       </p>
       {loading ? (

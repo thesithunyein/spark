@@ -186,7 +186,7 @@ export default function TransferPage() {
               type="button"
               onClick={onSend}
               disabled={!isConnected || awaitingWallet || confirming || bal === 0n || creditTx.confirmed}
-              className="mt-8 w-full bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
+              className="btn-shine mt-8 w-full px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white disabled:opacity-50"
             >
               {awaitingWallet
                 ? "Confirm in MetaMask…"

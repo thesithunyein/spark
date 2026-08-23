@@ -62,14 +62,14 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                     className={clsx(
                       "relative flex items-center gap-2.5 px-3 py-2.5 font-mono text-[12px] uppercase tracking-[0.12em] transition-[background-color,color,transform] duration-300 hover:translate-x-0.5",
                       active
-                        ? "bg-white/[0.06] text-text"
-                        : "text-muted hover:bg-white/[0.03] hover:text-text",
+                        ? "bg-accent/10 text-text"
+                        : "text-muted hover:bg-accent/[0.05] hover:text-text",
                     )}
                   >
                     {/* Active indicator bar */}
                     <span
                       className={clsx(
-                        "absolute left-0 top-1/2 h-4 w-px -translate-y-1/2 bg-white transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)]",
+                        "absolute left-0 top-1/2 h-4 w-px -translate-y-1/2 bg-accent transition-all duration-300 [transition-timing-function:cubic-bezier(0.16,1,0.3,1)] shadow-[0_0_8px_rgba(139,92,246,0.8)]",
                         active ? "scale-y-100 opacity-100" : "scale-y-0 opacity-0",
                       )}
                       aria-hidden
@@ -77,7 +77,7 @@ export function Sidebar({ open, onClose }: { open?: boolean; onClose?: () => voi
                     <Icon
                       className={clsx(
                         "h-[15px] w-[15px] transition-transform duration-300",
-                        active ? "text-white" : "text-muted",
+                        active ? "text-accent2" : "text-muted",
                       )}
                       strokeWidth={1.75}
                     />

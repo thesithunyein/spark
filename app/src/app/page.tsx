@@ -80,7 +80,7 @@ export default function HomePage() {
               </Link>
             ))}
           </nav>
-          <Link href="/pay" className="link-underline hidden border border-white/[0.26] px-[clamp(20px,1.8vw,32px)] py-[clamp(12px,1vw,17px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,transform] duration-[300ms] hover:border-white/50 hover:bg-white/[0.05] lg:inline-flex">
+          <Link href="/pay" className="link-underline hidden border border-white/[0.26] px-[clamp(20px,1.8vw,32px)] py-[clamp(12px,1vw,17px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.18em] text-white transition-[border-color,background-color,transform] duration-[300ms] hover:border-accent/70 hover:bg-accent/[0.08] lg:inline-flex">
             Get credit
           </Link>
           <button
@@ -117,7 +117,7 @@ export default function HomePage() {
             key={item.label}
             href={item.href}
             onClick={() => setMenuOpen(false)}
-            className={item.cta ? "mt-6 border border-white/[0.26] px-10 py-4 font-mono text-[clamp(20px,5.5vw,28px)] uppercase tracking-[0.22em] text-white" : "py-1 font-mono text-[clamp(20px,5.5vw,28px)] uppercase tracking-[0.14em] text-white"}
+            className={item.cta ? "mt-6 border border-accent/60 px-10 py-4 font-mono text-[clamp(20px,5.5vw,28px)] uppercase tracking-[0.22em] text-accent3" : "py-1 font-mono text-[clamp(20px,5.5vw,28px)] uppercase tracking-[0.14em] text-white"}
             style={{
               opacity: menuOpen ? 1 : 0,
               transform: menuOpen ? "translateY(0)" : "translateY(16px)",
@@ -133,7 +133,7 @@ export default function HomePage() {
       <main className="relative z-10 flex min-h-0 items-center justify-end overflow-y-auto px-[clamp(20px,5vw,100px)] max-sm:justify-center">
         <div className="stagger flex w-[min(34vw,620px)] min-w-[380px] flex-col py-[clamp(24px,3vw,48px)] max-[1100px]:w-[min(70vw,520px)] max-[1100px]:min-w-0 max-sm:w-full">
 
-            <span className="inline-block self-start bg-white/[0.09] px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-white">
+            <span className="inline-block self-start border border-accent/50 bg-accent/10 px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-accent3">
               [ Verified credit ]
             </span>
             <h1 className="mt-[clamp(28px,3vw,52px)] text-[clamp(54px,6.2vw,118px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
@@ -146,10 +146,10 @@ export default function HomePage() {
               Pay a small deposit on Sepolia. Attestcoin verifies it on-chain, then a credit line unlocks on Creditcoin. No credit check, no paperwork.
             </p>
             <div className="mt-[clamp(38px,4.6vw,82px)] flex flex-wrap items-center gap-3">
-              <Link href="/pay" className="btn-shine bg-white px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-black">
+              <Link href="/pay" className="btn-shine px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white">
                 Get credit
               </Link>
-              <Link href="/overview" className="border border-white/[0.26] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/70 transition-[border-color,background-color,color,transform] duration-[300ms] hover:border-white/50 hover:bg-white/[0.05] hover:text-white active:scale-[0.98]">
+              <Link href="/overview" className="border border-white/[0.26] px-7 py-[clamp(17px,1.6vw,27px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white/75 transition-all duration-[300ms] hover:border-accent/70 hover:bg-accent/[0.08] hover:text-white active:scale-[0.98]">
                 Overview
               </Link>
             </div>
@@ -157,7 +157,7 @@ export default function HomePage() {
               {STEPS.map((s, i) => (
                 <li key={s.n} className="flex items-center gap-2 transition-transform duration-300 hover:translate-x-0.5">
                   {i > 0 && <span className="mr-1 h-px w-5 bg-white/25" aria-hidden />}
-                  <span className="font-mono text-[11px] text-white">{s.n}</span>
+                  <span className="font-mono text-[11px] text-accent2">{s.n}</span>
                   <span className="text-[13px] text-white/95">{s.t}</span>
                 </li>
               ))}
@@ -173,7 +173,7 @@ export default function HomePage() {
 
       <footer className="relative z-10 border-t border-white/[0.14] px-[clamp(20px,5vw,100px)] py-[clamp(18px,1.7vw,30px)] text-center">
         <p className="text-[clamp(12px,0.82vw,16px)] font-light leading-[1.5] text-white/60">
-          Spark verifies payments on Sepolia and opens credit on Creditcoin. Testnet prototype.
+          Spark verifies payments on Sepolia and opens credit on Creditcoin. <span className="text-accent3">Testnet prototype.</span>
         </p>
       </footer>
     </div>

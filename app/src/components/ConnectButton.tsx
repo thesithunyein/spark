@@ -18,7 +18,7 @@ export function ConnectButton() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-black"
+        className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-white"
       >
         Connect wallet
       </button>

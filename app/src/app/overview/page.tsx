@@ -75,19 +75,19 @@ export default function OverviewPage() {
         <div className="hidden gap-2 sm:flex">
           <Link
             href="/pay"
-            className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-black"
+            className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.18em] text-white"
           >
             Pay deposit
           </Link>
           <Link
             href="/withdraw"
-            className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+            className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:border-accent/40 hover:bg-accent/[0.05]"
           >
             Withdraw
           </Link>
           <Link
             href="/repay"
-            className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:bg-white/[0.03]"
+            className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:border-accent/40 hover:bg-accent/[0.05]"
           >
             Repay
           </Link>
@@ -98,7 +98,7 @@ export default function OverviewPage() {
         <div className="mb-8 max-w-lg">
           <p className="text-[15px] font-medium text-text">Connect a wallet to view credit</p>
           <p className="mt-1 text-[13px] text-muted">Start with a small deposit to open a line.</p>
-          <Link href="/pay" className="mt-4 inline-flex text-[13px] font-medium text-white hover:underline">
+          <Link href="/pay" className="mt-4 inline-flex text-[13px] font-medium text-accent2 transition hover:text-accent3 hover:underline">
             Go to Pay deposit →
           </Link>
         </div>
@@ -110,7 +110,7 @@ export default function OverviewPage() {
             title={`Credit score ${scoreN ?? 650} · +${histCount >= 3 ? "5.00" : "2.50"}% LTV bonus`}
             description={`${histCount} attested payment${histCount === 1 ? "" : "s"} on file. Ready to open credit with a new deposit.`}
             actions={
-              <Link href="/pay" className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
+              <Link href="/pay" className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white">
                 Pay deposit
               </Link>
             }
@@ -126,7 +126,7 @@ export default function OverviewPage() {
           <p className="mt-1 text-[13px] text-muted">Pay a deposit, verify it, then credit unlocks.</p>
           <Link
             href="/pay"
-            className="mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+            className="btn-shine mt-4 inline-flex px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
           >
             Pay deposit
           </Link>
@@ -164,7 +164,7 @@ export default function OverviewPage() {
 
       {isConnected && histCount === 0 && status === 0 && (
         <p className="mt-3 text-[13px] text-muted">
-          <Link href="/score" className="text-white hover:underline">
+          <Link href="/score" className="text-accent2 transition hover:text-accent3 hover:underline">
             Link payment history
           </Link>{" "}
           to raise score and LTV before opening credit.
@@ -178,7 +178,7 @@ export default function OverviewPage() {
         <div className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">
             <p className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">Activity</p>
-            <Link href="/activity" className="text-[12px] text-muted transition hover:text-text">
+            <Link href="/activity" className="text-[12px] text-accent2 transition hover:text-accent3">
               View all
             </Link>
           </div>
@@ -186,7 +186,7 @@ export default function OverviewPage() {
           <div className="mt-4 flex gap-2 sm:hidden">
             <Link
               href="/pay"
-              className="btn-shine flex-1 bg-white px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.16em] text-black"
+              className="btn-shine flex-1 px-3 py-2.5 text-center font-mono text-[12px] uppercase tracking-[0.16em] text-white"
             >
               Pay deposit
             </Link>

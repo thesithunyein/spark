@@ -505,7 +505,7 @@ export default function RepayPage() {
             <button
               type="button"
               onClick={resumePendingRepay}
-              className="mt-4 bg-white px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-black transition hover:bg-white/85"
+              className="btn-shine mt-4 px-4 py-2.5 font-mono text-[12px] uppercase tracking-[0.18em] text-white"
             >
               Finish close on Creditcoin
             </button>
@@ -525,7 +525,7 @@ export default function RepayPage() {
           <div className="mb-6">
             <p className="text-[15px] font-medium text-text">No active credit line</p>
             <p className="mt-1 text-[13px] text-muted">Open credit with a deposit before you can repay.</p>
-            <Link href="/pay" className="btn-shine mt-4 inline-flex bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
+            <Link href="/pay" className="btn-shine mt-4 inline-flex px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white">
               Pay deposit
             </Link>
           </div>
@@ -578,7 +578,7 @@ export default function RepayPage() {
                 type="button"
                 onClick={onRepayPay}
                 disabled={awaitingWallet || sepoliaConfirming || verifying}
-                className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
+                className="btn-shine px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white disabled:opacity-50"
               >
                 {awaitingWallet
                   ? "Confirm in MetaMask…"
@@ -601,7 +601,7 @@ export default function RepayPage() {
                   type="button"
                   onClick={() => void onProveRepay()}
                   disabled={proving || verifying}
-                  className=" bg-white px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-black transition hover:bg-white/85 disabled:opacity-50"
+                  className="btn-shine px-4 py-3 font-mono text-[12px] uppercase tracking-[0.2em] text-white disabled:opacity-50"
                 >
                   {verifying
                     ? attestPhase === "submitting"
@@ -660,7 +660,7 @@ export default function RepayPage() {
             <p className="text-[15px] font-medium text-text">Loan closed</p>
             <p className="mt-1 text-[13px] text-muted">Debt cleared on Creditcoin.</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link href="/overview" className="btn-shine bg-white px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-black">
+              <Link href="/overview" className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white">
                 Back to overview
               </Link>
               <Link href="/score" className=" border border-border px-4 py-2 text-[13px] font-medium">
