@@ -60,7 +60,7 @@ Live testnet product, not a slideware demo.
 - github.com/thesithunyein/spark
 - Full UI: Overview, Pay, Score, Withdraw, Repay, Help
 - On-chain credit score with history linking
-- 50 contract tests passing
+- 81 contract tests passing
 - Batch proving via submitAttestMultiple
 - Testnet only. Not audited. MIT License.
 

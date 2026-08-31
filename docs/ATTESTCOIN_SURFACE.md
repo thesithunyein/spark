@@ -5,15 +5,16 @@
 
 ## Summary
 
-Spark makes **10 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 4 on-chain entry points. Remove any one and the product degrades or stops existing.
+Spark makes **13 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points. Remove any one and the product degrades or stops existing.
 
 | Category | Count |
 |---|---|
-| On-chain precompile surfaces | 3 (verifyAndEmit, MerkleProof, ContinuityProof) |
+| On-chain precompile surfaces | 5 (verifyAndEmit, MerkleProof, ContinuityProof, ChainInfo 0x0FD3, previewIngest staticcall) |
 | On-chain verification logic | 4 (receipt RLP parsing, topic matching, payer validation, amount binding) |
 | Off-chain SDK surfaces | 3 (ProofBuilder, waitUntilHeightAttested, getProof) |
+| On-chain batch surface | 1 (executeBatch — atomic multi-proof verification) |
 | Attested event kinds | 3 (DepositPaid, RepaymentPaid, BalanceAttested) |
-| On-chain entry points | 4 (openCredit ×2, repayCredit, submitAttestedPayment) |
+| On-chain entry points | 5 (openCredit ×2, repayCredit, submitAttestedPayment, executeBatch) |
 
 ---
 
@@ -184,15 +185,46 @@ The balance proof is Spark's architectural advantage — it's the only project t
 
 ---
 
-## 7. What Spark Does NOT Use (Disclosed)
+## 7. Batch Proving Surface
+
+### 7.1 `executeBatch` — Atomic Multi-Proof Verification
+
+**What it does:** Verifies multiple proofs in a single transaction. All claims must pass or the entire batch reverts.
+
+**Where used:** `CreditLine.executeBatch()` — called from `Spark.t.sol` tests.
+
+**Why needed:** Users with many attested payments can batch them into a single tx instead of submitting one-by-one. The atomic guarantee means partial failures don't leave partial state.
+
+**What breaks without it:** Users must submit N separate transactions for N proofs, each costing separate gas and taking separate block space.
+
+---
+
+## 8. ChainInfo and previewIngest Surfaces
+
+### 8.1 ChainInfo Precompile (0x0FD3)
+
+**What it does:** Queries supported source chains and their attested block heights from the Attestcoin attestor network.
+
+**Where used:** `AttestcoinPaymentVerifier.chainInfo()` — view function.
+
+**Why needed:** Reveals which chains the protocol supports and how far behind attestation is. Explains the 8–20 minute wait to users.
+
+### 8.2 previewIngest — Dry-Run Proof Validation
+
+**What it does:** Checks whether a proof would pass on-chain without spending gas. Returns `(wouldPass, reason)`.
+
+**Where used:** `AttestcoinPaymentVerifier.previewIngest()` — view function using `staticcall`.
+
+**Why needed:** Frontend can validate proofs before submitting, saving gas on reverts. Users get instant feedback on proof validity.
+
+---
+
+## 9. What Spark Does NOT Use (Disclosed)
 
 | Surface | Why Not |
 |---|---|
 | `calculateTxIndex` | Spark doesn't need merkle path position — it needs transaction inclusion |
-| `ChainInfo` precompile (0x0FD3) | Chain key is hardcoded (Sepolia = 1), no dynamic chain discovery needed |
-| `verify` (read-only view) | Spark submits proofs on-chain, no dry-run preview needed |
 | `EvmV1Decoder` (external library) | Spark implements its own receipt RLP parser in Solidity — more gas but no external dependency |
-| `executeBatch` | Not yet implemented — single-proof-per-call model currently |
 | `getBatchProof` (SDK) | SDK builds individual proofs; batch assembly not yet used |
 
-**Note:** Batch proving via `submitAttestedMultiple` is on the roadmap and would add `executeBatch` and `getBatchProof` surfaces.
+**Previously unused surfaces now integrated:** ChainInfo (0x0FD3), previewIngest, executeBatch.

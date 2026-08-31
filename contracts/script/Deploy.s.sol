@@ -25,6 +25,7 @@ contract DeploySepolia is Script {
 
 contract DeployCreditcoin is Script {
     address constant BLOCK_PROVER = 0x0000000000000000000000000000000000000FD2;
+    address constant CHAIN_INFO = 0x0000000000000000000000000000000000000fD3;
 
     function run() external {
         uint256 pk = vm.envUint("PRIVATE_KEY");
@@ -32,7 +33,7 @@ contract DeployCreditcoin is Script {
         uint64 chainKey = uint64(vm.envOr("CHAIN_KEY", uint256(1)));
         vm.startBroadcast(pk);
         AttestcoinPaymentVerifier verifier =
-            new AttestcoinPaymentVerifier(BLOCK_PROVER, payment, chainKey);
+            new AttestcoinPaymentVerifier(BLOCK_PROVER, CHAIN_INFO, payment, chainKey);
         // 80% base LTV, 10% APR
         CreditLine line = new CreditLine(address(verifier), 8000, 1000);
         console2.log("AttestcoinPaymentVerifier", address(verifier));

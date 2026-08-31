@@ -149,6 +149,33 @@ contract CreditLine {
     }
 
     /**
+     * @notice Verify multiple proofs and record history in one transaction.
+     *         Atomic: if any proof fails, the whole batch reverts.
+     */
+    function executeBatch(
+        IPaymentVerifier.PaymentClaim[] calldata claims,
+        bytes[] calldata proofs
+    ) external {
+        uint256 size = claims.length;
+        if (size == 0) revert BadAmount();
+        if (size > 10) revert BadAmount(); // MAX_BATCH_SIZE
+        if (size != proofs.length) revert BadAmount();
+
+        for (uint256 i = 0; i < size; i++) {
+            if (claims[i].kind != 1 && claims[i].kind != 2) revert BadKind();
+            if (claims[i].payer != msg.sender) revert BadPayer();
+            if (claims[i].amount == 0) revert BadAmount();
+            if (usedTx[claims[i].txHash]) revert TxAlreadyUsed();
+
+            bool ok = verifier.verifyPayment(claims[i], proofs[i]);
+            if (!ok) revert ProofFailed();
+
+            usedTx[claims[i].txHash] = true;
+            _recordHistory(msg.sender, claims[i].amount, claims[i].txHash, claims[i].kind);
+        }
+    }
+
+    /**
      * @notice Open a line after proving (1) deposit payment and (2) Sepolia ETH balance.
      *         Attested balance raises LTV: >=2x deposit → 90%, >=1x → 85%, else base factor.
      *         Linked payment history adds +250bps (≥1) or +500bps (≥3), capped at 95%.

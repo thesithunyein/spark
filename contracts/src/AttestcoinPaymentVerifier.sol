@@ -30,6 +30,19 @@ interface INativeQueryVerifier {
         MerkleProof calldata merkleProof,
         ContinuityProof calldata continuityProof
     ) external returns (bool);
+
+    function verify(
+        uint64 chainKey,
+        uint64 height,
+        bytes calldata encodedTransaction,
+        MerkleProof calldata merkleProof,
+        ContinuityProof calldata continuityProof
+    ) external view returns (bool);
+}
+
+interface IChainInfo {
+    function getSupportedChains() external view returns (uint64[] memory);
+    function getAttestedHeight(uint64 chainKey) external view returns (uint64);
 }
 
 /**
@@ -61,8 +74,11 @@ interface INativeQueryVerifier {
  */
 contract AttestcoinPaymentVerifier is IPaymentVerifier {
     INativeQueryVerifier public immutable blockProver;
+    IChainInfo public immutable chainInfo;
     address public immutable expectedPaymentContract;
     uint64 public immutable expectedChainKey;
+
+    uint256 public constant MAX_BATCH_SIZE = 10;
 
     bytes32 public constant DEPOSIT_PAID_TOPIC =
         keccak256("DepositPaid(address,uint256,bytes32)");
@@ -78,10 +94,16 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
     error PaymentNotFound();
     error BadKind();
 
-    constructor(address blockProver_, address expectedPaymentContract_, uint64 chainKey_) {
+    constructor(
+        address blockProver_,
+        address chainInfo_,
+        address expectedPaymentContract_,
+        uint64 chainKey_
+    ) {
         require(blockProver_ != address(0), "prover");
         require(expectedPaymentContract_ != address(0), "payment");
         blockProver = INativeQueryVerifier(blockProver_);
+        chainInfo = IChainInfo(chainInfo_);
         expectedPaymentContract = expectedPaymentContract_;
         expectedChainKey = chainKey_;
     }
@@ -203,6 +225,86 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         (uint256 count,) = _parseReceiptLogs(encodedTx);
         return count;
     }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  ChainInfo: supported chains + attested heights
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Read supported source chains from the ChainInfo precompile (0x0FD3).
+    function getSupportedChains() external view returns (uint64[] memory) {
+        return chainInfo.getSupportedChains();
+    }
+
+    /// @notice Read the latest attested height for a given source chain.
+    function getAttestedHeight(uint64 chainKey) external view returns (uint64) {
+        return chainInfo.getAttestedHeight(chainKey);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  previewIngest: dry-run proof check (no gas spent)
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Preview whether a proof would pass verification without spending gas.
+    ///         Uses the precompile's `verify` (read-only) instead of `verifyAndEmit`.
+    /// @return wouldPass True if the proof would pass on-chain.
+    /// @return reason Human-readable reason if it would fail.
+    function previewIngest(
+        PaymentClaim calldata claim,
+        bytes calldata proof
+    ) external view returns (bool wouldPass, string memory reason) {
+        if (proof.length < 160) return (false, "proof too short");
+        if (claim.kind != 1 && claim.kind != 2 && claim.kind != 3) return (false, "invalid kind");
+        if (claim.amount == 0) return (false, "zero amount");
+
+        (
+            uint64 chainKey,
+            uint64 height,
+            bytes32 sourceTxHash,
+            bytes memory encodedTx,
+            bytes32 merkleRoot,
+            bytes32[] memory siblingHashes,
+            bool[] memory siblingIsLeft,
+            bytes32 lowerEndpointDigest,
+            bytes32[] memory continuityRoots
+        ) = abi.decode(
+            proof,
+            (uint64, uint64, bytes32, bytes, bytes32, bytes32[], bool[], bytes32, bytes32[])
+        );
+
+        if (chainKey != expectedChainKey) return (false, "wrong chain");
+        if (sourceTxHash != claim.txHash) return (false, "txHash mismatch");
+        if (siblingHashes.length != siblingIsLeft.length) return (false, "proof malformed");
+        if (encodedTx.length == 0) return (false, "empty encoded tx");
+
+        // Build structs for the precompile's verify (read-only)
+        INativeQueryVerifier.MerkleProofEntry[] memory siblings =
+            new INativeQueryVerifier.MerkleProofEntry[](siblingHashes.length);
+        for (uint256 i = 0; i < siblingHashes.length; i++) {
+            siblings[i] = INativeQueryVerifier.MerkleProofEntry({
+                hash: siblingHashes[i],
+                isLeft: siblingIsLeft[i]
+            });
+        }
+        INativeQueryVerifier.MerkleProof memory mp = INativeQueryVerifier.MerkleProof({
+            root: merkleRoot,
+            siblings: siblings
+        });
+        INativeQueryVerifier.ContinuityProof memory cp = INativeQueryVerifier.ContinuityProof({
+            lowerEndpointDigest: lowerEndpointDigest,
+            roots: continuityRoots
+        });
+
+        // Use verify (view) instead of verifyAndEmit — no state change, no gas
+        try blockProver.verify(chainKey, height, encodedTx, mp, cp) returns (bool result) {
+            if (!result) return (false, "precompile verify returned false");
+        } catch {
+            return (false, "precompile verify reverted");
+        }
+
+        return (true, "");
+    }
+
+
 
     // ═══════════════════════════════════════════════════════════════════════
     //  Internal: BlockProver call
