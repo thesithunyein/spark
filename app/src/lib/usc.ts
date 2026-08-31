@@ -276,10 +276,45 @@ export async function buildAttestcoinBatchProof(
     throw new Error(batchResult.error || "Batch proof generation failed.");
   }
 
-  // Encode each proof from batch result
-  const proofs = txHashes.map((hash, i) =>
-    encodeProofFromSdk(hash, blockNumbers[i], batchResult.data!)
-  );
+  const batchData = batchResult.data;
+  const sharedContinuity = batchData.continuityProof;
+
+  // Extract per-transaction proofs from batch result
+  // merkleProofs is Map<blockNumber, Map<txIndex, BatchMerkleProofEntry>>
+  const proofs: BuildAttestcoinProofResult[] = [];
+  for (let i = 0; i < txHashes.length; i++) {
+    const blockNum = blockNumbers[i];
+    const merkleProofsForBlock = batchData.merkleProofs.get(blockNum);
+    if (!merkleProofsForBlock) {
+      throw new Error(`No merkle proof for block ${blockNum}, tx ${txHashes[i]}`);
+    }
+
+    // Find the entry by txHash
+    let entry: { txHash: string; txBytes: string; merkleProof: any } | undefined;
+    for (const [, v] of merkleProofsForBlock) {
+      if (v.txHash.toLowerCase() === txHashes[i].toLowerCase()) {
+        entry = v;
+        break;
+      }
+    }
+    if (!entry) {
+      throw new Error(`No merkle proof entry for tx ${txHashes[i]}`);
+    }
+
+    const proofData = {
+      chainKey: batchData.chainKey,
+      headerNumber: batchData.fromHeader,
+      txHash: entry.txHash,
+      txBytes: entry.txBytes,
+      merkleProof: entry.merkleProof,
+      continuityProof: {
+        lowerEndpointDigest: sharedContinuity.lowerEndpointDigest,
+        roots: sharedContinuity.roots,
+      },
+    };
+
+    proofs.push(encodeProofFromSdk(txHashes[i], blockNum, proofData as any));
+  }
 
   onProgress?.("Batch proofs ready");
   return { proofs };
