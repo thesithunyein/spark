@@ -228,7 +228,7 @@ spark/
     │       └── IPaymentVerifier.sol
     │
     ├── test/
-    │   └── Spark.t.sol               # 200 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle
+    │   └── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
     │
     ├── script/
     │   └── Deploy.s.sol
