@@ -236,3 +236,51 @@ export async function buildAttestcoinProofPair(
     balance: encodeProofFromSdk(balanceTxHash, balTx.blockNumber, balResult.data),
   };
 }
+
+/**
+ * Build batch USC proofs for multiple transactions in one SDK call.
+ * Uses getBatchProof to generate all proofs atomically.
+ */
+export async function buildAttestcoinBatchProof(
+  txHashes: Hex[],
+  onProgress?: (msg: string) => void,
+): Promise<{ proofs: BuildAttestcoinProofResult[] }> {
+  const { proverUrl, sepoliaRpc } = proverConfig();
+  const source = new JsonRpcProvider(sepoliaRpc);
+  const builder = new proofProvider.service.ProofBuilder(SEPOLIA_CHAIN_KEY, proverUrl, 30_000);
+
+  onProgress?.("Fetching transactions...");
+  const txs = await Promise.all(
+    txHashes.map((hash) => source.getTransaction(hash))
+  );
+
+  const blockNumbers = txs.map((tx, i) => {
+    if (!tx?.blockNumber) throw new Error(`Transaction ${txHashes[i]} not found`);
+    return tx.blockNumber;
+  });
+
+  const maxBlock = Math.max(...blockNumbers);
+  onProgress?.(`Waiting for block ${maxBlock} to be attested...`);
+  await builder.waitUntilHeightAttested(
+    SEPOLIA_CHAIN_KEY,
+    maxBlock,
+    ATTEST_INITIAL_DELAY_MS,
+    ATTEST_TIMEOUT_MS,
+    ATTEST_POLL_MS,
+  );
+
+  onProgress?.("Building batch proofs...");
+  const batchResult = await builder.getBatchProof(txHashes as string[]);
+
+  if (!batchResult.success || !batchResult.data) {
+    throw new Error(batchResult.error || "Batch proof generation failed.");
+  }
+
+  // Encode each proof from batch result
+  const proofs = txHashes.map((hash, i) =>
+    encodeProofFromSdk(hash, blockNumbers[i], batchResult.data!)
+  );
+
+  onProgress?.("Batch proofs ready");
+  return { proofs };
+}

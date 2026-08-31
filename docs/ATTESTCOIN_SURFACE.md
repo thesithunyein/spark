@@ -5,7 +5,7 @@
 
 ## Summary
 
-Spark makes **13 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points. Remove any one and the product degrades or stops existing.
+Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points. Remove any one and the product degrades or stops existing.
 
 | Category | Count |
 |---|---|
@@ -225,6 +225,6 @@ The balance proof is Spark's architectural advantage — it's the only project t
 |---|---|
 | `calculateTxIndex` | Spark doesn't need merkle path position — it needs transaction inclusion |
 | `EvmV1Decoder` (external library) | Spark implements its own receipt RLP parser in Solidity — more gas but no external dependency |
-| `getBatchProof` (SDK) | SDK builds individual proofs; batch assembly not yet used |
+| `getBatchProof` (SDK) | **Now used** — `buildAttestcoinBatchProof()` generates multiple proofs atomically |
 
 **Previously unused surfaces now integrated:** ChainInfo (0x0FD3), previewIngest, executeBatch.

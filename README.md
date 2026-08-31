@@ -32,7 +32,7 @@
 
 ## Attestcoin Protocol Integration Summary
 
-Spark makes **13 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points:
+Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points:
 
 | Surface | What It Does | Why Needed |
 |---|---|---|
@@ -49,6 +49,7 @@ Spark makes **13 distinct Attestcoin Protocol surfaces** load-bearing across 3 a
 | ChainInfo (0x0FD3) | Reads supported chains + attested heights | Discovers protocol state, explains attestation lag |
 | `previewIngest` | Dry-run proof validation (staticcall) | Saves gas by checking validity before submitting |
 | `executeBatch` | Atomic multi-proof verification | Batch N proofs in one tx, all-or-nothing |
+| `getBatchProof` (SDK) | Batch proof generation via @gluwa/usc-sdk | Generate multiple proofs atomically in one SDK call |
 
 **Unique to Spark:** Dual proofs verify both payment AND solvency. The balance attestation (kind 3) proves the borrower holds sufficient funds — no other project in this hackathon verifies solvency.
 
