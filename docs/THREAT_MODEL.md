@@ -169,6 +169,26 @@ The ChainInfo precompile (0x0FD3) exposes:
 
 **Why this matters:** Spark can dynamically discover which chains are supported rather than hardcoding Sepolia. The attested height explains the 8–20 minute wait — attestors lag behind the chain tip to avoid reorgs.
 
+### 14. ChainInfo Address May Differ on CC3
+
+**Discovery:** Calling ChainInfo (0x0FD3) on CC3 testnet returns "Unknown selector" for all functions. The precompile may not be deployed at the documented address, or the function selectors may differ.
+
+**Impact:** Spark's `chainInfo()` and `getSupportedChains()` functions will revert on CC3. This is a known limitation — the ChainInfo precompile may be deployed at a different address or not yet available on CC3.
+
+**Workaround:** Spark hardcodes Sepolia as the source chain. Dynamic chain discovery is not needed for the current architecture.
+
+### 15. verify() Returns False (Not Revert) on Forged Proofs
+
+**Discovery:** The `verify()` read-only function on BlockProver (0x0FD2) returns `false` instead of reverting when given forged proofs. This is different from `verifyAndEmit()` which reverts.
+
+**Why this matters:** `previewIngest` uses `verify()` in a staticcall. If `verify()` reverted, the staticcall would propagate the revert. Since it returns `false`, `previewIngest` can safely catch this and return `(false, reason)` without reverting.
+
+### 16. All 8 Negative-Path Tests Rejected by Real Precompile
+
+**Discovery:** All 8 forged proof scenarios (forged root, wrong chain, zero height, empty tx, mismatched siblings, large chain key, max height, random bytes) are rejected by the real BlockProver precompile on CC3.
+
+**Impact:** This confirms the precompile correctly validates proof structure. The precompile is not lenient — it rejects malformed inputs at the protocol level, not just at the application level.
+
 ---
 
 ## Test Coverage of Prevented Attacks

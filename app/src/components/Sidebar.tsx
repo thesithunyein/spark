@@ -14,6 +14,7 @@ const items = [
   { href: "/transfer", label: "Send & Receive", icon: ArrowLeftRight },
   { href: "/repay", label: "Repay", icon: Undo2 },
   { href: "/activity", label: "Payments", icon: List },
+  { href: "/bonus", label: "Bonus: Aave V3", icon: BadgeCheck },
   { href: "/help", label: "Help", icon: CircleHelp },
   { href: "/settings", label: "Settings", icon: Settings },
 ];
