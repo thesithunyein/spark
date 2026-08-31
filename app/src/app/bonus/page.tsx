@@ -78,26 +78,26 @@ export default function BonusPage() {
       </header>
 
       {/* Main content */}
-      <main className="relative z-10 flex min-h-0 items-center justify-center overflow-y-auto px-[clamp(20px,5vw,100px)]">
-        <div className="stagger flex w-[min(600px,90vw)] flex-col py-[clamp(24px,3vw,48px)]">
+      <main className="relative z-10 flex min-h-0 items-start justify-center overflow-y-auto px-[clamp(20px,5vw,100px)] pt-8 pb-16">
+        <div className="stagger flex w-[min(600px,90vw)] flex-col">
           {/* Badge */}
-          <span className="inline-block self-start border border-accent/50 bg-accent/10 px-[clamp(14px,1.1vw,20px)] py-[clamp(9px,0.8vw,14px)] font-mono text-[clamp(11px,0.72vw,14px)] uppercase leading-none tracking-[0.2em] text-accent3">
+          <span className="inline-block self-start border border-accent/50 bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-accent3">
             [ Bonus Feature ]
           </span>
 
           {/* Title */}
-          <h1 className="mt-[clamp(28px,3vw,52px)] text-[clamp(40px,5vw,72px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
+          <h1 className="mt-6 text-[clamp(32px,4vw,56px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
             Real DeFi History
           </h1>
-          <p className="mt-[clamp(14px,1.4vw,24px)] font-mono text-[clamp(11px,0.94vw,17px)] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
+          <p className="mt-3 font-mono text-[13px] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
             Prove mainnet history on Creditcoin
           </p>
-          <p className="mt-[clamp(14px,1.4vw,24px)] max-w-lg text-[15px] font-light leading-relaxed text-white/85">
+          <p className="mt-4 max-w-lg text-[15px] font-light leading-relaxed text-white/85">
             Enter an Ethereum mainnet wallet to prove its Aave V3 history using the Attestcoin Protocol. This demonstrates Spark&apos;s ability to attest cross-chain data beyond Sepolia.
           </p>
 
           {/* Input card */}
-          <div className="mt-[clamp(28px,3vw,48px)] rounded-xl border border-white/[0.12] bg-white/[0.04] p-6 backdrop-blur-sm">
+          <div className="mt-8 rounded-xl border border-white/[0.12] bg-white/[0.04] p-5 backdrop-blur-sm">
             <label className="block font-mono text-[11px] uppercase tracking-[0.18em] text-white/50 mb-3">
               Ethereum Mainnet Wallet
             </label>
@@ -128,7 +128,7 @@ export default function BonusPage() {
 
           {/* History results */}
           {history && (
-            <div className="mt-[clamp(28px,3vw,48px)] space-y-3">
+            <div className="mt-6 space-y-3">
               <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
                 Attested Aave V3 History
               </h2>
@@ -159,7 +159,7 @@ export default function BonusPage() {
           )}
 
           {/* How it works */}
-          <div className="mt-[clamp(28px,3vw,48px)] rounded-xl border border-white/[0.12] bg-white/[0.04] p-6 backdrop-blur-sm">
+          <div className="mt-6 rounded-xl border border-white/[0.12] bg-white/[0.04] p-5 backdrop-blur-sm">
             <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
               How it works
             </h3>
@@ -179,12 +179,12 @@ export default function BonusPage() {
           </div>
 
           {/* Note */}
-          <p className="mt-6 text-[13px] text-white/40">
+          <p className="mt-4 text-[12px] text-white/40">
             Note: In production, each entry is proven on-chain. This is a demo. The core credit flow works without this feature.
           </p>
 
           {/* CTA */}
-          <div className="mt-8 flex items-center gap-3">
+          <div className="mt-6 flex items-center gap-3">
             <Link href="/pay" className="btn-shine px-7 py-[clamp(14px,1.4vw,22px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white">
               Get credit
             </Link>
