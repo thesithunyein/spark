@@ -362,6 +362,26 @@ Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Ve
 
 **Verifier note:** BlockProver proves inclusion cryptographically. The adapter now **strictly decodes the receipt RLP** from the proven `encodedTransaction`, matching event topic, indexed payer, and non-indexed amount from decoded logs. Amount is cryptographically bound (not trusting `claim.amount`). Per the Aug 18 AMA, receipt log data is confirmed available via BlockProver.
 
+## Live Precompile Tests (Zero Cost)
+
+Spark includes 8 live negative-path tests against the real BlockProver precompile on CC3 testnet. These use `eth_call` (read-only) — zero gas, zero CTC, zero cost.
+
+```bash
+cd contracts && bash run-negative-paths.sh
+```
+
+Results:
+- Forged merkle root → REJECTED
+- Wrong chain key (99) → REJECTED
+- Zero height → REJECTED
+- Empty encoded transaction → REJECTED
+- Mismatched sibling lengths → REJECTED
+- Very large chain key (9999) → REJECTED
+- Max uint64 height → REJECTED
+- Random bytes as proof → REJECTED
+
+**All 8 forged proofs rejected by the real BlockProver precompile.** Judges can run this themselves.
+
 ## License
 
 MIT — [LICENSE](LICENSE).
