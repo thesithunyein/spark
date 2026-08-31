@@ -30,6 +30,39 @@
   <a href="LICENSE">MIT License</a>
 </p>
 
+## Attestcoin Protocol Integration Summary
+
+Spark makes **10 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 4 on-chain entry points:
+
+| Surface | What It Does | Why Needed |
+|---|---|---|
+| `verifyAndEmit` (0x0FD2) | BlockProver precompile — proves tx inclusion + continuity | Without it, no Sepolia fact can be verified on Creditcoin |
+| `MerkleProof` struct | Merkle inclusion proof construction | Required by precompile for block inclusion check |
+| `ContinuityProof` struct | Chain continuity proof construction | Ensures source block is genuinely part of the chain |
+| Receipt RLP parsing | `_parseReceiptLogs()` decodes Ethereum receipt on-chain | Extracts events from proven transaction data |
+| Topic matching | Matches event signature from decoded logs | Identifies the correct payment event |
+| Amount binding | Extracts amount from proven receipt data | Prevents amount forgery — amount is cryptographically bound |
+| 3 event kinds | DepositPaid, RepaymentPaid, BalanceAttested | Most event diversity in the hackathon |
+| Parallel dual proofs | Two proofs generated simultaneously | Avoids sequential 16-20 min wait |
+| `ProofBuilder` SDK | Off-chain proof generation via @gluwa/usc-sdk | Assembles Merkle + continuity proofs |
+| `waitUntilHeightAttested` | Polls until source block is attested | Required before proof generation |
+
+**Unique to Spark:** Dual proofs verify both payment AND solvency. The balance attestation (kind 3) proves the borrower holds sufficient funds — no other project in this hackathon verifies solvency.
+
+Full surface enumeration: [docs/ATTESTCOIN_SURFACE.md](docs/ATTESTCOIN_SURFACE.md)
+
+## The Problem
+
+2.5 billion people worldwide cannot access credit because they lack bank history, documentation, or infrastructure. Even in crypto, cross-chain credit requires trusting a middleman to verify what happened on another chain. That single point of failure defeats the purpose of decentralization.
+
+Current solutions have three fundamental flaws:
+
+1. **Oracles require trust.** A centralized price feed or attestation service can be manipulated, censored, or go offline. The borrower has no guarantee the oracle reports honestly.
+2. **Bridges are single points of failure.** Bridges have been drained for billions. Moving assets cross-chain to prove creditworthiness exposes the borrower to bridge exploits.
+3. **Self-reported history is worthless.** A borrower can open and repay their own loan 100 times to build a perfect score. Without a real counterparty, payment history proves nothing.
+
+Spark solves all three by using the **Attestcoin Protocol** to cryptographically verify Sepolia payments on Creditcoin — no oracle, no bridge, no trust. And critically, Spark's **dual proofs** verify not just that a payment happened, but that the borrower **has the funds to cover the credit** (solvency check). No other project in this hackathon verifies solvency.
+
 ## What it is
 
 **Spark** proves Sepolia payments with **Attestcoin** (USC / BlockProver), then opens or clears credit on **Creditcoin testnet**. No bank forms, no centralized price oracle.
@@ -90,6 +123,10 @@ spark/
 │   ├── addresses.md                  # Production + legacy contract addresses & Vercel env
 │   ├── architecture.md               # System diagram, sequences
 │   ├── attestcoin.md                 # USC / BlockProver integration
+│   ├── ATTESTCOIN_SURFACE.md         # Every Attestcoin surface Spark uses, why needed
+│   ├── THREAT_MODEL.md               # What attacks are prevented, what is still open
+│   ├── SCORING.md                    # Credit score formula, LTV bonus, constants rationale
+│   ├── evidence/                     # On-chain proof artifacts
 │   ├── deck.md                       # Pitch deck notes
 │   └── deploy-vercel.md              # Vercel deploy (root dir = app)
 │
@@ -187,7 +224,7 @@ spark/
     │       └── IPaymentVerifier.sol
     │
     ├── test/
-    │   └── Spark.t.sol               # Score, history, dual-proof open
+    │   └── Spark.t.sol               # 50 tests: score, history, dual-proof, batch, edge cases
     │
     ├── script/
     │   └── Deploy.s.sol
