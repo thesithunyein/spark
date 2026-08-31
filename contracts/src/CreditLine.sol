@@ -344,6 +344,10 @@ contract CreditLine {
         return 0;
     }
 
+    function getVerifier() external view returns (IPaymentVerifier) {
+        return verifier;
+    }
+
     function _recordHistory(address user, uint256 amount, bytes32 txHash, uint8 kind) internal {
         PaymentHistory storage h = history[user];
         h.count += 1;

@@ -38,6 +38,12 @@ interface INativeQueryVerifier {
         MerkleProof calldata merkleProof,
         ContinuityProof calldata continuityProof
     ) external view returns (bool);
+
+    function calculateTxIndex(
+        bytes32 txHash,
+        MerkleProof calldata merkleProof,
+        ContinuityProof calldata continuityProof
+    ) external view returns (uint256);
 }
 
 interface IChainInfo {
@@ -238,6 +244,54 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
     /// @notice Read the latest attested height for a given source chain.
     function getAttestedHeight(uint64 chainKey) external view returns (uint64) {
         return chainInfo.getAttestedHeight(chainKey);
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════
+    //  calculateTxIndex: Merkle path position query
+    // ═══════════════════════════════════════════════════════════════════════
+
+    /// @notice Returns the Merkle path position of a transaction within its block.
+    ///         Useful for proving transaction ordering or position.
+    function calculateTxIndex(
+        bytes32 txHash,
+        bytes calldata proof
+    ) external view returns (uint256) {
+        if (proof.length < 160) revert BadProof();
+
+        (
+            uint64 chainKey,
+            uint64 height,
+            bytes32 sourceTxHash,
+            bytes memory encodedTx,
+            bytes32 merkleRoot,
+            bytes32[] memory siblingHashes,
+            bool[] memory siblingIsLeft,
+            bytes32 lowerEndpointDigest,
+            bytes32[] memory continuityRoots
+        ) = abi.decode(
+            proof,
+            (uint64, uint64, bytes32, bytes, bytes32, bytes32[], bool[], bytes32, bytes32[])
+        );
+
+        // Build structs for the precompile
+        INativeQueryVerifier.MerkleProofEntry[] memory siblings =
+            new INativeQueryVerifier.MerkleProofEntry[](siblingHashes.length);
+        for (uint256 i = 0; i < siblingHashes.length; i++) {
+            siblings[i] = INativeQueryVerifier.MerkleProofEntry({
+                hash: siblingHashes[i],
+                isLeft: siblingIsLeft[i]
+            });
+        }
+        INativeQueryVerifier.MerkleProof memory mp = INativeQueryVerifier.MerkleProof({
+            root: merkleRoot,
+            siblings: siblings
+        });
+        INativeQueryVerifier.ContinuityProof memory cp = INativeQueryVerifier.ContinuityProof({
+            lowerEndpointDigest: lowerEndpointDigest,
+            roots: continuityRoots
+        });
+
+        return blockProver.calculateTxIndex(txHash, mp, cp);
     }
 
     // ═══════════════════════════════════════════════════════════════════════
