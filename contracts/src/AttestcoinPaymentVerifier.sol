@@ -47,8 +47,12 @@ interface INativeQueryVerifier {
 }
 
 interface IChainInfo {
-    function getSupportedChains() external view returns (uint64[] memory);
-    function getAttestedHeight(uint64 chainKey) external view returns (uint64);
+    /// @dev ChainInfo precompile (0x0FD3) uses snake_case selectors, verified live on CC3.
+    function get_supported_chains() external view returns (uint64[] memory);
+    function get_latest_attestation_height_and_hash(uint64 chainKey)
+        external
+        view
+        returns (uint64, bytes32);
 }
 
 /**
@@ -99,6 +103,7 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
     error BadTxHash();
     error PaymentNotFound();
     error BadKind();
+    error BadAmount();
 
     constructor(
         address blockProver_,
@@ -162,12 +167,24 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         else if (claim.kind == 3) expectedTopic = BALANCE_ATTESTED_TOPIC;
         else revert BadKind();
 
-        // Strict path: parse receipt logs, validate topic + payer + amount
-        bool strictOk = _verifyLogStrict(encodedTx, expectedTopic, expectedPaymentContract, claim.payer, claim.amount);
-
-        // Fallback: substring scan if strict parsing fails (backward compat)
-        if (!strictOk) {
+        // Strict path: parse receipt logs, validate topic + payer + amount.
+        // Once the receipt parses, the strict path is MANDATORY — the matching
+        // log must exist, the payer must match, and the decoded amount must equal
+        // claim.amount, or verification reverts. The substring scan is used ONLY
+        // when the receipt cannot be parsed at all (legacy MockPaymentVerifier
+        // encodings) and never binds amount, so it can never mask a strict
+        // mismatch or a missing log.
+        (uint256 logCount,) = _parseReceiptLogs(encodedTx);
+        if (logCount == 0) {
             _verifySubstring(encodedTx, expectedTopic, expectedPaymentContract, claim.payer);
+        } else {
+            _verifyLogStrict(
+                encodedTx,
+                expectedTopic,
+                expectedPaymentContract,
+                claim.payer,
+                claim.amount
+            );
         }
 
         // BlockProver call
@@ -237,13 +254,16 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
     // ═══════════════════════════════════════════════════════════════════════
 
     /// @notice Read supported source chains from the ChainInfo precompile (0x0FD3).
+    /// @dev The precompile uses snake_case selectors (get_supported_chains).
     function getSupportedChains() external view returns (uint64[] memory) {
-        return chainInfo.getSupportedChains();
+        return chainInfo.get_supported_chains();
     }
 
     /// @notice Read the latest attested height for a given source chain.
+    /// @dev The precompile uses snake_case selectors (get_latest_attestation_height_and_hash).
     function getAttestedHeight(uint64 chainKey) external view returns (uint64) {
-        return chainInfo.getAttestedHeight(chainKey);
+        (uint64 height,) = chainInfo.get_latest_attestation_height_and_hash(chainKey);
+        return height;
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -407,9 +427,9 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         address expectedContract,
         address expectedPayer,
         uint256 expectedAmount
-    ) internal pure returns (bool) {
+    ) internal pure {
         (uint256 logCount, uint256 logStart) = _parseReceiptLogs(encodedTx);
-        if (logCount == 0) return false;
+        if (logCount == 0) return;
 
         uint256 pos = logStart;
         for (uint256 i = 0; i < logCount; i++) {
@@ -456,23 +476,28 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
             }
             if (logTopic0 != expectedTopic) continue;
 
-            // Payer is topics[1]
+            // Payer is topics[1] — an indexed address is a 32-byte word with the
+            // address right-aligned in the low 20 bytes, so read the word and
+            // take the low 160 bits.
             if (topicCount <= 1) continue;
             address logPayer;
             {
-                uint256 t1pos = tPayload + 33; // skip topic0
+                uint256 t1pos = tPayload + 33; // skip topic0 (1 prefix + 32 data)
                 (t1pos,) = _rlpHeader(encodedTx, t1pos);
-                logPayer = _extractAddr(encodedTx, t1pos);
+                bytes32 topic1 = _extractWord(encodedTx, t1pos);
+                logPayer = address(uint160(uint256(topic1)));
             }
             if (logPayer != expectedPayer) continue;
 
             // Amount from data
             uint256 logAmount = uint256(dataWord);
-            if (logAmount != expectedAmount) return false;
+            if (logAmount != expectedAmount) revert BadAmount();
 
-            return true; // ✓ verified: topic + payer + amount all from proven receipt
+            return; // ✓ verified: topic + payer + amount all from proven receipt
         }
-        return false; // no matching log found
+        // Receipt parsed but no matching log found — reject. A parsed receipt
+        // with a wrong contract/topic/payer must never fall through.
+        revert PaymentNotFound();
     }
 
     // ═══════════════════════════════════════════════════════════════════════
@@ -521,7 +546,12 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
     //  Low-level RLP helpers
     // ═══════════════════════════════════════════════════════════════════════
 
-    /// @dev RLP header at pos → (payloadStart, payloadLength)
+    /// @dev RLP header at pos → (payloadStart, payloadLength). Spec-compliant.
+    ///      Single-byte item (<0x80): the byte IS the item, payloadLen = 0.
+    ///      Short string 0x80–0xb7: payloadLen = pfx - 0x80, header = 1 byte.
+    ///      Long string 0xb8–0xbf: payloadLen follows in pfx - 0xb7 bytes.
+    ///      Short list 0xc0–0xf7: payloadLen = pfx - 0xc0, header = 1 byte.
+    ///      Long list 0xf8–0xff: payloadLen follows in pfx - 0xf7 bytes.
     function _rlpHeader(bytes memory data, uint256 pos)
         internal
         pure
@@ -531,11 +561,12 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         uint8 pfx = uint8(data[pos]);
 
         if (pfx < 0x80) {
-            return (pos + 1, 1);
+            // Single byte item — the byte itself. Total item length = 1.
+            return (pos + 1, 0);
         } else if (pfx < 0xb8) {
             return (pos + 1, uint256(pfx - 0x80));
         } else if (pfx < 0xc0) {
-            uint256 n = uint256(pfx - 0xb8);
+            uint256 n = uint256(pfx - 0xb7);
             uint256 c = pos + 1;
             uint256 len = 0;
             for (uint256 i = 0; i < n; i++) {
@@ -546,7 +577,7 @@ contract AttestcoinPaymentVerifier is IPaymentVerifier {
         } else if (pfx < 0xf8) {
             return (pos + 1, uint256(pfx - 0xc0));
         } else {
-            uint256 n = uint256(pfx - 0xf8);
+            uint256 n = uint256(pfx - 0xf7);
             uint256 c = pos + 1;
             uint256 len = 0;
             for (uint256 i = 0; i < n; i++) {

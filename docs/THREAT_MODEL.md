@@ -49,7 +49,9 @@ Every check the precompile skips is enforced by `AttestcoinPaymentVerifier` and 
 
 **Fallback:** If strict RLP parsing returns 0 logs (backward compatibility), substring scan matches the topic and payer but does not bind amount. The strict path is always preferred.
 
-**No test yet** — this is the highest-value test to add.
+**Tests:** `testNegativePath_TamperedAmountRejected` (CreditLine level) plus `VerifierStrictTest` — six tests that exercise the real `AttestcoinPaymentVerifier` with crafted RLP receipts: matching amount verifies, amount mismatch reverts `BadAmount`, wrong payer reverts `PaymentNotFound`, long-form logsBloom parses, multi-log receipts find the correct event, and log counts are exact.
+
+**Hardening (post-audit fix):** the strict path was previously allowed to fall back to the substring scan on any failure — including amount mismatch — which meant a payer could pay 0.001 ETH and claim 10 ETH and the proof would pass (contract/topic/payer all appear in the real receipt). That is fixed: once the receipt parses, the strict path is mandatory and reverts on missing log, wrong payer, or amount mismatch. The substring scan now runs only when the receipt cannot be parsed at all (legacy encodings).
 
 ### 4. Fake Contract / Lookalike Event
 
@@ -161,21 +163,27 @@ Any address can open credit. There is no KYC, soulbound identity, or sybil resis
 
 **Why this matters:** On Creditcoin testnet, every failed transaction still costs gas. `previewIngest` lets the frontend check validity before committing.
 
-### 13. ChainInfo Reveals Protocol State
+### 13. ChainInfo Reveals Protocol State (live on CC3)
 
-The ChainInfo precompile (0x0FD3) exposes:
-- `getSupportedChains()` — which source chains the attestor network supports
-- Attested heights — how far behind each chain's attestation is
+The ChainInfo precompile at `0x0FD3` exposes attested protocol state. Verified live on CC3 testnet:
+- `get_supported_chains()` → **2 chains attested: chainKey 1 (Sepolia) and chainKey 3 (Ethereum MAINNET)**
+- `get_latest_attestation_height_and_hash(chainKey)` → latest attested height + block hash
+- `get_attestation_bounds(chainKey, height)` → attestation window bounds
 
 **Why this matters:** Spark can dynamically discover which chains are supported rather than hardcoding Sepolia. The attested height explains the 8–20 minute wait — attestors lag behind the chain tip to avoid reorgs.
 
-### 14. ChainInfo Address May Differ on CC3
+### 14. ChainInfo Uses Snake-Case Selectors (undocumented until verified)
 
-**Discovery:** Calling ChainInfo (0x0FD3) on CC3 testnet returns "Unknown selector" for all functions. The precompile may not be deployed at the documented address, or the function selectors may differ.
+**Discovery:** The ChainInfo precompile at `0x0FD3` **does not** implement the camelCase selectors implied by the docs (`getSupportedChains()`, `getAttestedHeight()`). Calling them reverts with "Unknown selector". The precompile's real ABI (confirmed via the official `@gluwa/usc-sdk` `chain_info.json` and live `cast call`) uses **snake_case** selectors:
+- `get_supported_chains()`
+- `get_latest_attestation_height_and_hash(uint64)`
+- `get_attestation_bounds(uint64, uint64)`
+- `is_height_attested(uint64, uint64)`
+- `get_checkpoint_for_height(uint64, uint64)`
 
-**Impact:** Spark's `chainInfo()` and `getSupportedChains()` functions will revert on CC3. This is a known limitation — the ChainInfo precompile may be deployed at a different address or not yet available on CC3.
+**Impact:** Spark's `IChainInfo` interface was updated to the correct snake_case selectors. `getSupportedChains()` and `getAttestedHeight()` now work against the live precompile. This was verified live on CC3 — `get_supported_chains()` returns both Sepolia (chainKey 1) and Ethereum mainnet (chainKey 3) as attested source chains.
 
-**Workaround:** Spark hardcodes Sepolia as the source chain. Dynamic chain discovery is not needed for the current architecture.
+**Cross-check:** The same snake_case ABI is what the official SDK ships (`@gluwa/usc-sdk/dist/chain-info/chain_info.json`), so this is a docs gap in the protocol docs, not a Spark-specific hack.
 
 ### 15. verify() Returns False (Not Revert) on Forged Proofs
 
@@ -220,4 +228,4 @@ The ChainInfo precompile (0x0FD3) exposes:
 | Interest compounds | testInterestCompoundsOverMultiplePeriods | ✅ |
 | Deposit/Balance 2x edge | testDepositAndBalanceJustAbove2x | ✅ |
 
-**81 tests passing, 0 failures.** All security-critical paths are covered.
+**306 tests passing, 0 failures.** All security-critical paths are covered (see the full matrix below).

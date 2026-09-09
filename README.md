@@ -228,7 +228,9 @@ spark/
     │       └── IPaymentVerifier.sol
     │
     ├── test/
-    │   └── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
+    │   ├── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
+    │   └── VerifierStrict.t.sol      # 6 strict-path tests: RLP decode, amount binding, wrong payer, long-form bloom, multi-log
+    │   └── VerifierStrict.t.sol      # 6 tests: real strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
     │
     ├── script/
     │   └── Deploy.s.sol
@@ -361,7 +363,9 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 
 Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Vercel.
 
-**Verifier note:** BlockProver proves inclusion cryptographically. The adapter now **strictly decodes the receipt RLP** from the proven `encodedTransaction`, matching event topic, indexed payer, and non-indexed amount from decoded logs. Amount is cryptographically bound (not trusting `claim.amount`). Per the Aug 18 AMA, receipt log data is confirmed available via BlockProver.
+**Verifier note:** BlockProver proves inclusion cryptographically. The adapter **strictly decodes the receipt RLP** from the proven `encodedTransaction`, matching event topic, indexed payer, and non-indexed amount from decoded logs. Amount is cryptographically bound (not trusting `claim.amount`) — once the receipt parses, a decoded amount that differs from `claim.amount` **reverts**; it never falls through to the weaker substring scan. The strict path is proven by 6 dedicated tests with crafted RLP receipts (`test/VerifierStrict.t.sol`). Per the Aug 18 AMA, receipt log data is confirmed available via BlockProver.
+
+**ChainInfo:** the 0x0FD3 precompile uses snake_case selectors (`get_supported_chains`, `get_latest_attestation_height_and_hash`) — verified live on CC3, and it reports both Sepolia (chainKey 1) and **Ethereum mainnet (chainKey 3)** as attested source chains. See docs/THREAT_MODEL.md.
 
 ## Live Precompile Tests (Zero Cost)
 
