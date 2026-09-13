@@ -34,7 +34,7 @@
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
 
-**1. Contract suite: 396 tests, 0 failures**
+**1. Contract suite: 417 tests, 0 failures**
 
 ```bash
 npm run test:contracts          # or: cd contracts && forge test
@@ -200,6 +200,9 @@ spark/
 │   ├── SCORING.md                    # Credit score formula, LTV bonus, constants rationale
 │   ├── PROOF_OF_NET_POSITION.md      # Net-position primitive: design + measured evidence
 │   ├── evidence/                     # On-chain proof artifacts
+│   ├── ROADMAP.md                    # Milestones, what is built vs deployed vs planned
+│   ├── DEPLOY_CC3.md                 # Deploying the position stack and generation 2 to CC3
+│   ├── PARTICIPATE.md                # How to run the loop yourself, and what it costs you
 │   ├── deck.md                       # Pitch deck notes
 │   └── deploy-vercel.md              # Vercel deploy (root dir = app)
 │
@@ -304,7 +307,7 @@ spark/
     │
     ├── src/
     │   ├── SepoliaPayment.sol        # payDeposit, payRepayment, attestBalance
-    │   ├── CreditLine.sol            # openCredit, score, history bonus, redeem, repay
+    │   ├── CreditLine.sol            # openCredit (deposit-sized) + openCreditFromBalance (proven-balance-sized), score, history, redeem, repay
     │   ├── AttestcoinPaymentVerifier.sol
     │   ├── SparkCredit.sol           # sCREDIT ERC-20
     │   ├── MockPaymentVerifier.sol   # Unit tests only
@@ -323,12 +326,14 @@ spark/
     │   ├── MainnetPositionRegistry.t.sol # 30 tests: anchor rule, ordering, replay, residual bound, Day 2 regressions
     │   ├── AttestedValuation.t.sol   # 31 tests: prices, token metadata, net worth, topic parity
     │   ├── PositionStackIntegration.t.sol # 6 tests: full stack, exact real mainnet numbers
-    │   └── PositionSizedCredit.t.sol # 23 tests: policy, half-of-net-worth cap, refusal status codes
+    │   ├── PositionSizedCredit.t.sol # 23 tests: policy, half-of-net-worth cap, refusal status codes
+    │   └── BalanceSizedCredit.t.sol  # 21 tests: balance sizing, refusals, score neutrality, path separation
     │
     ├── script/
     │   ├── Deploy.s.sol
     │   ├── NegativePathLive.s.sol     # 8 forged proofs vs the live 0x0FD2 precompile
-    │   └── ProveMainnetPosition.s.sol # one command: deploy stack + prove a real mainnet position
+    │   ├── ProveMainnetPosition.s.sol # one command: deploy stack + prove a real mainnet position
+    │   └── DeployGeneration2CreditLine.s.sol # one command: generation 2 CreditLine, reusing the deployed verifier
     │
     └── scripts/
         ├── deploy-all.sh
@@ -442,6 +447,7 @@ Open [http://localhost:3000](http://localhost:3000). User guide: in-app **Help**
 | Score | 650 base + 40 × attested payments (cap **850**) |
 | LTV bonus | +250 bps (≥1 payment), +500 bps (≥3 payments) |
 | Balance LTV | ≥2× deposit → 90%, ≥1× → 85%, else 80% base |
+| Balance-sized line (generation 2) | **No deposit.** `openCreditFromBalance`: `limit = attested balance × 20%`, floor 0.0001 ETH, and a balance attestation never moves the score because a balance is not a payment. Built and covered by 21 tests, but it needs a `CreditLine` redeploy to go live — [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md) |
 | Proof | `submitAttestedPayment` links past Sepolia txs; `openCredit` / `repayCredit` also count |
 
 Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()` and `getHistory()`.
@@ -451,6 +457,7 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 | Phase | Focus |
 |---|---|
 | **Now** | Live testnet: dual Attestcoin proofs, score, history LTV, **strict receipt log decoding with amount binding**, full borrow/repay loop |
+| **Built, not deployed** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Neither is broadcast — [docs/ROADMAP.md](docs/ROADMAP.md) |
 | **Next** | Faster verify UX (parallel attestation, caching) |
 | **Later** | Mainnet, audit, lending pool, single-network UX |
 

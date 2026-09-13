@@ -1,7 +1,22 @@
-# Deploying the position stack to CC3
+# Deploying to CC3
 
-Three commands. The only input is a private key, and it belongs in a file, not in a shell
-history or a chat window.
+Two deploys live here, and they are independent:
+
+| | What it ships | Blocker |
+|---|---|---|
+| **1. The position stack** | Four contracts that size a credit limit from a proven Ethereum mainnet net worth | the key |
+| **2. Generation 2 of `CreditLine`** | The path that sizes a line from an attested balance with **no deposit** | the key, plus a decision covered under [generation 1 stays visible](#generation-1-stays-visible) |
+
+The only input for either is a private key, and it belongs in a file, not in a shell history or
+a chat window. **Do the position stack first** — it is additive and touches nothing that is
+already live. Generation 2 replaces a live contract, so read that section's consequences
+before running it.
+
+---
+
+## Part 1 — the position stack
+
+Three commands.
 
 ## What is actually blocking this
 
@@ -85,3 +100,98 @@ real deployment.
 
 Then the project has moved from "the engine runs locally" to "the engine is deployed and
 independently verified", which is the claim the submission needs.
+
+---
+
+## Part 2 — generation 2 of `CreditLine`
+
+Generation 1 of `CreditLine` has no way to lend against anything but the borrower's own
+deposit: `credit = deposit x LTV`. That is the deployed product, and the four mainnet-sized
+contracts in Part 1 cannot fix it, because they are a different contract. Generation 2 adds
+`openCreditFromBalance`, which sizes the line at 20% of an **attested Sepolia balance** and
+requires no deposit at all, using the kind-3 balance attestation the deployed verifier already
+verifies.
+
+This is a policy change to the product, not an upgrade to it. Nothing already on chain is
+replaced in place, so here is exactly what does and does not survive.
+
+### It is one contract, and it reuses the verifier you already have
+
+```bash
+cd contracts
+# .env already has PRIVATE_KEY from Part 1
+VERIFIER_ADDRESS=<the deployed AttestcoinPaymentVerifier> \
+  forge script script/DeployGeneration2CreditLine.s.sol:DeployGeneration2CreditLine \
+  --rpc-url https://rpc.cc3-testnet.creditcoin.network --broadcast
+```
+
+The script deploys **only** `CreditLine`. `DeployCreditcoin` would also mint a second
+`AttestcoinPaymentVerifier` with identical code, leaving two contracts making the same claim
+and making the verified one ambiguous. Reusing the deployed verifier keeps one verifier, one
+Blockscout verification page, and one proof path. The script refuses to broadcast if
+`VERIFIER_ADDRESS` is unset or has no code on the chain, and it prints `vm.addr(pk)` before
+broadcasting so the deployer address can be checked against the funded one first.
+
+Rehearsed on a local chain, which is where these numbers come from:
+
+```
+  deployer 0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+  reusing verifier 0x5FbDB2315678afecb367f032d93F642f64180aa3
+  CreditLine (generation 2) 0x9fE46736679d2D9a65F0992F2272dE9f3c7fa6e0
+  SparkCredit (new token) 0x75537828f2ce51be7289709686A69CbFDbB714F1
+  BALANCE_LTV_BPS 2000
+  MIN_BALANCE_LINE_WEI 100000000000000
+```
+
+### What generation 2 does not inherit
+
+Read this before broadcasting, because both consequences are visible to anyone who looks.
+
+1. **It starts with an empty record.** The live contract carries the 46-event record: 4 lines
+   opened, 2 closed, 6 attested payments. A new contract starts at zero. The record does not
+   vanish — it stays on generation 1's address forever — but the address a judge lands on when
+   they click through the app stops having it.
+2. **It has its own sCREDIT.** `CreditLine`'s constructor deploys a fresh `SparkCredit`, so
+   generation 2's credit token is a different address with the same name and symbol. The demo
+   video shows generation 1's token. This is visible, and the deployment log above shows it
+   happening, so it is stated rather than discovered.
+
+### Generation 1 stays visible
+
+The app already supports a superseded line: `NEXT_PUBLIC_LEGACY_CREDITLINE_ADDRESS` exists, and
+the on-chain record page indexes a legacy source alongside the production one. So the flip is a
+configuration change, not a rewrite, and generation 1's history stays on the record page.
+
+```bash
+# app/.env — pointing the product at generation 2
+NEXT_PUBLIC_LEGACY_CREDITLINE_ADDRESS=<generation 1 CreditLine>   # keeps the 46-event record
+NEXT_PUBLIC_LEGACY_PAYMENT_ADDRESS=<the existing SepoliaPayment>
+NEXT_PUBLIC_CREDITLINE_ADDRESS=<generation 2 CreditLine>
+NEXT_PUBLIC_CREDIT_TOKEN_ADDRESS=<generation 2 SparkCredit>
+```
+
+Then, so the record page shows both generations instead of silently dropping one:
+
+1. Add generation 2's two addresses to `SOURCES` in `app/scripts/gen-chain-activity.mjs`,
+   labelled generation 2, and keep generation 1's entries as `role: "legacy"`.
+2. `npm run gen:chain-activity` and re-read the page. New addresses with no events yet will
+   simply contribute nothing, which is honest; what must not happen is generation 2's first
+   events going unindexed.
+3. Run the loop once on generation 2 so the new contract has its own record. A generation-2
+   address with zero events is a worse look than either generation alone, so the flip and the
+   first run belong together, not months apart.
+4. Rebuild and redeploy the app. The addresses are inlined in the bundle at build time, so an
+   env change alone does not take effect until the app is rebuilt.
+
+### Done looks like
+
+- `BALANCE_LTV_BPS()` reads `2000` and `MIN_BALANCE_LINE_WEI()` reads `1e14` on the new
+  CreditLine address, read with `cast call`. The script prints both.
+- Generation 2 appears on the CC3 explorer, and the verifier address it points at is the same
+  one that was already verified.
+- `spark.sithunyein.com/onchain` lists both generations, and generation 2 has real events.
+- `docs/ROADMAP.md` M2b moves from "needs a `CreditLine` redeploy" to the deployment address.
+
+If step 3 has not happened, generation 2 is deployed but has nothing to show, and the honest
+status is still "built, tested, deployed, unproven" — which is worth saying in the submission
+rather than leaving the reader to notice an empty page.

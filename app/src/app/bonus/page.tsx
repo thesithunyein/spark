@@ -53,7 +53,7 @@ const STATUS = [
   {
     label: "Engine code, executed locally",
     tone: "border-sky-500/40 bg-sky-500/[0.08] text-sky-300",
-    note: "Eleven Solidity contracts, 396 Foundry tests, run end to end on a local chain using real mainnet data.",
+    note: "Eleven Solidity contracts, 417 Foundry tests, run end to end on a local chain using real mainnet data.",
   },
   {
     label: "Not yet broadcast to Creditcoin testnet",
@@ -392,7 +392,7 @@ export default function MainnetPositionPage() {
 {`cd app && node scripts/position-scale.mjs      # 8-wallet reconciliation
 cd app && node scripts/protocol-topics.mjs     # topic parity + controls
 cd app && node scripts/gen-evidence-module.mjs # regenerate this page's data
-cd contracts && forge test                     # 396 tests`}
+cd contracts && forge test                     # 417 tests`}
             </pre>
           </div>
 

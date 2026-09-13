@@ -52,6 +52,12 @@ contract CreditLine {
     uint256 public constant SCORE_BASE = 650;
     uint256 public constant SCORE_PER_PAYMENT = 40;
     uint256 public constant SCORE_CAP = 850;
+    /// @notice Policy LTV applied to a PROVEN BALANCE when no deposit is paid, in bps (20%).
+    ///         Set conservatively and on purpose: a proven balance is evidence of capacity, not
+    ///         seizable collateral, so the line is a fraction of it rather than a collateral ratio.
+    uint256 public constant BALANCE_LTV_BPS = 2_000;
+    /// @notice Smallest line worth opening from an attested balance alone (0.0001 ETH).
+    uint256 public constant MIN_BALANCE_LINE_WEI = 1e14;
 
     mapping(address => Position) public positions;
     mapping(address => PaymentHistory) public history;
@@ -79,6 +85,14 @@ contract CreditLine {
     event InterestAccrued(address indexed user, uint256 interest, uint256 debt);
     event CreditRepaid(address indexed user, uint256 amount, bytes32 indexed txHash);
     event CreditClosed(address indexed user, bytes32 indexed txHash);
+    /// @notice Emitted when a line is opened from a balance attestation with no deposit.
+    event CreditOpenedFromBalance(
+        address indexed user,
+        uint256 attestedBalance,
+        uint256 credit,
+        uint256 ltvBps,
+        bytes32 indexed balanceTxHash
+    );
 
     error ProofFailed();
     error TxAlreadyUsed();
@@ -90,6 +104,7 @@ contract CreditLine {
     error HasDebt();
     error ExceedsAvailable();
     error ExceedsDebt();
+    error CreditTooSmall();
 
     constructor(address verifier_, uint256 collateralFactorBps_, uint256 interestPerYearBps_) {
         require(verifier_ != address(0), "verifier");
@@ -228,6 +243,59 @@ contract CreditLine {
             factorBps,
             depositClaim.txHash,
             balanceClaim.txHash
+        );
+    }
+
+    /**
+     * @notice Open a credit line sized by a PROVEN BALANCE, with no deposit.
+     *
+     *         `openCredit` sizes the line as deposit x LTV, so it can only ever lend against
+     *         money the borrower already sent us. That makes the borrower's own deposit the
+     *         collateral and the ceiling both. This path removes the deposit and sizes from
+     *         the attested Sepolia balance instead, which is the shape the product is for:
+     *         prove you hold value on another chain, borrow on Creditcoin.
+     *
+     *         Requires only the kind-3 balance attestation, which the deployed verifier
+     *         already handles, so this needs no new proof machinery.
+     *
+     *         Deliberately does NOT record payment history. A balance attestation is not a
+     *         payment, and counting it would inflate the score that is supposed to mean proven
+     *         payment behaviour.
+     */
+    function openCreditFromBalance(
+        IPaymentVerifier.PaymentClaim calldata balanceClaim,
+        bytes calldata balanceProof
+    ) external {
+        if (balanceClaim.kind != 3) revert BadKind();
+        if (balanceClaim.payer != msg.sender) revert BadPayer();
+        if (balanceClaim.amount == 0) revert BadAmount();
+        if (usedTx[balanceClaim.txHash]) revert TxAlreadyUsed();
+        if (positions[msg.sender].status == Status.Active) revert AlreadyOpen();
+
+        bool ok = verifier.verifyPayment(balanceClaim, balanceProof);
+        if (!ok) revert ProofFailed();
+
+        usedTx[balanceClaim.txHash] = true;
+
+        uint256 credit = (balanceClaim.amount * BALANCE_LTV_BPS) / 10_000;
+        if (credit < MIN_BALANCE_LINE_WEI) revert CreditTooSmall();
+
+        positions[msg.sender] = Position({
+            deposit: 0,
+            debt: 0,
+            credit: credit,
+            attestedBalance: balanceClaim.amount,
+            lastAccrual: uint64(block.timestamp),
+            status: Status.Active,
+            // The balance attestation is the opening proof here, so it is recorded as both.
+            // Leaving openTxHash empty would make closeUnused emit a zero hash.
+            openTxHash: balanceClaim.txHash,
+            balanceTxHash: balanceClaim.txHash,
+            closeTxHash: bytes32(0)
+        });
+
+        emit CreditOpenedFromBalance(
+            msg.sender, balanceClaim.amount, credit, BALANCE_LTV_BPS, balanceClaim.txHash
         );
     }
 

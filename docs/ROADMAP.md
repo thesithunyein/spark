@@ -10,7 +10,7 @@ and the wallet balance, and credit opens on Creditcoin. Four credit lines have b
 across the two deployed `CreditLine` contracts and two complete loops have been closed. That
 record is public, wallet-free and independently verifiable: 46 events, every one linking to
 Blockscout, at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain). On-chain
-`creditScore()` reads 850. Contract suite is 396 tests, 0 failures. The BlockProver precompile
+`creditScore()` reads 850. Contract suite is 417 tests, 0 failures. The BlockProver precompile
 rejects all eight forged-proof scenarios we throw at it, read-only and free to re-run.
 
 **Measured but not deployed.** The mainnet position engine reconstructs a real Aave V3 position
@@ -58,6 +58,27 @@ policy output rather than a funded line, and there is no liquidation logic becau
 nothing to liquidate: a proven mainnet position is verified data, not seizable collateral.
 
 **Depends on:** M1 for the deployment, and a real credit book for the limit to mean anything.
+
+### M2b. Credit sized by a proven balance, with no deposit
+
+**Status: built and tested, needs a `CreditLine` redeploy.** The deployed generation sizes its
+line as `deposit x LTV`, which means the borrower's own deposit is both the collateral and the
+ceiling. `openCreditFromBalance` removes the deposit entirely and sizes from the attested
+Sepolia balance instead, at a conservative 20% policy LTV, with a floor that refuses dust
+lines rather than opening an unusable one.
+
+Unlike M2, this path has a full enforcement route, because it is the same `CreditLine`:
+`withdraw`, `redeem`, `repayCredit` and `closeUnused` all work on it unchanged. It needs only
+the kind-3 balance attestation, which the **deployed** verifier already handles, so it adds no
+new proof machinery. 21 tests cover it, including that a balance attestation never inflates
+the credit score, since a balance is not a payment.
+
+For the same borrower wealth the two models differ by more than 200x: a 0.01 ETH deposit with
+10 ETH attested lends 0.009 ETH, while the balance path lends 2 ETH. That is the difference
+between a deposit mirror and credit, and it is why this path exists.
+
+**Depends on:** a funded CC3 key. Adding a function to a deployed contract means deploying a
+new `CreditLine`, which is why it is not live yet.
 
 ### M3. State proofs for current position, ledger proofs for history
 

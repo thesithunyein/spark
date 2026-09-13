@@ -79,8 +79,20 @@ contracts; it is **not yet broadcast to CC3**.
 
 Scope is stated rather than implied: **13 of the 46 on-chain events** carry a wealth signal
 (9 `BalanceAttested` events plus the attested balance recorded in each of the 4
-`CreditOpened` events), and the deployed generation still requires a deposit to open. The
-position layer removes that requirement.
+`CreditOpened` events), and the deployed generation still requires a deposit to open.
+
+**Two layers are built to remove that requirement.** `openCreditFromBalance` needs no deposit
+at all: it sizes the line at a conservative **20% of the attested Sepolia balance** and reuses
+the kind-3 balance attestation the deployed verifier already handles, so it adds no new proof
+machinery. It keeps the full enforcement route, since it is the same `CreditLine`:
+`withdraw`, `redeem`, `repayCredit` and `closeUnused` all work unchanged. For the same
+borrower wealth the two models differ by more than **200x** (a 0.01 ETH deposit against 10 ETH
+attested lends 0.009 ETH; the balance path lends 2 ETH). It is built and covered by 21 tests,
+including that a balance attestation never inflates the credit score, because a balance is not
+a payment. It needs a `CreditLine` redeploy to go live, so it is **not deployed yet**.
+
+The second layer is `PositionSizedCredit`, described above, which sizes from a proven net
+worth on Ethereum mainnet rather than a Sepolia balance.
 
 ## Attestcoin Protocol Integration Summary
 
@@ -160,8 +172,9 @@ chain. Refresh: `npm run activity:regen`.
 
 ## Technical Specs
 
-- **396 passing contract tests**, 0 failures (300 core, 6 strict-path against the real
-  verifier, 23 credit-policy, 31 price/valuation, 30 position-registry, 6 stack integration)
+- **417 passing contract tests**, 0 failures (300 core, 21 balance-sized credit, 6 strict-path
+  against the real verifier, 23 credit-policy, 31 price/valuation, 30 position-registry,
+  6 stack integration)
 - **8 live precompile negative-path tests** against the real BlockProver on CC3
   (read-only, zero cost)
 - **11 Solidity contracts** in `src/`, non-custodial throughout; Spark never holds keys

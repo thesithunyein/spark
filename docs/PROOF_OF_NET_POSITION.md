@@ -223,7 +223,7 @@ other.
 ## Reproduce
 
 ```bash
-cd contracts && forge test                    # 396 tests, 0 failures
+cd contracts && forge test                    # 417 tests, 0 failures
 
 cd ../app
 node scripts/protocol-topics.mjs              # topic parity + negative controls
