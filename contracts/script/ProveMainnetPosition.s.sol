@@ -47,7 +47,7 @@ import {MainnetTopics} from "../src/MainnetTopics.sol";
  *     BlockProver proof. Spark has no state-proof path yet; that is the next step for
  *     this contract and is not implied to exist. The anchor value itself was verified
  *     out of band by archive `eth_call` and reproduces today.
- *  b) `valueOf` enforces price freshness against the CURRENT block timestamp, so a run
+ *  b) `valuationOf` enforces price freshness against the CURRENT block timestamp, so a run
  *     much later than the answer's updatedAt will revert with StalePrice. For a live run,
  *     refresh PRICE_* from the aggregator first (app/scripts fetches these).
  */
@@ -62,7 +62,13 @@ contract ProveMainnetPosition is Script {
     uint64 internal constant ANCHOR_BLOCK = 25_962_220; // balanceOf == 0 here, archive-verified
     int256 internal constant LEDGER_NET = 433_014_008_378_577_163_575;
     int256 internal constant ATTESTED_BALANCE = 433_033_874_843_288_486_772;
-    uint64 internal constant MEASURE_BLOCK = 25_970_424; // block the balance was read at
+    // Block 25,970,521 is where aWETH.balanceOf(borrower) actually equals ATTESTED_BALANCE:
+    // reading that exact block returns 433033874843288486772, and the neighbouring blocks
+    // 25,970,520 and 25,970,425 return smaller values as interest accrues. This constant
+    // previously read 25,970,424, which is the ledger's last row block, not the block the
+    // balance was measured at. The contract trusts the attestor for this pairing, so nothing
+    // on chain was wrong, but the provenance claim was. Verified with archive eth_call.
+    uint64 internal constant MEASURE_BLOCK = 25_970_521;
     uint64 internal constant PRICE_BLOCK = 25_960_602; // block of the real AnswerUpdated tx
     int256 internal constant ETH_USD_ANSWER = 250_877_010_000; // 8dp => $2,508.7701
     uint8 internal constant ETH_USD_DECIMALS = 8;
@@ -136,7 +142,7 @@ contract ProveMainnetPosition is Script {
         );
 
         // 7. read back the reconstructed net worth
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
 
         vm.stopBroadcast();
 

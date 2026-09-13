@@ -139,7 +139,7 @@ export default function MainnetPositionPage() {
             <Metric label="Positions reconciled" value={`${scale.summary.tested}`} sub={`${scale.summary.ledgerWithin10Bps} within 10 bps`} />
             <Metric label="Largest residual" value={`${scale.summary.largestResidualBps} bps`} sub="interest events cannot supply" />
             <Metric label="Mainnet RPC calls" value={`${scale.rpcCallsUsed}`} sub={`to block ${scale.latestBlock.toLocaleString("en-US")}`} />
-            <Metric label="End-to-end gas" value={`${e2e.gasTotal}`} sub={`${e2e.chain}, 7 transactions`} />
+            <Metric label="End-to-end gas" value={e2e.gasDisplay ?? "n/a"} sub={`${e2e.chain}, ${e2e.transactions} transactions`} />
           </div>
 
           {/* 1. The finding */}
@@ -308,9 +308,9 @@ export default function MainnetPositionPage() {
           {/* 4. End to end */}
           <SectionTitle n="04">End to end: the same flow the contract runs</SectionTitle>
           <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
-            The engine then values the position through attested prices. Executed across seven transactions
-            on {e2e.chain} using the real mainnet inputs above, then read back from the deployed contracts
-            rather than from the script&apos;s own console output.
+            The engine then values the position through attested prices. Executed across{" "}
+            {e2e.transactions} transactions on {e2e.chain} using the real mainnet inputs above, then read
+            back from the deployed contracts rather than from the script&apos;s own console output.
           </p>
 
           <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
@@ -318,16 +318,19 @@ export default function MainnetPositionPage() {
             <Metric label="Reconciled position" value={e2e.netPositionDisplay ?? "n/a"} sub={scale.assetSymbol} subLiteral />
             <Metric label="Attested ETH/USD" value={e2e.priceDisplay ?? "n/a"} sub={`Chainlink, ${e2e.priceDecimals}dp`} />
             <Metric label="Position value" value={e2e.valueUsdDisplay ?? "n/a"} sub={`at block ${e2e.positionBlock ? Number(e2e.positionBlock).toLocaleString("en-US") : "n/a"}`} />
+            <Metric label="Gas used" value={e2e.gasDisplay ?? "n/a"} sub={`${e2e.transactions} transactions`} />
           </div>
 
           <div className="mt-4 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
             <p className="text-[14px] font-light leading-relaxed text-white/75">
-              The inputs were re-verified against mainnet independently after the run, and one check is
-              worth calling out because it confirms the whole thesis in live data. The position read{" "}
-              <span className="font-mono text-white">{e2e.netPosition}</span> at the snapshot block and reads{" "}
-              <span className="font-mono text-white">{e2e.independentNow}</span> now. That increase is
-              interest accruing in real time, which is precisely the term events can never supply and the
-              reason the design is events for history plus state proofs for the current position.
+              The inputs were re-verified against mainnet independently after the run, and two checks are
+              worth calling out. The anchor block really does hold a zero balance, so coverage starts from
+              a proven point rather than an assumed one. And the attested balance, read at block{" "}
+              <span className="font-mono text-white">{e2e.measureBlock}</span>, returns{" "}
+              <span className="font-mono text-white">{e2e.measuredBalanceDisplay}</span>, which is exactly
+              the value the contract reconciled against. That equality was wrong in an earlier revision of
+              the script, which stamped the balance with a block 97 earlier; the mismatch was found by
+              re-reading the chain rather than by rereading the code.
             </p>
           </div>
 

@@ -77,8 +77,13 @@ contract PositionValuer {
      * @dev    Reverts on a stale or unset price, on an unregistered token, and on an
      *         out-of-range scale factor, because every one of those is a way to
      *         report a confident but wrong net worth.
+     * @dev    Deliberately NOT named `valueOf`. That name collides with
+     *         `Object.prototype.valueOf` in JavaScript, so in ethers v6 the call
+     *         `valuer.valueOf(...)` resolves to the Contract object's own method and
+     *         silently returns the contract instead of performing the call. Found by
+     *         running the verification script, not by reading the Solidity.
      */
-    function valueOf(address account, address token, address feed)
+    function valuationOf(address account, address token, address feed)
         public
         view
         returns (Valuation memory v)
@@ -114,7 +119,7 @@ contract PositionValuer {
         if (tokens.length != feeds.length) revert LengthMismatch(tokens.length, feeds.length);
         parts = new Valuation[](tokens.length);
         for (uint256 i = 0; i < tokens.length; i++) {
-            parts[i] = valueOf(account, tokens[i], feeds[i]);
+            parts[i] = valuationOf(account, tokens[i], feeds[i]);
             netUsd8 += parts[i].valueUsd8;
         }
     }

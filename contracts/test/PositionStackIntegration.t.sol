@@ -43,7 +43,9 @@ contract PositionStackIntegrationTest is Test {
 
     uint64 internal constant MAINNET = 3;
     uint64 internal constant ANCHOR_BLOCK = 25_962_220;
-    uint64 internal constant MEASURE_BLOCK = 25_970_424;
+    // Verified against mainnet with archive eth_call: this is the block at which
+    // aWETH.balanceOf(BORROWER) equals ATTESTED_BALANCE exactly.
+    uint64 internal constant MEASURE_BLOCK = 25_970_521;
     uint64 internal constant PRICE_BLOCK = 25_960_602;
 
     int256 internal constant LEDGER_NET = 433_014_008_378_577_163_575;
@@ -136,7 +138,7 @@ contract PositionStackIntegrationTest is Test {
         assertEq(LEDGER_NET + EXPECTED_RESIDUAL, ATTESTED_BALANCE);
 
         // valuation matches the off-chain computation to the wei
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
         assertEq(v.position, ATTESTED_BALANCE);
         assertEq(v.tokenDecimals, 18);
         assertEq(v.priceDecimals, 8);
@@ -148,7 +150,7 @@ contract PositionStackIntegrationTest is Test {
     ///      ledger alone would have understated it by the interest term.
     function test_EndToEnd_ValueIsAboutOneMillionUsd() public {
         _runFullFlow();
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
         assertEq(v.valueUsd8 / 1e8, 1_086_382); // whole dollars
         assertGt(v.valueUsd8 - (LEDGER_NET * ETH_USD_ANSWER) / 1e18, 0); // interest adds value
     }
@@ -199,7 +201,7 @@ contract PositionStackIntegrationTest is Test {
                 MAX_STALENESS
             )
         );
-        valuer.valueOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
+        valuer.valuationOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
     }
 
     /// @dev The interest term keeps growing in reality: re-measured after the evidence

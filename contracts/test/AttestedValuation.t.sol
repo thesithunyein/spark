@@ -250,7 +250,7 @@ contract AttestedValuationTest is Test {
         _price(ETH_USD, 4_000e8, 8);
         _position(BORROWER, A_WETH, 32_324_944_000_000_000_000);
 
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, A_WETH, ETH_USD);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, A_WETH, ETH_USD);
         assertEq(v.position, 32_324_944_000_000_000_000);
         assertEq(v.valueUsd8, 12_929_977_600_000);
         assertEq(v.tokenDecimals, 18);
@@ -262,7 +262,7 @@ contract AttestedValuationTest is Test {
         _price(USDC_USD, 100_000_000, 8); // $1.00000000
         _position(BORROWER, USDC, 40_015_000_000); // 40,015.00 USDC
 
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, USDC, USDC_USD);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, USDC, USDC_USD);
         assertEq(v.tokenDecimals, 6);
         assertEq(v.valueUsd8, 4_001_500_000_000);
     }
@@ -272,7 +272,7 @@ contract AttestedValuationTest is Test {
         _price(ETH_USD, 4_000e8, 8);
         _position(BORROWER, V_DEBT_WETH, 10_000_000_000_000_000_000); // 10 WETH of debt
 
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, V_DEBT_WETH, ETH_USD);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, V_DEBT_WETH, ETH_USD);
         assertEq(v.position, -10_000_000_000_000_000_000);
         assertEq(v.valueUsd8, -4_000_000_000_000); // -$40,000
     }
@@ -298,7 +298,7 @@ contract AttestedValuationTest is Test {
 
     function test_UnanchoredPositionValuesZero() public {
         _price(ETH_USD, 4_000e8, 8);
-        PositionValuer.Valuation memory v = valuer.valueOf(BORROWER, A_WETH, ETH_USD);
+        PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, A_WETH, ETH_USD);
         assertEq(v.position, 0);
         assertEq(v.valueUsd8, 0);
         assertFalse(posReg.isAnchored(BORROWER, A_WETH));
@@ -314,7 +314,7 @@ contract AttestedValuationTest is Test {
                 AttestedPriceFeed.StalePrice.selector, ETH_USD, MAX_STALENESS + 1, MAX_STALENESS
             )
         );
-        valuer.valueOf(BORROWER, A_WETH, ETH_USD);
+        valuer.valuationOf(BORROWER, A_WETH, ETH_USD);
     }
 
     function test_ValueRevertsOnUnregisteredToken() public {
@@ -322,7 +322,7 @@ contract AttestedValuationTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(MainnetTokenRegistry.TokenNotRegistered.selector, other)
         );
-        valuer.valueOf(BORROWER, other, ETH_USD);
+        valuer.valuationOf(BORROWER, other, ETH_USD);
     }
 
     function test_NetWorthRevertsOnLengthMismatch() public {

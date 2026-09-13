@@ -2,6 +2,8 @@
 END-TO-END EXECUTION - independent read of on-chain state after broadcast
 chain: local anvil 31337 (same script path used for CC3, only --rpc-url differs)
 inputs: REAL Ethereum mainnet data (docs/evidence/position-scale.json)
+note: regenerated after PositionValuer.valueOf was renamed to valuationOf and
+      MEASURE_BLOCK was corrected to the block the balance was actually read at
 ==========================================================================
 
 -- registry.ledgerNet(borrower, aWETH) ......... 433014008378577163575 [4.33e20]
@@ -12,11 +14,26 @@ inputs: REAL Ethereum mainnet data (docs/evidence/position-scale.json)
 
 -- registry.positionOf(borrower, aWETH)
    (ledgerNet, interestResidual, anchorBlock, lastBlock, entries, anchored)
-(433014008378577163575 [4.33e20], 19866464711323197 [1.986e16], 25962220 [2.596e7], 25970424 [2.597e7], 1, true)
+(433014008378577163575 [4.33e20], 19866464711323197 [1.986e16], 25962220 [2.596e7], 25970521 [2.597e7], 1, true)
 
--- valuer.valueOf(borrower, aWETH, ETH/USD aggregator)
+-- valuer.valuationOf(borrower, aWETH, ETH/USD aggregator)
    (token, position, tokenDecimals, price, priceDecimals, valueUsd8, positionBlock)
-(0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8, 433033874843288486772 [4.33e20], 18, 250877010000 [2.508e11], 8, 108638243749398 [1.086e14], 25970424 [2.597e7])
+(0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8, 433033874843288486772 [4.33e20], 18, 250877010000 [2.508e11], 8, 108638243749398 [1.086e14], 25970521 [2.597e7])
+
+==========================================================================
+THE FLOW, in transaction order (from the broadcast artifact)
+==========================================================================
+ 1. MainnetPositionRegistry CREATE
+ 2. MainnetTokenRegistry    CREATE
+ 3. AttestedPriceFeed       CREATE
+ 4. PositionValuer          CREATE
+ 5. MainnetTokenRegistry    registerToken(address,uint8,bytes32,uint8,address,uint64,uint64)
+ 6. MainnetPositionRegistry setZeroAnchor(address,address,uint64,uint64,bytes32)
+ 7. MainnetPositionRegistry ingestLedger(uint64,(address,address,int256,uint64,uint8,bytes32)[])
+ 8. MainnetPositionRegistry reconcile(address,address,int256,uint64,uint64,bytes32)
+ 9. AttestedPriceFeed       submitAnswer(address,int256,uint8,uint64,uint256,uint64,bytes32)
+
+transactions: 9   gasUsed total: 2867388
 
 ==========================================================================
 INDEPENDENT MAINNET VERIFICATION OF THE INPUTS (re-run at write time)
@@ -25,16 +42,8 @@ INDEPENDENT MAINNET VERIFICATION OF THE INPUTS (re-run at write time)
 -- anchor is genuinely zero: aWETH.balanceOf(borrower) at block 25,962,220
    0
 
--- balance at the evidence snapshot block 25,970,424 ... 433033874843288486772 (recorded)
--- balance NOW (interest has accrued since the snapshot):
-   433034158053415566421 [4.33e20]
+-- the attested balance, read at block 25,970,521 (MEASURE_BLOCK)
+   433033874843288486772 [4.33e20]
+   equals the ATTESTED_BALANCE constant in the deploy script: 433033874843288486772
 
--- Chainlink ETH/USD aggregator live answer (8dp)
-   33590 [3.359e4] 250877010000 [2.508e11] 
-
--- the real AnswerUpdated tx that the price sourceBlock refers to
-   block 25,960,602  tx 0x313b02da6198ebd2528536f35f891888607370d928b349d9435a3d2905c34b52
-
--- gas for the whole 7-transaction flow (from the local broadcast)
-   3,782,968 gas total across deploy + register + anchor + ledger + reconcile + price
 ==========================================================================

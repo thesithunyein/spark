@@ -74,24 +74,36 @@ const num = (re) => {
   const m = e2eText.match(re);
   return m ? m[1].trim() : null;
 };
-// The valueOf tuple is the only line that begins with a 0x address, so match it whole
-// rather than fishing for single fields: a loose pattern here silently picked up the
-// anchorBlock from a different tuple.
+// Match each tuple whole, anchored on its own label. Fishing for single fields with loose
+// patterns silently picked up the anchor block from a different tuple during development.
 const valuerTuple = e2eText.match(
-  /valueOf\(borrower, aWETH, ETH\/USD aggregator\)[\s\S]*?\(0x[0-9a-fA-F]{40},\s*(\d+)\s*\[[^\]]+\],\s*(\d+),\s*(\d+)\s*\[[^\]]+\],\s*(\d+),\s*(\d+)\s*\[[^\]]+\],\s*(\d+)/,
+  /valuationOf\(borrower, aWETH[^\n]*\)[\s\S]*?\(0x[0-9a-fA-F]{40},\s*(\d+)\s*\[[^\]]+\],\s*(\d+),\s*(\d+)\s*\[[^\]]+\],\s*(\d+),\s*(\d+)\s*\[[^\]]+\],\s*(\d+)/,
 );
+const positionTuple = e2eText.match(
+  /positionOf\(borrower, aWETH\)[\s\S]*?\((\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+),\s*(true|false)\)/,
+);
+if (!valuerTuple) throw new Error("could not parse the valuation tuple from position-stack-e2e.txt");
+if (!positionTuple) throw new Error("could not parse the position tuple from position-stack-e2e.txt");
 
 const e2e = {
   chain: "local anvil 31337",
   ledgerNet: num(/ledgerNet\(borrower, aWETH\) \.+ (\d+)/),
   netPosition: num(/netPosition\(borrower, aWETH\) \.+ (\d+)/),
-  price: num(/live answer \(8dp\)\s*\n\s*\d+ \[[^\]]+\] (\d+)/),
-  tokenDecimals: valuerTuple?.[2] ?? null,
-  priceDecimals: valuerTuple?.[4] ?? null,
-  valueUsd8: valuerTuple?.[5] ?? null,
-  positionBlock: valuerTuple?.[6] ?? null,
-  gasTotal: num(/^\s*([\d,]+) gas total across/m),
-  independentNow: num(/balance NOW \(interest has accrued since the snapshot\):\s*\n\s*(\d+)/),
+  tokenDecimals: valuerTuple[2],
+  priceDecimals: valuerTuple[4],
+  price: valuerTuple[3],
+  valueUsd8: valuerTuple[5],
+  positionBlock: valuerTuple[6],
+  interestResidual: positionTuple[2],
+  anchorBlock: positionTuple[3],
+  lastLedgerBlock: positionTuple[4],
+  transactions: num(/transactions: (\d+)/),
+  gasTotal: num(/gasUsed total: ([\d,]+)/),
+  // The block the attested balance was actually read at, and the value it returned. These two
+  // must agree, and MEASURE_BLOCK in the deploy script must equal the first.
+  measureBlock: num(/the attested balance, read at block ([\d,]+)/),
+  attestedAtMeasureBlock: num(/the attested balance, read at block [\d,]+ \(MEASURE_BLOCK\)\s*\n\s*(\d+)/),
+  zeroAnchorAtAnchorBlock: num(/anchor is genuinely zero[^\n]*block [\d,]+\s*\n\s*(\d+)/),
 };
 
 // Display strings go through the same helper the wallet rows use, so the page cannot
@@ -99,9 +111,10 @@ const e2e = {
 const e2eDisplay = {
   ledgerDisplay: e2e.ledgerNet ? fixed(e2e.ledgerNet, 18, 4) : null,
   netPositionDisplay: e2e.netPosition ? fixed(e2e.netPosition, 18, 4) : null,
-  independentNowDisplay: e2e.independentNow ? fixed(e2e.independentNow, 18, 4) : null,
   priceDisplay: e2e.price ? `$${(Number(BigInt(e2e.price)) / 1e8).toLocaleString("en-US")}` : null,
   valueUsdDisplay: e2e.valueUsd8 ? `$${Number(BigInt(e2e.valueUsd8) / 100_000_000n).toLocaleString("en-US")}` : null,
+  gasDisplay: e2e.gasTotal ? Number(e2e.gasTotal.replace(/,/g, "")).toLocaleString("en-US") : null,
+  measuredBalanceDisplay: e2e.attestedAtMeasureBlock ? fixed(e2e.attestedAtMeasureBlock, 18, 4) : null,
 };
 
 // ---- Day 4: topic parity ----------------------------------------------------

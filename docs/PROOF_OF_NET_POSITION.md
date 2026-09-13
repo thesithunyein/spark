@@ -163,7 +163,7 @@ archive access.
 
 - **Not yet broadcast to CC3.** The stack does deploy and prove a real mainnet position
   in one command (`contracts/script/ProveMainnetPosition.s.sol`), and that command was
-  **executed end to end against a local chain: 7 transactions**, after which independent
+  **executed end to end against a local chain: 9 transactions**, after which independent
   reads of the deployed contracts returned the real mainnet values. Full transcript:
   `docs/evidence/position-stack-e2e.txt`. What has *not* happened is the CC3 broadcast,
   because this workspace contains no funded deployer key. That step is one command away
@@ -206,9 +206,18 @@ PRIVATE_KEY=$CC3_DEPLOYER_KEY forge script \
   --rpc-url $CREDITCOIN_RPC --broadcast
 ```
 
-Measured on the local run: **3,782,968 gas** for all 7 transactions, and the deployed
+Measured on the local run: **2,867,388 gas used** across 9 transactions, and the deployed
 contracts read back `netPosition = 433033874843288486772` and
-`valueUsd8 = 108638243749398` ($1,086,382) — matching the off-chain computation exactly.
+`valueUsd8 = 108638243749398` ($1,086,382), matching the off-chain computation exactly.
+
+An earlier revision of this document said 7 transactions and 3,782,968 gas. Both were
+wrong: the broadcast artifact lists 9 transactions (4 deploys plus register, anchor, ledger,
+reconcile and price), and 2,867,388 is their measured `gasUsed` sum. The same revision
+stamped the attested balance with block 25,970,424, which is the ledger's last row block;
+archive reads show the balance equals `ATTESTED_BALANCE` at block 25,970,521, and the
+constant has been corrected. That mismatch was found by re-reading the chain, so it is worth
+stating plainly: the numbers in this repo are checked against the chain, not against each
+other.
 
 ## Reproduce
 

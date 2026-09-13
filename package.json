@@ -1,14 +1,12 @@
 {
   "name": "spark",
   "private": true,
-  "version": "0.1.0",
-  "description": "Spark — pay once, unlock credit. Attestcoin-verified payment credit on Creditcoin.",
   "scripts": {
     "dev": "pnpm --dir app dev",
     "build": "pnpm --dir app build",
-    "test:contracts": "cd contracts && forge test"
-  },
-  "engines": {
-    "node": ">=20"
+    "test:contracts": "cd contracts && forge test",
+    "deploy:position": "cd contracts && forge script script/ProveMainnetPosition.s.sol:ProveMainnetPosition --rpc-url https://rpc.cc3-testnet.creditcoin.network --broadcast",
+    "verify:cc3": "cd app && node scripts/verify-cc3-position-stack.mjs",
+    "evidence:regen": "cd app && node scripts/gen-evidence-module.mjs"
   }
 }

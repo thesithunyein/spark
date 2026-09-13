@@ -18,5 +18,6 @@ typechain-types/
 lib/forge-std/
 contracts/lib/
 .env*
+!**/.env.example
 docs/submission.md
 docs/demo-script.md
