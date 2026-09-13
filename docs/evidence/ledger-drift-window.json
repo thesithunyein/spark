@@ -1,0 +1,57 @@
+{
+  "capturedAt": "2026-09-13T18:57:11.302Z",
+  "rpc": "https://rpc.mevblocker.io",
+  "rpcLimits": {
+    "mevblocker": "10,000 blocks per eth_getLogs, 10,000 results, historical eth_call works",
+    "publicnode": "historical logs require a paid token",
+    "drpc": "10,000 blocks then aggressive throttling",
+    "oneRpc": "0-50 block ranges only",
+    "blastapi": "~10 block ranges",
+    "merkle": "no eth_getLogs",
+    "blockscout": "rate-limits sustained use"
+  },
+  "method": {
+    "anchor": "most recent block B with balanceOf(wallet) == 0, via archive eth_call",
+    "ledger": "sum(Transfer to wallet) - sum(Transfer from wallet) on the aToken over [B, latest]",
+    "naive": "sum(Supply) - sum(Withdraw) for the wallet over the same span",
+    "guard": "ledgerDelta must equal balanceOfNow, so a wrong anchor fails loudly",
+    "whyNaiveFails": [
+      "aTokens are transferable, so a position moves without emitting any Aave event",
+      "burns are not 1:1 with Withdraw: liquidations and repayWithATokens reduce aToken balance with no Withdraw event"
+    ]
+  },
+  "asset": {
+    "aToken": "0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8",
+    "pool": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"
+  },
+  "maxLagBlocks": 900000,
+  "reconciled": true,
+  "results": [
+    {
+      "wallet": "0x76f30e3f75437fb862b8d2c4d80a671bceba5b1a",
+      "nonce": 1,
+      "zeroAnchorBlock": 25592380,
+      "latestBlock": 25970442,
+      "blocksCovered": 378062,
+      "chunks": 38,
+      "realBalance": "3",
+      "ledgerNet": "3",
+      "naive": "5113",
+      "ledgerMinusNaive": "-5110",
+      "residual": "0",
+      "breakdown": {
+        "minted": "10841384459147384077781492",
+        "burned": "10841384459147384077781489",
+        "movedIn": "0",
+        "movedOut": "0"
+      },
+      "counts": {
+        "transferCount": 8508,
+        "supplyEvents": 4606,
+        "withdrawEvents": 4909
+      },
+      "ledgerMatchesTruth": true,
+      "naiveMatchesTruth": false
+    }
+  ]
+}

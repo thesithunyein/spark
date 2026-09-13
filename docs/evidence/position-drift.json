@@ -1,0 +1,103 @@
+{
+  "capturedAt": "2026-09-13T18:32:26.711Z",
+  "wallet": "0xb05c9ca8123b6ba84c767c4ee8f9ae66b0733180",
+  "pool": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+  "source": {
+    "explorer": "https://eth.blockscout.com/api",
+    "rpc": "https://ethereum-rpc.publicnode.com"
+  },
+  "totalEvents": 311,
+  "poolTotals": {
+    "collateralBase8": "11638413560066",
+    "debtBase8": "5422810630263",
+    "ltvBps": "7882",
+    "healthFactor": "1748710769793674146"
+  },
+  "reserves": [
+    {
+      "symbol": "WETH",
+      "reserve": "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+      "decimals": 18,
+      "events": {
+        "Supply": 84
+      },
+      "netSupplied": "97389029166589674218",
+      "netBorrowed": "0",
+      "realSupplied": "32324943318836849724",
+      "realDebt": "0",
+      "supplyDrift": "-65064085847752824494",
+      "debtDrift": "0",
+      "supplyDriftPct": "-66.8084%",
+      "debtDriftPct": "0%"
+    },
+    {
+      "symbol": "USDC",
+      "reserve": "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",
+      "decimals": 6,
+      "events": {
+        "Supply": 39,
+        "Withdraw": 23,
+        "Borrow": 70
+      },
+      "netSupplied": "49617428496",
+      "netBorrowed": "191450000000",
+      "realSupplied": "35001526185",
+      "realDebt": "20015626607",
+      "supplyDrift": "-14615902311",
+      "debtDrift": "-171434373393",
+      "supplyDriftPct": "-29.4572%",
+      "debtDriftPct": "-89.5452%"
+    },
+    {
+      "symbol": "WBTC",
+      "reserve": "0x2260fac5e5542a773aa44fbcfedf7c193bc2c599",
+      "decimals": 8,
+      "events": {
+        "Supply": 4,
+        "Withdraw": 2,
+        "Borrow": 11
+      },
+      "netSupplied": "19162246",
+      "netBorrowed": "98400000",
+      "realSupplied": "510834",
+      "realDebt": "44237219",
+      "supplyDrift": "-18651412",
+      "debtDrift": "-54162781",
+      "supplyDriftPct": "-97.3342%",
+      "debtDriftPct": "-55.0435%"
+    },
+    {
+      "symbol": "LINK",
+      "reserve": "0x514910771af9ca656af840dff83e8264ecf986ca",
+      "decimals": 18,
+      "events": {
+        "Supply": 46,
+        "Withdraw": 16
+      },
+      "netSupplied": "-66422064365392684",
+      "netBorrowed": "0",
+      "realSupplied": "0",
+      "realDebt": "0",
+      "supplyDrift": "66422064365392684",
+      "debtDrift": "0",
+      "supplyDriftPct": "-100.0000%",
+      "debtDriftPct": "0%"
+    },
+    {
+      "symbol": "USDT",
+      "reserve": "0xdac17f958d2ee523a2206206994597c13d831ec7",
+      "decimals": 6,
+      "events": {
+        "Borrow": 16
+      },
+      "netSupplied": "0",
+      "netBorrowed": "33300000000",
+      "realSupplied": "0",
+      "realDebt": "0",
+      "supplyDrift": "0",
+      "debtDrift": "-33300000000",
+      "supplyDriftPct": "0%",
+      "debtDriftPct": "-100.0000%"
+    }
+  ]
+}
