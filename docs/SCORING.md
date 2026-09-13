@@ -82,7 +82,7 @@ A borrower with 10 ETH attested balance depositing 1 ETH is more solvent than a 
 
 ### Why this is unique
 
-No other project in this hackathon verifies solvency. Most projects prove a payment happened. Spark proves the borrower can afford the credit.
+Most designs prove that a payment happened and stop there. Spark proves the borrower can afford the credit as well, by attesting the wallet balance at the moment of the decision. That second proof is the reason a borrower with an empty wallet cannot open a line by making one payment.
 
 ---
 

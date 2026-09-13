@@ -116,7 +116,9 @@ Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 a
 | `executeBatch` | Atomic multi-proof verification | Batch N proofs in one tx, all-or-nothing |
 | `getBatchProof` (SDK) | Batch proof generation via @gluwa/usc-sdk | Generate multiple proofs atomically in one SDK call |
 
-**Unique to Spark:** Dual proofs verify both payment AND solvency. The balance attestation (kind 3) proves the borrower holds sufficient funds — no other project in this hackathon verifies solvency.
+**What is distinctive here:** every credit open requires two proofs — one that the payment happened, one that the wallet holds funds at that moment. A single-proof design lets a borrower with an empty wallet open credit by making one payment; the second proof checks the balance at the moment of the decision.
+
+Stated precisely, because the distinction is checkable on chain: the balance claim is verified by the second proof and recorded as `CreditOpened.attestedBalance` and the Sepolia `BalanceAttested` event. The linked-history events (`AttestedPaymentLinked`) observed on chain carry **kind 1 and kind 2**; the `BalanceAttested` event type is present as the solvency input.
 
 Full surface enumeration: [docs/ATTESTCOIN_SURFACE.md](docs/ATTESTCOIN_SURFACE.md). Where the project goes next, and what is honestly not done yet: [docs/ROADMAP.md](docs/ROADMAP.md).
 
@@ -130,7 +132,7 @@ Current solutions have three fundamental flaws:
 2. **Bridges are single points of failure.** Bridges have been drained for billions. Moving assets cross-chain to prove creditworthiness exposes the borrower to bridge exploits.
 3. **Self-reported history is worthless.** A borrower can open and repay their own loan 100 times to build a perfect score. Without a real counterparty, payment history proves nothing.
 
-Spark solves all three by using the **Attestcoin Protocol** to cryptographically verify Sepolia payments on Creditcoin — no oracle, no bridge, no trust. And critically, Spark's **dual proofs** verify not just that a payment happened, but that the borrower **has the funds to cover the credit** (solvency check). No other project in this hackathon verifies solvency.
+Spark solves all three by using the **Attestcoin Protocol** to cryptographically verify Sepolia payments on Creditcoin — no oracle, no bridge, no trust. And critically, Spark's **dual proofs** verify not just that a payment happened, but that the borrower **has the funds to cover the credit** (solvency check), so a single forged or hollow payment is not enough to open a line.
 
 ## What it is
 

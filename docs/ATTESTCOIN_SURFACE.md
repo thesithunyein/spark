@@ -139,7 +139,7 @@ Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 a
 
 ## 4. Attested Event Kinds
 
-Spark attests **three distinct data types** from Sepolia — more than any other project in this hackathon:
+Spark attests **three distinct data types** from Sepolia, and a credit open depends on two of them at once:
 
 | Kind | Event | Data Attested | Purpose |
 |---|---|---|---|
@@ -147,7 +147,9 @@ Spark attests **three distinct data types** from Sepolia — more than any other
 | **2** | `RepaymentPaid(address,uint256,bytes32)` | Repayment amount | Proves user repaid debt |
 | **3** | `BalanceAttested(address,uint256,bytes32)` | ETH balance | Proves user has sufficient funds |
 
-**Kind 3 is unique to Spark.** No other project in this hackathon attests a second data type (balance) alongside payment. This is the solvency check — it verifies the borrower actually holds funds, not just that they made a payment.
+**Kind 3 is the solvency check.** It attests a second data type (balance) alongside the payment, so the protocol verifies the borrower actually holds funds rather than only that they made a payment. Most designs stop at the payment.
+
+One precision worth having: the balance claim is verified by the second proof and recorded as `CreditOpened.attestedBalance` and the Sepolia `BalanceAttested` event. The `AttestedPaymentLinked` history events observed on chain carry kind 1 and kind 2.
 
 ---
 
