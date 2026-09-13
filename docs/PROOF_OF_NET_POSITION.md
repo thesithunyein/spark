@@ -161,10 +161,14 @@ archive access.
 
 ## Honest limits
 
-- **Nothing here is deployed.** The five contracts are built and tested locally; they
-  are not on CC3 testnet, and no mainnet position has been proven on-chain end to end.
-  Day 1 proved a real Ethereum mainnet transaction into `chainKey 3`, but through the
-  prover API, not by submitting it to a deployed registry.
+- **Not yet broadcast to CC3.** The stack does deploy and prove a real mainnet position
+  in one command (`contracts/script/ProveMainnetPosition.s.sol`), and that command was
+  **executed end to end against a local chain: 7 transactions**, after which independent
+  reads of the deployed contracts returned the real mainnet values. Full transcript:
+  `docs/evidence/position-stack-e2e.txt`. What has *not* happened is the CC3 broadcast,
+  because this workspace contains no funded deployer key. That step is one command away
+  and is the deployer's to run; until it runs, treat the on-chain proof as
+  locally-executed rather than testnet-live.
 - **The scale sample is aETHWETH only**, 8 wallets, and it selects recent depositors.
   Other reserves, other protocols, and long-lived positions are not covered.
 - **6 candidates were skipped for zero balance and several for having no provable-zero
@@ -182,15 +186,43 @@ archive access.
 
 ---
 
+## Deploy and prove in one command
+
+`script/ProveMainnetPosition.s.sol` performs the whole flow as separate transactions:
+deploy the four contracts, register aEthWETH as an attested asset, anchor at a
+provably-zero balance, ingest the real token ledger, reconcile against the real attested
+balance, submit the real Chainlink answer, and read back the net worth.
+
+```bash
+# Against a local chain (what was executed and recorded here):
+cd contracts
+PRIVATE_KEY=<any funded dev key> forge script \
+  script/ProveMainnetPosition.s.sol:ProveMainnetPosition \
+  --rpc-url http://127.0.0.1:8545 --broadcast
+
+# Against CC3 testnet (needs a funded key; this step has NOT been run):
+PRIVATE_KEY=$CC3_DEPLOYER_KEY forge script \
+  script/ProveMainnetPosition.s.sol:ProveMainnetPosition \
+  --rpc-url $CREDITCOIN_RPC --broadcast
+```
+
+Measured on the local run: **3,782,968 gas** for all 7 transactions, and the deployed
+contracts read back `netPosition = 433033874843288486772` and
+`valueUsd8 = 108638243749398` ($1,086,382) — matching the off-chain computation exactly.
+
 ## Reproduce
 
 ```bash
-cd contracts && forge test                    # 367 tests, 0 failures
+cd contracts && forge test                    # 373 tests, 0 failures
 
 cd ../app
 node scripts/protocol-topics.mjs              # topic parity + negative controls
 WALLET=0x76f30e3f75437fb862b8d2c4d80a671bceba5b1a node scripts/aave-drift-window.mjs
 node scripts/position-scale.mjs               # 8 wallets, reconciliation stats
 ```
+
+And the end-to-end execution transcript, with the independent on-chain reads and the
+mainnet re-verification of every input, is committed at
+`docs/evidence/position-stack-e2e.txt`.
 
 All read-only: no keys, no gas, no transactions.

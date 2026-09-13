@@ -34,7 +34,7 @@
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
 
-**1. Contract suite: 367 tests, 0 failures**
+**1. Contract suite: 373 tests, 0 failures**
 
 ```bash
 npm run test:contracts          # or: cd contracts && forge test
@@ -68,6 +68,16 @@ cd app && node scripts/position-scale.mjs
 ```
 
 Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer** — movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md).
+
+**5. Prove a real mainnet position across 7 transactions (one command)**
+
+```bash
+cd contracts && PRIVATE_KEY=<funded dev key> forge script \
+  script/ProveMainnetPosition.s.sol:ProveMainnetPosition \
+  --rpc-url http://127.0.0.1:8545 --broadcast
+```
+
+Deploys the position stack, anchors at a provably-zero mainnet balance, ingests the real token ledger, reconciles against the real attested balance, and submits the real Chainlink answer — then reads the net worth back off-chain-verified. Executed end to end against a local chain; independent reads of the deployed contracts returned `netPosition = 433033874843288486772` and **$1,086,382** of proven net worth. Transcript: [docs/evidence/position-stack-e2e.txt](docs/evidence/position-stack-e2e.txt). Not yet broadcast to CC3 (no funded key in this workspace).
 
 **What is different here:** two BlockProver proofs on every credit open (payment + solvency), and strict receipt RLP decoding in which a decoded amount that differs from the claim **reverts**. That path is proven by crafted-receipt tests in [contracts/test/VerifierStrict.t.sol](contracts/test/VerifierStrict.t.sol); the bug it replaced is documented in [SECURITY_FINDINGS.md](SECURITY_FINDINGS.md).
 
@@ -287,10 +297,13 @@ spark/
     │   ├── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
     │   ├── VerifierStrict.t.sol      # 6 tests: strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
     │   ├── MainnetPositionRegistry.t.sol # 30 tests: anchor rule, ordering, replay, residual bound, Day 2 regressions
-    │   └── AttestedValuation.t.sol   # 31 tests: prices, token metadata, net worth, topic parity
+    │   ├── AttestedValuation.t.sol   # 31 tests: prices, token metadata, net worth, topic parity
+    │   └── PositionStackIntegration.t.sol # 6 tests: full stack, exact real mainnet numbers
     │
     ├── script/
-    │   └── Deploy.s.sol
+    │   ├── Deploy.s.sol
+    │   ├── NegativePathLive.s.sol     # 8 forged proofs vs the live 0x0FD2 precompile
+    │   └── ProveMainnetPosition.s.sol # one command: deploy stack + prove a real mainnet position
     │
     └── scripts/
         ├── deploy-all.sh
