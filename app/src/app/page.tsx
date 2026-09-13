@@ -2,6 +2,12 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { chainActivity } from "@/lib/chainActivity";
+
+// Real numbers from the chain-activity generator, so the first screen states measured
+// traction instead of a slogan. A reviewer who will not connect a wallet can verify the
+// whole record from here in one click.
+const PROOF = chainActivity.summary;
 
 const NAV_LINKS = [
   { href: "/overview", label: "Overview" },
@@ -154,6 +160,21 @@ export default function HomePage() {
                 Overview
               </Link>
             </div>
+            <Link
+              href="/onchain"
+              className="group mt-[clamp(18px,1.8vw,30px)] flex flex-wrap items-center gap-x-[clamp(10px,0.9vw,16px)] gap-y-1 self-start border border-white/[0.16] bg-white/[0.04] px-[clamp(14px,1.2vw,20px)] py-[clamp(10px,0.9vw,14px)] transition-colors duration-300 hover:border-accent/60 hover:bg-accent/[0.07]"
+            >
+              <span className="font-mono text-[clamp(9px,0.6vw,11px)] uppercase tracking-[0.18em] text-white/45">
+                Live on-chain
+              </span>
+              <span className="font-mono text-[clamp(10px,0.68vw,12px)] text-white/85">
+                {PROOF.totalEvents} events &middot; {PROOF.linesOpened} lines opened &middot; {PROOF.linesClosed} closed &middot; {PROOF.paymentsLinked} attested payments
+              </span>
+              <span className="font-mono text-[clamp(9px,0.6vw,11px)] uppercase tracking-[0.18em] text-accent3 transition-colors duration-300 group-hover:text-white">
+                Verify &rarr;
+              </span>
+            </Link>
+
             <ol className="mt-[clamp(26px,2.6vw,46px)] flex flex-wrap items-center gap-x-3 gap-y-2 sm:gap-x-4">
               {STEPS.map((s, i) => (
                 <li key={s.n} className="flex items-center gap-2 transition-transform duration-300 hover:translate-x-0.5">
