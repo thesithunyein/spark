@@ -1,0 +1,147 @@
+{
+  "capturedAt": "2026-09-13T19:13:26.441Z",
+  "rpc": "https://rpc.mevblocker.io",
+  "asset": {
+    "aToken": "0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8",
+    "symbol": "aEthWETH"
+  },
+  "params": {
+    "latestBlock": 25970521,
+    "maxLag": 300000,
+    "target": 8,
+    "minMintWei": "10000000000000000",
+    "chunk": 10000
+  },
+  "method": {
+    "anchor": "most recent block within maxLag where balanceOf(wallet) == 0, via archive eth_call",
+    "ledger": "sum(Transfer to wallet) - sum(Transfer from wallet) on the aToken, from anchor to latest",
+    "residual": "balanceOf - ledger, i.e. rebasing interest that events cannot supply"
+  },
+  "skipped": {
+    "noZeroAnchor": 23,
+    "zeroBalance": 6
+  },
+  "rpcCallsUsed": 295,
+  "summary": {
+    "tested": 8,
+    "ledgerMatchesExactly": 0,
+    "ledgerWithin10Bps": 8,
+    "largestResidualBps": 0.51,
+    "withPeerToPeerMovement": 1,
+    "finding": "The ledger understates a live position by a small positive residual on every wallet measured, because interest rebases into the aToken between events. Exact equality is therefore not the acceptance criterion; the residual magnitude is, and it is what the on-chain interestResidual bound encodes."
+  },
+  "wallets": [
+    {
+      "wallet": "0xc79b6416bd17446f930d32a7b78cf60d35a12be7",
+      "mintedInWindow": "2163016571080238220746",
+      "anchorBlock": 25965907,
+      "blocksCovered": 4614,
+      "chunks": 1,
+      "balance": "2163071600194188204912",
+      "ledgerNet": "2163016571080238220746",
+      "residual": "55029113949984166",
+      "residualBps": 0.25,
+      "p2pMoved": "0",
+      "transferCount": 1,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x800f859490d9f0652a83027f832f55a5a13d955f",
+      "mintedInWindow": "602600157606450062413",
+      "anchorBlock": 25961145,
+      "blocksCovered": 9376,
+      "chunks": 1,
+      "balance": "602631072122434123647",
+      "ledgerNet": "602600157606450062413",
+      "residual": "30914515984061234",
+      "residualBps": 0.51,
+      "p2pMoved": "0",
+      "transferCount": 2,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x0cc688bf78bdcc3c072903100b2b821cc8d7d666",
+      "mintedInWindow": "433014008378577163575",
+      "anchorBlock": 25962220,
+      "blocksCovered": 8301,
+      "chunks": 1,
+      "balance": "433033874843288486772",
+      "ledgerNet": "433014008378577163575",
+      "residual": "19866464711323197",
+      "residualBps": 0.45,
+      "p2pMoved": "0",
+      "transferCount": 1,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x921772c54f47c3eda7c6c726b4ab5ef2c94c6867",
+      "mintedInWindow": "176994696463913821604",
+      "anchorBlock": 25963305,
+      "blocksCovered": 7216,
+      "chunks": 1,
+      "balance": "177000949039421616693",
+      "ledgerNet": "176994696463913821604",
+      "residual": "6252575507795089",
+      "residualBps": 0.35,
+      "p2pMoved": "0",
+      "transferCount": 4,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x903fd6b5142ee05b0db58f0f998502f69804caae",
+      "mintedInWindow": "122000066902165719987",
+      "anchorBlock": 25852998,
+      "blocksCovered": 117523,
+      "chunks": 12,
+      "balance": "122002003860369164385",
+      "ledgerNet": "122000066902165719990",
+      "residual": "1936958203444395",
+      "residualBps": 0.15,
+      "p2pMoved": "-288490053027774722816",
+      "transferCount": 20,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x47200b9bf1cd27163d9eea0ab76337c6781731f3",
+      "mintedInWindow": "44999999999999999998",
+      "anchorBlock": 25963262,
+      "blocksCovered": 7259,
+      "chunks": 1,
+      "balance": "45001804319487647760",
+      "ledgerNet": "44999999999999999998",
+      "residual": "1804319487647762",
+      "residualBps": 0.4,
+      "p2pMoved": "0",
+      "transferCount": 1,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x1170b8ce6e19c23c716385521a88e30d5baea37c",
+      "mintedInWindow": "34999999999999999999",
+      "anchorBlock": 25962338,
+      "blocksCovered": 8183,
+      "chunks": 1,
+      "balance": "35001582777551762353",
+      "ledgerNet": "34999999999999999999",
+      "residual": "1582777551762354",
+      "residualBps": 0.45,
+      "p2pMoved": "0",
+      "transferCount": 1,
+      "ledgerMatchesExactly": false
+    },
+    {
+      "wallet": "0x25f46456383a5038e93aae660647e7f2afe6ee51",
+      "mintedInWindow": "24619172745302794820",
+      "anchorBlock": 25795097,
+      "blocksCovered": 175424,
+      "chunks": 18,
+      "balance": "274777435297244704833",
+      "ledgerNet": "274774871592611734757",
+      "residual": "2563704632970076",
+      "residualBps": 0.09,
+      "p2pMoved": "0",
+      "transferCount": 10,
+      "ledgerMatchesExactly": false
+    }
+  ]
+}

@@ -34,7 +34,7 @@
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
 
-**1. Contract suite: 306 tests, 0 failures**
+**1. Contract suite: 367 tests, 0 failures**
 
 ```bash
 npm run test:contracts          # or: cd contracts && forge test
@@ -60,6 +60,14 @@ Eight forged proofs (forged merkle root, wrong chain key, zero height, empty enc
 | Loop 2, Aug 14, 95% LTV | [0xbbec27e6...](https://creditcoin-testnet.blockscout.com/tx/0xbbec27e622b18d21bdedb24fabc072041aa0fe3ad7419b952a1e2b8754bba618) | [0x5fc0b4fb...](https://creditcoin-testnet.blockscout.com/tx/0x5fc0b4fb25493606c451ef46a1dfad0a2eab775f558b2b6820b3e1a2e723e122) |
 
 On-chain `creditScore()` = **850** (650 + 5 x 40). Artifacts: [docs/evidence/README.md](docs/evidence/README.md) · Gas benchmarks: [docs/evidence/gas.md](docs/evidence/gas.md) · Deck: [deck.pdf](https://spark.sithunyein.com/deck.pdf)
+
+**4. Reconstruction is measured, not asserted (read-only, zero cost)**
+
+```bash
+cd app && node scripts/position-scale.mjs
+```
+
+Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer** — movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md).
 
 **What is different here:** two BlockProver proofs on every credit open (payment + solvency), and strict receipt RLP decoding in which a decoded amount that differs from the claim **reverts**. That path is proven by crafted-receipt tests in [contracts/test/VerifierStrict.t.sol](contracts/test/VerifierStrict.t.sol); the bug it replaced is documented in [SECURITY_FINDINGS.md](SECURITY_FINDINGS.md).
 
@@ -164,6 +172,7 @@ spark/
 │   ├── ATTESTCOIN_SURFACE.md         # Every Attestcoin surface Spark uses, why needed
 │   ├── THREAT_MODEL.md               # What attacks are prevented, what is still open
 │   ├── SCORING.md                    # Credit score formula, LTV bonus, constants rationale
+│   ├── PROOF_OF_NET_POSITION.md      # Net-position primitive: design + measured evidence
 │   ├── evidence/                     # On-chain proof artifacts
 │   ├── deck.md                       # Pitch deck notes
 │   └── deploy-vercel.md              # Vercel deploy (root dir = app)
@@ -192,6 +201,14 @@ spark/
 │   │       ├── logo-wordmark-dark.svg
 │   │       ├── logo-wordmark-light.svg
 │   │       └── metamask.png
+│   │
+│   ├── scripts/                      # Read-only evidence scripts (no keys, no gas)
+│   │   ├── spike-mainnet.mjs         # Day 1: prove a real mainnet tx into chainKey 3
+│   │   ├── spike-position.mjs        # Day 1: extract fields from the proven EvmV1 payload
+│   │   ├── aave-indexer.mjs          # Day 2: explorer-based event index + drift
+│   │   ├── aave-drift-window.mjs     # Day 2: anchored ledger vs Aave-event reconciliation
+│   │   ├── protocol-topics.mjs       # Day 4: topic parity + negative controls
+│   │   └── position-scale.mjs        # Day 5: reconciliation across many wallets
 │   │
 │   └── src/
 │       ├── styles/
@@ -258,12 +275,19 @@ spark/
     │   ├── AttestcoinPaymentVerifier.sol
     │   ├── SparkCredit.sol           # sCREDIT ERC-20
     │   ├── MockPaymentVerifier.sol   # Unit tests only
+    │   ├── MainnetPositionRegistry.sol  # Ledger net position, proven-zero anchor, capped interest
+    │   ├── AttestedPriceFeed.sol     # BlockProver-verified Chainlink AnswerUpdated
+    │   ├── MainnetTokenRegistry.sol  # Attested mainnet decimals + asset/liability
+    │   ├── PositionValuer.sol        # Signed USD net worth (8dp base units)
+    │   ├── MainnetTopics.sol         # Mainnet topic constants + verification status
     │   └── interfaces/
     │       └── IPaymentVerifier.sol
     │
     ├── test/
     │   ├── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
-    │   └── VerifierStrict.t.sol      # 6 tests: strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
+    │   ├── VerifierStrict.t.sol      # 6 tests: strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
+    │   ├── MainnetPositionRegistry.t.sol # 30 tests: anchor rule, ordering, replay, residual bound, Day 2 regressions
+    │   └── AttestedValuation.t.sol   # 31 tests: prices, token metadata, net worth, topic parity
     │
     ├── script/
     │   └── Deploy.s.sol

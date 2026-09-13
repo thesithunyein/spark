@@ -1,0 +1,165 @@
+{
+  "capturedAt": "2026-09-13T19:05:22.045Z",
+  "rpc": "https://rpc.mevblocker.io",
+  "window": {
+    "fromBlock": 25960492,
+    "toBlock": 25970491,
+    "blocks": 10000
+  },
+  "chainlink": {
+    "proxy": "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+    "aggregator": "0x7d4E742018fb52E48b08BE73d041C18B21de6Fb5",
+    "finding": "AnswerUpdated is emitted by the aggregator, not the proxy. The proxy returned 0 logs and the aggregator returned 36 in the same window, so an implementation that attests the proxy proves no price while appearing to succeed."
+  },
+  "note": "A zero count means the topic did not match in this window; it does not by itself prove the signature is wrong. The negative controls exist to show that a genuine mismatch returns a clean zero.",
+  "allDeclaredConfirmed": true,
+  "negativeControlsAllZero": true,
+  "topics": [
+    {
+      "name": "Aave v3 Supply",
+      "contract": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "signature": "Supply(address,address,address,uint256,uint16)",
+      "topic0": "0x2b627736bca15cd5381dcf80b0bf11fd197d01a037c52b927a881a10fb73ba61",
+      "declaredVerified": true,
+      "logsInWindow": 1845,
+      "sampleTx": "0x1b75965a9ab3662d901d3a526b76360b9eec48ccac8653e7ed96b4622b1df5c9",
+      "sampleBlock": 25960496,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Aave v3 Withdraw",
+      "contract": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "signature": "Withdraw(address,address,address,uint256)",
+      "topic0": "0x3115d1449a7b732c986cba18244e897a450f61e1bb8d589cd2e69e6c8924f9f7",
+      "declaredVerified": true,
+      "logsInWindow": 1927,
+      "sampleTx": "0xc177551db11dd4e44a6d7fcc21225c3ef3258bb598e25cf6ec450b6aa619bb8a",
+      "sampleBlock": 25960492,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Aave v3 Borrow",
+      "contract": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "signature": "Borrow(address,address,address,uint256,uint8,uint256,uint16)",
+      "topic0": "0xb3d084820fb1a9decffb176436bd02558d15fac9b0ddfed8c465bc7359d7dce0",
+      "declaredVerified": true,
+      "logsInWindow": 1197,
+      "sampleTx": "0xe8eb4ebbfe382854bb07b93dc90fb292ae2d7989542dd340ef54732d6b62f263",
+      "sampleBlock": 25960509,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Aave v3 Repay",
+      "contract": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+      "signature": "Repay(address,address,address,uint256,bool)",
+      "topic0": "0xa534c8dbe71f871f9f3530e97a74601fea17b426cae02e1c5aee42c96c784051",
+      "declaredVerified": true,
+      "logsInWindow": 953,
+      "sampleTx": "0xc177551db11dd4e44a6d7fcc21225c3ef3258bb598e25cf6ec450b6aa619bb8a",
+      "sampleBlock": 25960492,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "ERC20 Transfer (aWETH)",
+      "contract": "0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8",
+      "signature": "Transfer(address,address,uint256)",
+      "topic0": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+      "declaredVerified": true,
+      "logsInWindow": 2486,
+      "sampleTx": "0x41623f0166f7b905c8a23361baa74339e0c9d8283dcbe2a7f1ddd11676d2cdc5",
+      "sampleBlock": 25960499,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Chainlink AnswerUpdated (aggregator)",
+      "contract": "0x7d4E742018fb52E48b08BE73d041C18B21de6Fb5",
+      "signature": "AnswerUpdated(int256,uint256,uint256)",
+      "topic0": "0x0559884fd3a460db3073b7fc896cc77986f16e378210ded43186175bf646fc5f",
+      "declaredVerified": true,
+      "logsInWindow": 36,
+      "sampleTx": "0x313b02da6198ebd2528536f35f891888607370d928b349d9435a3d2905c34b52",
+      "sampleBlock": 25960602,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Comet Supply",
+      "contract": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
+      "signature": "Supply(address,address,uint256)",
+      "topic0": "0xd1cf3d156d5f8f0d50f6c122ed609cec09d35c9b9fb3fff6ea0959134dae424e",
+      "declaredVerified": false,
+      "logsInWindow": 9,
+      "sampleTx": "0x3d8d5954829e44e9a6f1bea069598d112d4dfc73d08b323bb16e2e09eddc1a3b",
+      "sampleBlock": 25963018,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Comet Withdraw",
+      "contract": "0xA17581A9E3356d9A858b789D68B4d866e593aE94",
+      "signature": "Withdraw(address,address,uint256)",
+      "topic0": "0x9b1bfa7fa9ee420a16e124f794c35ac9f90472acc99140eb2f6447c714cad8eb",
+      "declaredVerified": false,
+      "logsInWindow": 1,
+      "sampleTx": "0x9eea00ac71cc8391e25e377520fabade02fc2961bdaf06bda8da0cab98fe0bc3",
+      "sampleBlock": 25969847,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Morpho SupplyCollateral",
+      "contract": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+      "signature": "SupplyCollateral(bytes32,address,address,uint256)",
+      "topic0": "0xa3b9472a1399e17e123f3c2e6586c23e504184d504de59cdaa2b375e880c6184",
+      "declaredVerified": false,
+      "logsInWindow": 320,
+      "sampleTx": "0x5c18b4dae1f80bbaf91b11380015a0192fd6f511dc9a98a39010bb9f00704e94",
+      "sampleBlock": 25960507,
+      "confirmed": true,
+      "error": null
+    },
+    {
+      "name": "Morpho WithdrawCollateral",
+      "contract": "0xBBBBBbbBBb9cC5e90e3b3Af64bdAF62C37EEFFCb",
+      "signature": "WithdrawCollateral(bytes32,address,address,uint256)",
+      "topic0": "0x4399bc0ae3be973108148592005d45363dc56a16b0f4a208aecc66c79b0660af",
+      "declaredVerified": false,
+      "logsInWindow": 0,
+      "sampleTx": null,
+      "sampleBlock": null,
+      "confirmed": false,
+      "error": null
+    }
+  ],
+  "negativeControls": [
+    {
+      "name": "wrong Supply shape vs Aave Pool",
+      "signature": "Supply(address,address,address,uint256)",
+      "topic0": "0x4f7857497e115bb4e8acd8d9f7382eb4c159d874838d6368099523ab6ef9f631",
+      "logsInWindow": 0,
+      "error": null,
+      "correct": true
+    },
+    {
+      "name": "wrong AnswerUpdated arity vs aggregator",
+      "signature": "AnswerUpdated(int256,uint256)",
+      "topic0": "0xc379d0e412d8792cf238c6c045bafec46b2bdad53a28ee4abce236ac6145ae84",
+      "logsInWindow": 0,
+      "error": null,
+      "correct": true
+    },
+    {
+      "name": "AnswerUpdated vs the PROXY (emits nothing)",
+      "signature": "AnswerUpdated(int256,uint256,uint256)",
+      "topic0": "0x0559884fd3a460db3073b7fc896cc77986f16e378210ded43186175bf646fc5f",
+      "logsInWindow": 0,
+      "error": null,
+      "correct": true
+    }
+  ]
+}
