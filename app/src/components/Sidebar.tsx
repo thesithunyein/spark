@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Undo2, List, CircleHelp, Settings, X, BadgeCheck } from "lucide-react";
+import { LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Undo2, List, CircleHelp, Settings, X, BadgeCheck, Blocks } from "lucide-react";
 import { Logo } from "./Logo";
 
 const items = [
@@ -14,7 +14,8 @@ const items = [
   { href: "/transfer", label: "Send & Receive", icon: ArrowLeftRight },
   { href: "/repay", label: "Repay", icon: Undo2 },
   { href: "/activity", label: "Payments", icon: List },
-  { href: "/bonus", label: "Aave V3 (mock)", icon: BadgeCheck },
+  { href: "/onchain", label: "On-chain record", icon: Blocks },
+  { href: "/bonus", label: "Aave V3 position", icon: BadgeCheck },
   { href: "/help", label: "Help", icon: CircleHelp },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

@@ -59,9 +59,21 @@ Eight forged proofs (forged merkle root, wrong chain key, zero height, empty enc
 | Loop 1, Aug 13, 90% LTV | [0xe5ec5506...](https://creditcoin-testnet.blockscout.com/tx/0xe5ec5506ccdc54851e6c08674b2649d7efa1033220ef768dcc0583f1bf1da9c1) | [0x5092e516...](https://creditcoin-testnet.blockscout.com/tx/0x5092e5165c0fedaf85b53a8c20b9710d4b60a97b3ccaa3e815ec5fda42c18eb4) |
 | Loop 2, Aug 14, 95% LTV | [0xbbec27e6...](https://creditcoin-testnet.blockscout.com/tx/0xbbec27e622b18d21bdedb24fabc072041aa0fe3ad7419b952a1e2b8754bba618) | [0x5fc0b4fb...](https://creditcoin-testnet.blockscout.com/tx/0x5fc0b4fb25493606c451ef46a1dfad0a2eab775f558b2b6820b3e1a2e723e122) |
 
-On-chain `creditScore()` = **850** (650 + 5 x 40). Artifacts: [docs/evidence/README.md](docs/evidence/README.md) · Gas benchmarks: [docs/evidence/gas.md](docs/evidence/gas.md) · Deck: [deck.pdf](https://spark.sithunyein.com/deck.pdf)
+On-chain `creditScore()` = **850**, which is the cap: 650 plus 40 per linked payment, and **6** payments are linked, so the score is clamped rather than exactly derived. Artifacts: [docs/evidence/README.md](docs/evidence/README.md) · Gas benchmarks: [docs/evidence/gas.md](docs/evidence/gas.md) · Deck: [deck.pdf](https://spark.sithunyein.com/deck.pdf)
 
-**4. Reconstruction is measured, not asserted (read-only, zero cost)**
+**4. The whole on-chain record, with no wallet (read-only, zero cost)**
+
+[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) renders all **46 events** the deployed contracts have emitted, across both chains, oldest first, each row linking to its Blockscout entry. No wallet, no sign-in, nothing to take on trust.
+
+The page leads with its own scope rather than burying it: **every one of those 46 events came from a single wallet.** One wallet is enough to prove the loop works end to end; it is not enough to prove a market exists, and the page says so in its own words. Measured, not asserted: **4 credit lines opened, 2 closed, 6 attested payments linked, 0.0175 ETH of credit drawn, 6 Sepolia deposits, 5 repayments, 9 balance attestations.** Rows are generated from chain reads into a typed module, so the page cannot drift from the chain:
+
+```bash
+npm run activity:regen          # or: cd app && node scripts/gen-chain-activity.mjs
+```
+
+This exists because the product's own history was invisible: `/activity` is scoped to the connected address, so a reviewer with a fresh wallet saw an empty product. It should not have worked that way.
+
+**5. Reconstruction is measured, not asserted (read-only, zero cost)**
 
 ```bash
 cd app && node scripts/position-scale.mjs
@@ -69,7 +81,7 @@ cd app && node scripts/position-scale.mjs
 
 Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer**, movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md). Same evidence rendered live, regenerated from these artifacts so the page cannot drift from the data: [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus).
 
-**5. Prove a real mainnet position and size credit from it, 10 transactions (one command)**
+**6. Prove a real mainnet position and size credit from it, 10 transactions (one command)**
 
 ```bash
 cd contracts && PRIVATE_KEY=<funded dev key> forge script \
@@ -220,7 +232,10 @@ spark/
 │   │   ├── aave-indexer.mjs          # Day 2: explorer-based event index + drift
 │   │   ├── aave-drift-window.mjs     # Day 2: anchored ledger vs Aave-event reconciliation
 │   │   ├── protocol-topics.mjs       # Day 4: topic parity + negative controls
-│   │   └── position-scale.mjs        # Day 5: reconciliation across many wallets
+│   │   ├── position-scale.mjs        # Day 5: reconciliation across many wallets
+│   │   ├── gen-evidence-module.mjs   # Renders the mainnet evidence into a typed module
+│   │   ├── gen-chain-activity.mjs    # Reads every deployed event into a typed module
+│   │   └── verify-cc3-position-stack.mjs # Reads CC3 back and asserts it against mainnet facts
 │   │
 │   └── src/
 │       ├── styles/
@@ -236,6 +251,8 @@ spark/
 │       │   ├── transfer/page.tsx     # Send & receive sCREDIT
 │       │   ├── repay/page.tsx        # Sepolia repay + verify + close
 │       │   ├── activity/page.tsx     # Payment journal (sidebar: Payments)
+│       │   ├── onchain/page.tsx       # Public on-chain record, no wallet required
+│       │   ├── bonus/page.tsx        # Mainnet position proof (measured evidence)
 │       │   ├── help/page.tsx         # User guide
 │       │   ├── settings/page.tsx     # Wallet, networks, security
 │       │   └── advanced/page.tsx     # Developer / contract links
@@ -272,6 +289,8 @@ spark/
 │           ├── chains.ts             # ensureCreditcoinChain / ensureSepoliaChain
 │           ├── errors.ts             # friendlyError messages
 │           ├── flowState.ts          # sessionStorage pay/repay resume
+│           ├── mainnetEvidence.ts    # GENERATED: measured mainnet facts
+│           ├── chainActivity.ts      # GENERATED: every deployed event, with tx hashes
 │           └── format.ts             # ETH formatting, proof encoding
 │
 └── contracts/                        # Foundry

@@ -6,10 +6,12 @@ that starts from an inflated present is worthless to the person reading it.
 ## Where Spark actually is
 
 **Live and working.** A user pays on Sepolia, two Attestcoin proofs verify the deposit event
-and the wallet balance, and credit opens on Creditcoin. Three credit lines have been opened on
-the deployed contracts and two complete loops have been closed. On-chain `creditScore()` reads
-850. Contract suite is 396 tests, 0 failures. The BlockProver precompile rejects all eight
-forged-proof scenarios we throw at it, read-only and free to re-run.
+and the wallet balance, and credit opens on Creditcoin. Four credit lines have been opened
+across the two deployed `CreditLine` contracts and two complete loops have been closed. That
+record is public, wallet-free and independently verifiable: 46 events, every one linking to
+Blockscout, at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain). On-chain
+`creditScore()` reads 850. Contract suite is 396 tests, 0 failures. The BlockProver precompile
+rejects all eight forged-proof scenarios we throw at it, read-only and free to re-run.
 
 **Measured but not deployed.** The mainnet position engine reconstructs a real Aave V3 position
 from the aToken Transfer ledger, anchored at a provably-zero block, and values it through
@@ -17,9 +19,10 @@ attested Chainlink prices. Eight real mainnet wallets reconcile within 0.51 bps.
 executed end to end on a local chain with real mainnet data and read back from the deployed
 contracts, but it has **not** been broadcast to CC3.
 
-**Not started.** Real user acquisition. Measured distinct wallets that have used the product is
-in the single digits. This is the weakest part of the project and no amount of protocol depth
-fixes it.
+**Not started.** Real user acquisition. The on-chain record is unambiguous about this: every
+one of the 46 events was produced by a **single wallet**. One wallet can prove a loop works; it
+cannot prove a market exists. This is the weakest part of the project and no amount of protocol
+depth fixes it, which is why it is written here rather than left for a judge to discover.
 
 ## The thesis
 

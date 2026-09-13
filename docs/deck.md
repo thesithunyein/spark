@@ -60,7 +60,7 @@ Credit sizing needs history elsewhere and proof of cover, so we rebuilt real Aav
 ## Slide 7 — Traction
 Two full closed loops on-chain with real USC proofs.
 - 2 full closed loops: Open → Withdraw → Redeem → Repay → Close
-- 5 attested payments on-chain credit history
+- 6 attested payments on-chain credit history
 - Credit score 850 (max possible)
 - LTV 95% (base 90% + 5% history bonus)
 - All proofs are real Attestcoin USC proofs verified by BlockProver

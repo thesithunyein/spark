@@ -33,7 +33,7 @@ Proof artifacts from live testnet deployment. Every claim is verifiable on Block
 
 ## Score Record
 
-5 AttestedPaymentLinked events. On-chain creditScore = 850 (650 + 5 x 40).
+6 AttestedPaymentLinked events. On-chain creditScore = 850, which is the cap (650 plus 40 per linked payment, then clamped). Every event is listed at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain).
 
 ## Attestcoin Proofs
 

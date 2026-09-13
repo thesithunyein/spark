@@ -80,7 +80,7 @@ Every openCredit requires two independent BlockProver verifyAndEmit calls. Most 
 - Non-custodial — Spark never holds user keys
 - Real transactions on Sepolia and Creditcoin testnets
 - Two complete closed loops on-chain with verifiable proofs on Blockscout
-- 5 attested payment history events, on-chain creditScore() = 850
+- 6 attested payment history events, on-chain creditScore() = 850 (the cap)
 - Solo build, repo created August 13, 2026
 
 ## Undocumented Protocol Discoveries (6)

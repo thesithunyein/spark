@@ -7,6 +7,7 @@ const NAV_LINKS = [
   { href: "/overview", label: "Overview" },
   { href: "/score", label: "Score" },
   { href: "/activity", label: "Activity" },
+  { href: "/onchain", label: "On-chain" },
   { href: "/help", label: "Help" },
 ];
 

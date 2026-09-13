@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "gen:activity": "node scripts/gen-chain-activity.mjs",
+    "gen:evidence": "node scripts/gen-evidence-module.mjs"
   },
   "dependencies": {
     "@gluwa/usc-sdk": "^0.18.0",
