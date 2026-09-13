@@ -4,7 +4,13 @@ import Link from "next/link";
 import { useState } from "react";
 
 /**
- * Bonus: Real Aave V3 Mainnet History
+ * Illustrative mock: "mainnet history" UI concept.
+ *
+ * NOT a live proof. Nothing on this page queries a wallet, an Aave subgraph or
+ * the Attestcoin prover, and mainnet attestation is not implemented. The rows
+ * below are static sample data so the intended layout can be reviewed.
+ * Spark's live credit flow proves Sepolia payments only.
+ *
  * Matches landing page dark UI/UX style.
  */
 
@@ -18,7 +24,7 @@ type HistoryEntry = {
   attested: boolean;
 };
 
-const DEMO_HISTORY: HistoryEntry[] = [
+const STATIC_SAMPLE: HistoryEntry[] = [
   { action: "Supply", protocol: "Aave V3", amount: "2.5", asset: "ETH", timestamp: "2024-12-15", chain: "Ethereum Mainnet", attested: true },
   { action: "Borrow", protocol: "Aave V3", amount: "1000", asset: "USDC", timestamp: "2025-01-20", chain: "Ethereum Mainnet", attested: true },
   { action: "Repay", protocol: "Aave V3", amount: "1000", asset: "USDC", timestamp: "2025-03-10", chain: "Ethereum Mainnet", attested: true },
@@ -30,11 +36,14 @@ export default function BonusPage() {
   const [loading, setLoading] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[] | null>(null);
 
-  const handleProve = async () => {
+  // Simulated only: waits briefly, then renders the static sample. No wallet is
+  // queried and no proof is generated. Kept so the intended interaction can be
+  // reviewed without implying that anything is verified.
+  const handlePreviewMock = async () => {
     if (!wallet) return;
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 2000));
-    setHistory(DEMO_HISTORY);
+    await new Promise((r) => setTimeout(r, 1200));
+    setHistory(STATIC_SAMPLE);
     setLoading(false);
   };
 
@@ -82,19 +91,28 @@ export default function BonusPage() {
         <div className="stagger flex w-[min(600px,90vw)] flex-col">
           {/* Badge */}
           <span className="inline-block self-start border border-accent/50 bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-accent3">
-            [ Bonus Feature ]
+            [ Not implemented ]
           </span>
 
           {/* Title */}
           <h1 className="mt-6 text-[clamp(32px,4vw,56px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
-            Real DeFi History
+            Mainnet History
           </h1>
           <p className="mt-3 font-mono text-[13px] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
-            Prove mainnet history on Creditcoin
+            Illustrative mock. No live proof.
           </p>
           <p className="mt-4 max-w-lg text-[15px] font-light leading-relaxed text-white/85">
-            Enter an Ethereum mainnet wallet to prove its Aave V3 history using the Attestcoin Protocol. This demonstrates Spark&apos;s ability to attest cross-chain data beyond Sepolia.
+            A layout concept for a planned feature. Nothing here is wired up: no wallet is queried, no proof is generated, and no mainnet attestation exists in the code. Spark&apos;s live credit flow proves Sepolia payments today.
           </p>
+
+          <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-5 py-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-amber-300">
+              Illustrative mock. Nothing on this page is proven.
+            </p>
+            <p className="mt-2 text-[13px] font-light leading-relaxed text-white/70">
+              Your input is not sent anywhere, and the table below is static sample data. Mainnet attestation is not implemented.
+            </p>
+          </div>
 
           {/* Input card */}
           <div className="mt-8 rounded-xl border border-white/[0.12] bg-white/[0.04] p-5 backdrop-blur-sm">
@@ -110,17 +128,17 @@ export default function BonusPage() {
                 className="flex-1 rounded-lg border border-white/[0.15] bg-white/[0.06] px-4 py-3 font-mono text-sm text-white placeholder:text-white/30 outline-none transition-colors focus:border-accent/60 focus:bg-white/[0.08]"
               />
               <button
-                onClick={handleProve}
+                onClick={handlePreviewMock}
                 disabled={loading || !wallet}
                 className="btn-shine px-6 py-3 font-mono text-[12px] uppercase tracking-[0.18em] text-white disabled:opacity-40"
               >
                 {loading ? (
                   <span className="flex items-center gap-2">
                     <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Proving
+                    Loading
                   </span>
                 ) : (
-                  "Prove History"
+                  "Preview mock"
                 )}
               </button>
             </div>
@@ -130,7 +148,7 @@ export default function BonusPage() {
           {history && (
             <div className="mt-6 space-y-3">
               <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
-                Attested Aave V3 History
+                Sample history (static mock data)
               </h2>
               {history.map((entry, i) => (
                 <div
@@ -150,8 +168,8 @@ export default function BonusPage() {
                       </div>
                     </div>
                   </div>
-                  <span className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-green-400">
-                    ✓ Attested
+                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-amber-400">
+                    Sample
                   </span>
                 </div>
               ))}
@@ -161,7 +179,7 @@ export default function BonusPage() {
           {/* How it works */}
           <div className="mt-6 rounded-xl border border-white/[0.12] bg-white/[0.04] p-5 backdrop-blur-sm">
             <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
-              How it works
+              Planned flow (not implemented)
             </h3>
             <ol className="space-y-3">
               {[
@@ -180,7 +198,7 @@ export default function BonusPage() {
 
           {/* Note */}
           <p className="mt-4 text-[12px] text-white/40">
-            Note: In production, each entry is proven on-chain. This is a demo. The core credit flow works without this feature.
+            This page is a UI concept only. Nothing here is proven, deployed, or used by the credit flow.
           </p>
 
           {/* CTA */}

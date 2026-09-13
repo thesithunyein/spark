@@ -30,6 +30,39 @@
   <a href="LICENSE">MIT License</a>
 </p>
 
+## Judge path in 90 seconds
+
+Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
+
+**1. Contract suite: 306 tests, 0 failures**
+
+```bash
+npm run test:contracts          # or: cd contracts && forge test
+```
+
+**2. The real BlockProver precompile rejecting forged proofs (read-only, zero cost)**
+
+```bash
+cd contracts && bash run-negative-paths.sh
+```
+
+Eight forged proofs (forged merkle root, wrong chain key, zero height, empty encoded transaction, mismatched sibling lengths, large chain key, max uint64 height, random bytes) are rejected by the live 0x0FD2 precompile on CC3 via `eth_call`.
+
+**3. Click the product**
+
+[spark.sithunyein.com](https://spark.sithunyein.com): pay a testnet deposit, watch the dual proof run, withdraw sCREDIT, repay, close.
+
+**Two completed credit loops, verifiable on Blockscout**
+
+| | Open (dual proof) | Repay + close |
+|---|---|---|
+| Loop 1, Aug 13, 90% LTV | [0xe5ec5506...](https://creditcoin-testnet.blockscout.com/tx/0xe5ec5506ccdc54851e6c08674b2649d7efa1033220ef768dcc0583f1bf1da9c1) | [0x5092e516...](https://creditcoin-testnet.blockscout.com/tx/0x5092e5165c0fedaf85b53a8c20b9710d4b60a79b3ccaa3e815ec5fda42c18eb4) |
+| Loop 2, Aug 14, 95% LTV | [0xbbec27e6...](https://creditcoin-testnet.blockscout.com/tx/0xbbec27e622b18d21bdedb24fabc072041aa0fe3ad7419b952a1e2b8754bba618) | [0x5fc0b4fb...](https://creditcoin-testnet.blockscout.com/tx/0x5fc0b4fb25493606c451ef46a1dfad0a2eab775f558b2b6820b3e1a2e723e122) |
+
+On-chain `creditScore()` = **850** (650 + 5 x 40). Artifacts: [docs/evidence/README.md](docs/evidence/README.md) · Gas benchmarks: [docs/evidence/gas.md](docs/evidence/gas.md) · Deck: [deck.pdf](https://spark.sithunyein.com/deck.pdf)
+
+**What is different here:** two BlockProver proofs on every credit open (payment + solvency), and strict receipt RLP decoding in which a decoded amount that differs from the claim **reverts**. That path is proven by crafted-receipt tests in [contracts/test/VerifierStrict.t.sol](contracts/test/VerifierStrict.t.sol); the bug it replaced is documented in [SECURITY_FINDINGS.md](SECURITY_FINDINGS.md).
+
 ## Attestcoin Protocol Integration Summary
 
 Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points:
@@ -113,6 +146,7 @@ spark/
 ├── README.md
 ├── LICENSE
 ├── SECURITY.md
+├── SECURITY_FINDINGS.md              # Two vulnerabilities found and fixed during the build
 ├── CONTRIBUTING.md
 │
 ├── brand/                            # Logo source (copied into app/public/brand/)
@@ -229,8 +263,7 @@ spark/
     │
     ├── test/
     │   ├── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
-    │   └── VerifierStrict.t.sol      # 6 strict-path tests: RLP decode, amount binding, wrong payer, long-form bloom, multi-log
-    │   └── VerifierStrict.t.sol      # 6 tests: real strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
+    │   └── VerifierStrict.t.sol      # 6 tests: strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
     │
     ├── script/
     │   └── Deploy.s.sol
@@ -361,7 +394,7 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 
 ## Security
 
-Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Vercel.
+Not audited. Testnet only. See [SECURITY.md](SECURITY.md). No private keys on Vercel. Two vulnerabilities were found and fixed during the build: [SECURITY_FINDINGS.md](SECURITY_FINDINGS.md).
 
 **Verifier note:** BlockProver proves inclusion cryptographically. The adapter **strictly decodes the receipt RLP** from the proven `encodedTransaction`, matching event topic, indexed payer, and non-indexed amount from decoded logs. Amount is cryptographically bound (not trusting `claim.amount`) — once the receipt parses, a decoded amount that differs from `claim.amount` **reverts**; it never falls through to the weaker substring scan. The strict path is proven by 6 dedicated tests with crafted RLP receipts (`test/VerifierStrict.t.sol`). Per the Aug 18 AMA, receipt log data is confirmed available via BlockProver.
 
