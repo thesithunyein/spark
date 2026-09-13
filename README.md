@@ -291,6 +291,7 @@ spark/
     │   ├── AttestedPriceFeed.sol     # BlockProver-verified Chainlink AnswerUpdated
     │   ├── MainnetTokenRegistry.sol  # Attested mainnet decimals + asset/liability
     │   ├── PositionValuer.sol        # Signed USD net worth (8dp base units)
+    │   ├── PositionSizedCredit.sol   # Proven net worth -> credit limit under an explicit policy
     │   ├── MainnetTopics.sol         # Mainnet topic constants + verification status
     │   └── interfaces/
     │       └── IPaymentVerifier.sol
@@ -300,7 +301,8 @@ spark/
     │   ├── VerifierStrict.t.sol      # 6 tests: strict RLP decode, amount binding, wrong payer, long-form bloom, multi-log
     │   ├── MainnetPositionRegistry.t.sol # 30 tests: anchor rule, ordering, replay, residual bound, Day 2 regressions
     │   ├── AttestedValuation.t.sol   # 31 tests: prices, token metadata, net worth, topic parity
-    │   └── PositionStackIntegration.t.sol # 6 tests: full stack, exact real mainnet numbers
+    │   ├── PositionStackIntegration.t.sol # 6 tests: full stack, exact real mainnet numbers
+    │   └── PositionSizedCredit.t.sol # 23 tests: policy, half-of-net-worth cap, refusal status codes
     │
     ├── script/
     │   ├── Deploy.s.sol
