@@ -44,7 +44,19 @@ The deepest Attestcoin integration in this hackathon.
 | CreditLine | Credit + score + history + interest |
 | BlockProver 0xFD2 | On-chain verify |
 
-## Slide 6 — Traction
+## Slide 6 — Measured, not asserted
+A position on another chain, rebuilt from proven facts.
+Credit sizing needs history elsewhere and proof of cover, so we rebuilt real Aave V3 positions from real mainnet data and measured how wrong the obvious method is.
+- **8/8** real wallets reconciled within 10 bps of the live balance
+- **0.51 bps** largest residual, the rebasing interest events cannot supply
+- **66.8%** error in event-summing a position, measured on a real borrower
+- **373** contract tests, 0 failures
+- Aave events overstate a real position because aTokens move without emitting an event, so the engine reads the token Transfer ledger, anchored where balance is provably zero
+- Interest is never invented: positions advance only against an attested state balance, with a bounded residual
+- Attesting the Chainlink proxy that everyone quotes proves no price at all; the aggregator emits, the proxy does not
+- Live evidence and reproduction commands: spark.sithunyein.com/bonus
+
+## Slide 7 — Traction
 Two full closed loops on-chain with real USC proofs.
 - 2 full closed loops: Open → Withdraw → Redeem → Repay → Close
 - 5 attested payments on-chain credit history
@@ -54,19 +66,21 @@ Two full closed loops on-chain with real USC proofs.
 - On-chain demo wallet: 0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2
 - Live at spark.sithunyein.com · Contracts verified on Blockscout
 
-## Slide 7 — Product
+## Slide 8 — Product
 Live testnet product, not a slideware demo.
 - spark.sithunyein.com — live on Creditcoin testnet
 - github.com/thesithunyein/spark
 - Full UI: Overview, Pay, Score, Withdraw, Repay, Help
 - On-chain credit score with history linking
-- 306 contract tests passing (incl. strict RLP amount-binding)
+- 373 contract tests passing (incl. strict RLP amount-binding)
+- Net-position engine: mainnet history, attested prices, signed net worth
 - Batch proving via submitAttestMultiple
 - Testnet only. Not audited. MIT License.
 
-## Slide 8 — The Ask
+## Slide 9 — The Ask
 $10K to ship credit for the real world.
-- **Now:** Dual Attestcoin proofs, strict log decoding, credit score, history LTV bonus — live on testnet
-- **With $10K:** Deploy strict verifier to testnet, faster attestation UX (parallel proofs, caching), audit-ready code
-- **CEIP fast-track:** Mainnet readiness, lending pool, single-network UX
+- **Now:** Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet, 373 tests
+- **Next:** Size credit limits from a proven position on another chain, not just payment count
+- **With $10K:** Broadcast the position engine, external review of the strict verifier, faster attestation UX
+- **CEIP fast-track:** Funded credit book, distribution where borrowers already are, mainnet readiness
 - Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.

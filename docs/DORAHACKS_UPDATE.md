@@ -73,7 +73,7 @@ Every openCredit requires two independent BlockProver verifyAndEmit calls. Most 
 
 ## Technical Specs
 
-- **306 passing contract tests** (300 in Spark.t.sol plus 6 strict-path tests against the real verifier in VerifierStrict.t.sol)
+- **373 passing contract tests** (300 in Spark.t.sol, 6 strict-path against the real verifier, 67 across the position-engine suites)
 - **8 live precompile negative-path tests** against real BlockProver on CC3 testnet (zero cost, eth_call)
 - 5 Solidity contracts (AttestcoinPaymentVerifier, CreditLine, SepoliaPayment, SparkCredit, MockPaymentVerifier)
 - Batch proving via submitAttestMultiple and executeBatch

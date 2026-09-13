@@ -113,7 +113,7 @@
     <p class="subtitle" style="margin-top: 1.2rem;">Pay once. Unlock credit.</p>
     <p class="lead" style="margin-top: 1.5rem; font-size: clamp(16px, 1.5vw, 22px);">Pay a deposit on Sepolia. Attestcoin verifies it on-chain. A credit line unlocks on Creditcoin. No credit check, no paperwork, no bank.</p>
     <p class="meta" style="margin-top: 2.5rem;">DeFi Track &middot; BUIDL CTC 2026 Fall &middot; Attestcoin Protocol</p>
-    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 8</span></div>
+    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 9</span></div>
   </section>
 
   <!-- SLIDE 2: Problem -->
@@ -126,7 +126,7 @@
       <li>Centralized oracles and bridges add single points of failure</li>
       <li>No way to prove payment history across chains trustlessly</li>
     </ul>
-    <div class="footer"><span>Spark</span><span>2 / 8</span></div>
+    <div class="footer"><span>Spark</span><span>2 / 9</span></div>
   </section>
 
   <!-- SLIDE 3: Solution -->
@@ -140,7 +140,7 @@
       <li>LTV bonus from payment history (+2.5% at 1+, +5% at 3+ payments)</li>
       <li>No valid proof = no state change. Cryptographic guarantees only.</li>
     </ul>
-    <div class="footer"><span>Spark</span><span>3 / 8</span></div>
+    <div class="footer"><span>Spark</span><span>3 / 9</span></div>
   </section>
 
   <!-- SLIDE 4: How it works -->
@@ -154,7 +154,7 @@
       <div class="step"><div class="n">04</div><div class="t">Repay on Sepolia &rarr; verify &rarr; line closes</div></div>
     </div>
     <p class="meta" style="margin-top: 2rem;">Optional: link past Sepolia payments to raise credit score and LTV bonus before opening.</p>
-    <div class="footer"><span>Spark</span><span>4 / 8</span></div>
+    <div class="footer"><span>Spark</span><span>4 / 9</span></div>
   </section>
 
   <!-- SLIDE 5: Attestcoin depth -->
@@ -183,10 +183,30 @@
       </div>
     </div>
     <p class="meta" style="margin-top: 1.5rem; max-width: 42em;">Verifier parses receipt RLP from proven encodedTransaction. Per Aug 18 AMA: "Transaction fields and their log data are verified and available." Amount is cryptographically bound.</p>
-    <div class="footer"><span>Spark</span><span>5 / 8</span></div>
+    <div class="footer"><span>Spark</span><span>5 / 9</span></div>
   </section>
 
-  <!-- SLIDE 6: Traction -->
+  <!-- SLIDE 6: Measured on mainnet -->
+  <section class="slide">
+    <span class="badge">Measured, not asserted</span>
+    <h2 style="margin-top: 1.6rem;">A position on another chain, rebuilt from proven facts</h2>
+    <p class="lead">Credit sizing needs history elsewhere and proof of cover. We rebuilt real Aave V3 positions from mainnet data.</p>
+    <div class="stats" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;">
+      <div class="stat" style="margin-right: 0;"><div class="num">8/8</div><div class="label">Real wallets, within<br/>10 bps of live balance</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">0.51</div><div class="label">Largest residual, bps<br/>from rebasing interest</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">66.8%</div><div class="label">Error in event-summing<br/>a position, measured</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">373</div><div class="label">Contract tests<br/>0 failures</div></div>
+    </div>
+    <ul style="margin-top: 1.4rem;">
+      <li>Aave events overstate a real position by <strong>66.8%</strong>: aTokens move without emitting an event</li>
+      <li>So the engine reads the <strong>Transfer ledger</strong>, anchored where balance is <strong>provably zero</strong></li>
+      <li>Interest is never invented: positions advance only against an attested state balance</li>
+      <li>Attesting the Chainlink proxy proves no price. The <strong>aggregator</strong> emits; the proxy does not</li>
+    </ul>
+    <div class="footer"><span><a href="https://spark.sithunyein.com/bonus">spark.sithunyein.com/bonus</a></span><span>6 / 9</span></div>
+  </section>
+
+  <!-- SLIDE 7: Traction -->
   <section class="slide">
     <span class="badge">Traction</span>
     <h2 style="margin-top: 2rem;">Two full closed loops on-chain with real USC proofs</h2>
@@ -198,7 +218,7 @@
     </div>
     <p class="lead" style="margin-top: 2rem;">All proofs are real Attestcoin USC proofs verified by BlockProver. On-chain demo wallet: 0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2.</p>
     <p class="meta">Live at spark.sithunyein.com &middot; Contracts verified on Blockscout</p>
-    <div class="footer"><span>Spark</span><span>6 / 8</span></div>
+    <div class="footer"><span>Spark</span><span>7 / 9</span></div>
   </section>
 
   <!-- SLIDE 7: Product -->
@@ -213,7 +233,8 @@
           <li>Full UI: Overview, Pay, Score, Withdraw, Repay, Help</li>
           <li>On-chain credit score with history linking</li>
           <li>Batch proving: submitAttestMultiple (link multiple payments in one tx)</li>
-          <li>306 contract tests passing (incl. strict RLP amount-binding)</li>
+          <li>373 contract tests passing (incl. strict RLP amount-binding)</li>
+          <li>Net-position engine: mainnet history, attested prices, signed net worth</li>
         </ul>
       </div>
       <div>
@@ -226,7 +247,7 @@
         <p class="meta" style="margin-top: 1rem;">Testnet only. Not audited. MIT License.</p>
       </div>
     </div>
-    <div class="footer"><span>Spark</span><span>7 / 8</span></div>
+    <div class="footer"><span>Spark</span><span>8 / 9</span></div>
   </section>
 
   <!-- SLIDE 8: Ask -->
@@ -234,13 +255,14 @@
     <span class="badge">The Ask</span>
     <h2 style="margin-top: 2rem;">$10K to ship credit for the real world</h2>
     <ul>
-      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score, history LTV bonus &mdash; live on testnet</li>
-      <li><strong>With $10K:</strong> Deploy strict verifier to testnet, faster attestation UX (parallel proofs, caching), audit-ready code</li>
-      <li><strong>CEIP fast-track:</strong> Mainnet readiness, lending pool, single-network UX</li>
+      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 373 tests</li>
+      <li><strong>Next:</strong> Size credit limits from a proven position on another chain, not just payment count</li>
+      <li><strong>With $10K:</strong> Broadcast the position engine, external review of the strict verifier, faster attestation UX</li>
+      <li><strong>CEIP fast-track:</strong> Funded credit book, distribution where borrowers already are, mainnet readiness</li>
     </ul>
     <p class="lead" style="margin-top: 2rem; font-size: clamp(16px, 1.5vw, 22px);">Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.</p>
     <p class="meta" style="margin-top: 2rem;">MIT License &middot; Sithu Nyein &middot; spark.sithunyein.com</p>
-    <div class="footer"><span>spark.sithunyein.com</span><span>8 / 8</span></div>
+    <div class="footer"><span>spark.sithunyein.com</span><span>9 / 9</span></div>
   </section>
 
 </body>
