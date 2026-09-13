@@ -43,14 +43,15 @@ cd contracts && forge script script/ProveMainnetPosition.s.sol:ProveMainnetPosit
   --rpc-url https://rpc.cc3-testnet.creditcoin.network --broadcast
 ```
 
-This deploys four contracts and then runs the whole proof against real Ethereum mainnet
+This deploys five contracts and then runs the whole proof against real Ethereum mainnet
 facts: it anchors coverage at a provably zero balance, ingests the real aToken ledger,
-reconciles against the real attested balance, and submits the real Chainlink answer. It is
-the same code path that was executed end to end against a local chain, where independent
-reads of the deployed contracts returned `netPosition = 433033874843288486772`.
+reconciles against the real attested balance, submits the real Chainlink answer, and sizes a
+credit limit from the resulting net worth. It is the same code path that was executed end to
+end against a local chain, where independent reads of the deployed contracts returned
+`netPosition = 433033874843288486772` and a limit of `21727648749879`.
 
-Expect 9 transactions. Anything else means the script changed and the evidence artifacts are
-now stale.
+Expect 10 transactions (5 deploys, then register, anchor, ledger, reconcile and price).
+Anything else means the script changed and the evidence artifacts are now stale.
 
 ## 3. Verify, which is the part that matters
 

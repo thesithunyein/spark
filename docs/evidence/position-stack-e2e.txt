@@ -2,8 +2,8 @@
 END-TO-END EXECUTION - independent read of on-chain state after broadcast
 chain: local anvil 31337 (same script path used for CC3, only --rpc-url differs)
 inputs: REAL Ethereum mainnet data (docs/evidence/position-scale.json)
-note: regenerated after PositionValuer.valueOf was renamed to valuationOf and
-      MEASURE_BLOCK was corrected to the block the balance was actually read at
+note: regenerated after PositionValuer.valueOf was renamed to valuationOf,
+      MEASURE_BLOCK was corrected, and PositionSizedCredit was added to the stack
 ==========================================================================
 
 -- registry.ledgerNet(borrower, aWETH) ......... 433014008378577163575 [4.33e20]
@@ -20,6 +20,11 @@ note: regenerated after PositionValuer.valueOf was renamed to valuationOf and
    (token, position, tokenDecimals, price, priceDecimals, valueUsd8, positionBlock)
 (0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8, 433033874843288486772 [4.33e20], 18, 250877010000 [2.508e11], 8, 108638243749398 [1.086e14], 25970521 [2.597e7])
 
+-- credit.limitFor(borrower, [aWETH], [ETH/USD])
+   (netWorthUsd8, limitUsd8, status)   status 0 = Eligible
+(108638243749398 [1.086e14], 21727648749879 [2.172e13], 0)
+-- credit.ltvBps() ............................ 2000
+
 ==========================================================================
 THE FLOW, in transaction order (from the broadcast artifact)
 ==========================================================================
@@ -27,13 +32,14 @@ THE FLOW, in transaction order (from the broadcast artifact)
  2. MainnetTokenRegistry    CREATE
  3. AttestedPriceFeed       CREATE
  4. PositionValuer          CREATE
- 5. MainnetTokenRegistry    registerToken(address,uint8,bytes32,uint8,address,uint64,uint64)
- 6. MainnetPositionRegistry setZeroAnchor(address,address,uint64,uint64,bytes32)
- 7. MainnetPositionRegistry ingestLedger(uint64,(address,address,int256,uint64,uint8,bytes32)[])
- 8. MainnetPositionRegistry reconcile(address,address,int256,uint64,uint64,bytes32)
- 9. AttestedPriceFeed       submitAnswer(address,int256,uint8,uint64,uint256,uint64,bytes32)
+ 5. PositionSizedCredit     CREATE
+ 6. MainnetTokenRegistry    registerToken(address,uint8,bytes32,uint8,address,uint64,uint64)
+ 7. MainnetPositionRegistry setZeroAnchor(address,address,uint64,uint64,bytes32)
+ 8. MainnetPositionRegistry ingestLedger(uint64,(address,address,int256,uint64,uint8,bytes32)[])
+ 9. MainnetPositionRegistry reconcile(address,address,int256,uint64,uint64,bytes32)
+10. AttestedPriceFeed       submitAnswer(address,int256,uint8,uint64,uint256,uint64,bytes32)
 
-transactions: 9   gasUsed total: 2867388
+transactions: 10   gasUsed total: 3572773
 
 ==========================================================================
 INDEPENDENT MAINNET VERIFICATION OF THE INPUTS (re-run at write time)

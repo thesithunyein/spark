@@ -8,7 +8,7 @@ that starts from an inflated present is worthless to the person reading it.
 **Live and working.** A user pays on Sepolia, two Attestcoin proofs verify the deposit event
 and the wallet balance, and credit opens on Creditcoin. Three credit lines have been opened on
 the deployed contracts and two complete loops have been closed. On-chain `creditScore()` reads
-850. Contract suite is 373 tests, 0 failures. The BlockProver precompile rejects all eight
+850. Contract suite is 396 tests, 0 failures. The BlockProver precompile rejects all eight
 forged-proof scenarios we throw at it, read-only and free to re-run.
 
 **Measured but not deployed.** The mainnet position engine reconstructs a real Aave V3 position
@@ -44,12 +44,17 @@ verifiable artifact instead of a local execution plus a transcript.
 
 ### M2. Position-aware credit limits
 
-**Unlocks:** a borrower's limit on Creditcoin is sized by a proven position on another chain,
-not only by their payment count here. This is the difference between a credit score and credit.
+**Status: built, not deployed.** `PositionSizedCredit` sizes a limit from proven net worth,
+with an explicit policy, a hard half-of-net-worth cap, and distinct status codes for why a
+limit is zero. In the local end-to-end run it returns **$217,276** against a proven net worth
+of **$1,086,382** at a 20% policy LTV. 23 tests cover it, including the cases where the answer
+must be reported rather than flattened to zero.
 
-**Depends on:** M1, plus a risk parameter review of the LTV tiers. The valuation layer already
-returns signed net worth with liabilities subtracted, so the missing piece is the limit formula
-and its tests, not new infrastructure.
+**What is still missing:** no enforcement path. Nothing draws against the limit, so it is a
+policy output rather than a funded line, and there is no liquidation logic because there is
+nothing to liquidate: a proven mainnet position is verified data, not seizable collateral.
+
+**Depends on:** M1 for the deployment, and a real credit book for the limit to mean anything.
 
 ### M3. State proofs for current position, ledger proofs for history
 

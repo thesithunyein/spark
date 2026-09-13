@@ -195,13 +195,13 @@
       <div class="stat" style="margin-right: 0;"><div class="num">8/8</div><div class="label">Real wallets, within<br/>10 bps of live balance</div></div>
       <div class="stat" style="margin-right: 0;"><div class="num">0.51</div><div class="label">Largest residual, bps<br/>from rebasing interest</div></div>
       <div class="stat" style="margin-right: 0;"><div class="num">66.8%</div><div class="label">Error in event-summing<br/>a position, measured</div></div>
-      <div class="stat" style="margin-right: 0;"><div class="num">373</div><div class="label">Contract tests<br/>0 failures</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">396</div><div class="label">Contract tests<br/>0 failures</div></div>
     </div>
     <ul style="margin-top: 1.4rem;">
       <li>Aave events overstate a real position by <strong>66.8%</strong>: aTokens move without emitting an event</li>
       <li>So the engine reads the <strong>Transfer ledger</strong>, anchored where balance is <strong>provably zero</strong></li>
       <li>Interest is never invented: positions advance only against an attested state balance</li>
-      <li>Attesting the Chainlink proxy proves no price. The <strong>aggregator</strong> emits; the proxy does not</li>
+      <li>And it sizes credit: <strong>$217,276</strong> against $1,086,382 of proven net worth, at a 20% policy LTV</li>
     </ul>
     <div class="footer"><span><a href="https://spark.sithunyein.com/bonus">spark.sithunyein.com/bonus</a></span><span>6 / 9</span></div>
   </section>
@@ -233,7 +233,7 @@
           <li>Full UI: Overview, Pay, Score, Withdraw, Repay, Help</li>
           <li>On-chain credit score with history linking</li>
           <li>Batch proving: submitAttestMultiple (link multiple payments in one tx)</li>
-          <li>373 contract tests passing (incl. strict RLP amount-binding)</li>
+          <li>396 contract tests passing (incl. strict RLP amount-binding)</li>
           <li>Net-position engine: mainnet history, attested prices, signed net worth</li>
         </ul>
       </div>
@@ -255,8 +255,8 @@
     <span class="badge">The Ask</span>
     <h2 style="margin-top: 2rem;">$10K to ship credit for the real world</h2>
     <ul>
-      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 373 tests</li>
-      <li><strong>Next:</strong> Size credit limits from a proven position on another chain, not just payment count</li>
+      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 396 tests</li>
+      <li><strong>Built, not deployed:</strong> credit limits sized from a proven position on another chain, not just payment count</li>
       <li><strong>With $10K:</strong> Broadcast the position engine, external review of the strict verifier, faster attestation UX</li>
       <li><strong>CEIP fast-track:</strong> Funded credit book, distribution where borrowers already are, mainnet readiness</li>
     </ul>

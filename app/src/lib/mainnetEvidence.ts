@@ -402,16 +402,22 @@ export const EVIDENCE = {
     "interestResidual": "19866464711323197",
     "anchorBlock": "25962220",
     "lastLedgerBlock": "25970521",
-    "transactions": "9",
-    "gasTotal": "2867388",
+    "transactions": "10",
+    "gasTotal": "3572773",
     "measureBlock": "25,970,521",
     "attestedAtMeasureBlock": "433033874843288486772",
     "zeroAnchorAtAnchorBlock": "0",
+    "creditNetWorthUsd8": "108638243749398",
+    "creditLimitUsd8": "21727648749879",
+    "creditStatus": "0",
+    "ltvBps": "2000",
     "ledgerDisplay": "433.0140",
     "netPositionDisplay": "433.0338",
     "priceDisplay": "$2,508.77",
     "valueUsdDisplay": "$1,086,382",
-    "gasDisplay": "2,867,388",
-    "measuredBalanceDisplay": "433.0338"
+    "gasDisplay": "3,572,773",
+    "measuredBalanceDisplay": "433.0338",
+    "creditLimitDisplay": "$217,276",
+    "ltvDisplay": "20.00%"
   }
 } as const;

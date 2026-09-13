@@ -34,7 +34,7 @@
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
 
-**1. Contract suite: 373 tests, 0 failures**
+**1. Contract suite: 396 tests, 0 failures**
 
 ```bash
 npm run test:contracts          # or: cd contracts && forge test
@@ -69,7 +69,7 @@ cd app && node scripts/position-scale.mjs
 
 Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer**, movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md). Same evidence rendered live, regenerated from these artifacts so the page cannot drift from the data: [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus).
 
-**5. Prove a real mainnet position across 9 transactions (one command)**
+**5. Prove a real mainnet position and size credit from it, 10 transactions (one command)**
 
 ```bash
 cd contracts && PRIVATE_KEY=<funded dev key> forge script \
@@ -77,7 +77,7 @@ cd contracts && PRIVATE_KEY=<funded dev key> forge script \
   --rpc-url http://127.0.0.1:8545 --broadcast
 ```
 
-Deploys the position stack, anchors at a provably-zero mainnet balance, ingests the real token ledger, reconciles against the real attested balance, and submits the real Chainlink answer — then reads the net worth back off-chain-verified. Executed end to end against a local chain; independent reads of the deployed contracts returned `netPosition = 433033874843288486772` and **$1,086,382** of proven net worth. Transcript, including the 9 transactions in order and the mainnet re-verification of every input: [docs/evidence/position-stack-e2e.txt](docs/evidence/position-stack-e2e.txt).
+Deploys the position stack, anchors at a provably-zero mainnet balance, ingests the real token ledger, reconciles against the real attested balance, and submits the real Chainlink answer — then reads the net worth back off-chain-verified. Executed end to end against a local chain; independent reads of the deployed contracts returned `netPosition = 433033874843288486772`, **$1,086,382** of proven net worth, and a **$217,276** credit limit sized from it at a 20% policy LTV. Transcript, including the 10 transactions in order and the mainnet re-verification of every input: [docs/evidence/position-stack-e2e.txt](docs/evidence/position-stack-e2e.txt).
 
 Not yet broadcast to CC3. The deployer address (`0x7CEC5b3F9dA312072Aa987c7266f02A8Fca1bFF6`) already holds testnet CTC, so funding is not the blocker; the key is, and it belongs in `contracts/.env`, which is gitignored. Steps: [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md). Once broadcast, `cd app && node scripts/verify-cc3-position-stack.mjs` reads the deployment back off CC3, asserts it reproduces these mainnet values, and writes the evidence file only if every assertion holds.
 

@@ -50,10 +50,11 @@ Credit sizing needs history elsewhere and proof of cover, so we rebuilt real Aav
 - **8/8** real wallets reconciled within 10 bps of the live balance
 - **0.51 bps** largest residual, the rebasing interest events cannot supply
 - **66.8%** error in event-summing a position, measured on a real borrower
-- **373** contract tests, 0 failures
+- **396** contract tests, 0 failures
 - Aave events overstate a real position because aTokens move without emitting an event, so the engine reads the token Transfer ledger, anchored where balance is provably zero
 - Interest is never invented: positions advance only against an attested state balance, with a bounded residual
-- Attesting the Chainlink proxy that everyone quotes proves no price at all; the aggregator emits, the proxy does not
+- It sizes credit from the result: $217,276 against $1,086,382 of proven net worth, at a 20% policy LTV
+- The Chainlink proxy that everyone quotes proves no price at all; the aggregator emits, the proxy does not (documented on the live evidence page)
 - Live evidence and reproduction commands: spark.sithunyein.com/bonus
 
 ## Slide 7 — Traction
@@ -72,15 +73,15 @@ Live testnet product, not a slideware demo.
 - github.com/thesithunyein/spark
 - Full UI: Overview, Pay, Score, Withdraw, Repay, Help
 - On-chain credit score with history linking
-- 373 contract tests passing (incl. strict RLP amount-binding)
+- 396 contract tests passing (incl. strict RLP amount-binding)
 - Net-position engine: mainnet history, attested prices, signed net worth
 - Batch proving via submitAttestMultiple
 - Testnet only. Not audited. MIT License.
 
 ## Slide 9 — The Ask
 $10K to ship credit for the real world.
-- **Now:** Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet, 373 tests
-- **Next:** Size credit limits from a proven position on another chain, not just payment count
+- **Now:** Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet, 396 tests
+- **Built, not deployed:** credit limits sized from a proven position on another chain, not just payment count
 - **With $10K:** Broadcast the position engine, external review of the strict verifier, faster attestation UX
 - **CEIP fast-track:** Funded credit book, distribution where borrowers already are, mainnet readiness
 - Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.

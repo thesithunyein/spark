@@ -82,8 +82,12 @@ const valuerTuple = e2eText.match(
 const positionTuple = e2eText.match(
   /positionOf\(borrower, aWETH\)[\s\S]*?\((\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+),\s*(true|false)\)/,
 );
+const creditTuple = e2eText.match(
+  /credit\.limitFor\(borrower[^\n]*\)[\s\S]*?\((\d+)\s*\[[^\]]+\],\s*(\d+)\s*\[[^\]]+\],\s*(\d+)\)/,
+);
 if (!valuerTuple) throw new Error("could not parse the valuation tuple from position-stack-e2e.txt");
 if (!positionTuple) throw new Error("could not parse the position tuple from position-stack-e2e.txt");
+if (!creditTuple) throw new Error("could not parse the credit decision from position-stack-e2e.txt");
 
 const e2e = {
   chain: "local anvil 31337",
@@ -104,6 +108,11 @@ const e2e = {
   measureBlock: num(/the attested balance, read at block ([\d,]+)/),
   attestedAtMeasureBlock: num(/the attested balance, read at block [\d,]+ \(MEASURE_BLOCK\)\s*\n\s*(\d+)/),
   zeroAnchorAtAnchorBlock: num(/anchor is genuinely zero[^\n]*block [\d,]+\s*\n\s*(\d+)/),
+  // The policy layer, sized from the proven position in the same broadcast.
+  creditNetWorthUsd8: creditTuple[1],
+  creditLimitUsd8: creditTuple[2],
+  creditStatus: creditTuple[3],
+  ltvBps: num(/credit\.ltvBps\(\) \.+ (\d+)/),
 };
 
 // Display strings go through the same helper the wallet rows use, so the page cannot
@@ -115,6 +124,10 @@ const e2eDisplay = {
   valueUsdDisplay: e2e.valueUsd8 ? `$${Number(BigInt(e2e.valueUsd8) / 100_000_000n).toLocaleString("en-US")}` : null,
   gasDisplay: e2e.gasTotal ? Number(e2e.gasTotal.replace(/,/g, "")).toLocaleString("en-US") : null,
   measuredBalanceDisplay: e2e.attestedAtMeasureBlock ? fixed(e2e.attestedAtMeasureBlock, 18, 4) : null,
+  creditLimitDisplay: e2e.creditLimitUsd8
+    ? `$${Number(BigInt(e2e.creditLimitUsd8) / 100_000_000n).toLocaleString("en-US")}`
+    : null,
+  ltvDisplay: e2e.ltvBps ? `${(Number(e2e.ltvBps) / 100).toFixed(2)}%` : null,
 };
 
 // ---- Day 4: topic parity ----------------------------------------------------

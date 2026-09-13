@@ -53,7 +53,7 @@ const STATUS = [
   {
     label: "Engine code, executed locally",
     tone: "border-sky-500/40 bg-sky-500/[0.08] text-sky-300",
-    note: "Ten Solidity contracts, 373 Foundry tests, run end to end on a local chain using real mainnet data.",
+    note: "Eleven Solidity contracts, 396 Foundry tests, run end to end on a local chain using real mainnet data.",
   },
   {
     label: "Not yet broadcast to Creditcoin testnet",
@@ -334,14 +334,43 @@ export default function MainnetPositionPage() {
             </p>
           </div>
 
-          {/* 5. Limits */}
-          <SectionTitle n="05">What is not true yet</SectionTitle>
+          {/* 5. Credit sized from the position */}
+          <SectionTitle n="05">And the number it produces</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            Proving a position is only worth anything if something consumes it. The same broadcast
+            deploys a policy layer that sizes a credit limit from the proven net worth, read back off
+            chain with the rest of the stack.
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Metric label="Proven net worth" value={e2e.valueUsdDisplay ?? "n/a"} sub="reconstructed from mainnet" />
+            <Metric label="Policy LTV" value={e2e.ltvDisplay ?? "n/a"} sub="set explicitly, not implied" />
+            <Metric label="Credit limit" value={e2e.creditLimitDisplay ?? "n/a"} sub="85% of net worth, at 20%" />
+            <Metric label="Decision status" value={e2e.creditStatus === "0" ? "Eligible" : `code ${e2e.creditStatus}`} sub="0 means a usable limit" />
+          </div>
+
+          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-5 py-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-amber-300">
+              A proven position is not seizable collateral
+            </p>
+            <p className="mt-2 text-[13px] font-light leading-relaxed text-white/70">
+              Spark can read an Aave position on Ethereum mainnet and cannot liquidate it from
+              Creditcoin. So this limit is unsecured credit extended against a verified underwriting
+              signal, and the policy cap is hard-coded at half of net worth, far below the 80 to 95
+              percent the deposit-backed flow uses. Conflating the two would be the most misleading
+              thing in this codebase.
+            </p>
+          </div>
+
+          {/* 6. Limits */}
+          <SectionTitle n="06">What is not true yet</SectionTitle>
           <ul className="mt-4 space-y-3">
             {[
               "The stack has not been broadcast to Creditcoin CC3. It ran end to end on a local chain with real mainnet data, and the CC3 deploy is written but unrun.",
               "Interest is never fabricated from a timestamp or a rate. The only path that moves a position ahead of the ledger is an attested state balance, and the residual is capped and reverts past the cap.",
               "The sample is aEthWETH only and biased toward recent depositors. Morpho WithdrawCollateral has no observed logs in the window, so that signature is unconfirmed.",
               "The attestor is trusted to submit already verified values rather than the contract calling the precompile directly. That trust boundary is documented in the threat model.",
+              "The credit limit has no on-chain enforcement path yet. Nothing draws against it, so it is a policy output rather than a funded line.",
             ].map((t) => (
               <li key={t} className="flex items-start gap-3">
                 <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-amber-400" />
@@ -363,7 +392,7 @@ export default function MainnetPositionPage() {
 {`cd app && node scripts/position-scale.mjs      # 8-wallet reconciliation
 cd app && node scripts/protocol-topics.mjs     # topic parity + controls
 cd app && node scripts/gen-evidence-module.mjs # regenerate this page's data
-cd contracts && forge test                     # 373 tests`}
+cd contracts && forge test                     # 396 tests`}
             </pre>
           </div>
 

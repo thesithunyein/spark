@@ -6,6 +6,7 @@ import {MainnetPositionRegistry} from "../src/MainnetPositionRegistry.sol";
 import {MainnetTokenRegistry} from "../src/MainnetTokenRegistry.sol";
 import {AttestedPriceFeed} from "../src/AttestedPriceFeed.sol";
 import {PositionValuer} from "../src/PositionValuer.sol";
+import {PositionSizedCredit} from "../src/PositionSizedCredit.sol";
 import {MainnetTopics} from "../src/MainnetTopics.sol";
 
 /**
@@ -80,6 +81,9 @@ contract ProveMainnetPosition is Script {
         uint64 chainKey = uint64(vm.envOr("CHAIN_KEY", uint256(3))); // 3 = Ethereum mainnet
         uint256 maxResidualBps = vm.envOr("MAX_RESIDUAL_BPS", uint256(1_000));
         uint256 maxStaleness = vm.envOr("MAX_STALENESS", uint256(86_400));
+        uint256 ltvBps = vm.envOr("LTV_BPS", uint256(2_000));
+        int256 minNetWorthUsd8 = int256(vm.envOr("MIN_NET_WORTH_USD8", uint256(1_000e8)));
+        uint256 maxCreditUsd8 = vm.envOr("MAX_CREDIT_USD8", uint256(500_000e8));
 
         vm.startBroadcast(pk);
 
@@ -90,6 +94,13 @@ contract ProveMainnetPosition is Script {
         AttestedPriceFeed feed = new AttestedPriceFeed(deployer, chainKey, maxStaleness);
         PositionValuer valuer =
             new PositionValuer(address(registry), address(tokens), address(feed));
+        // The policy layer, so the proven position is actually consumed for credit rather
+        // than proved and left unused. Policy values come from env with conservative
+        // defaults: a verified position is not seizable collateral, so the LTV is far
+        // below the deposit-backed flow's 80 to 95 percent.
+        PositionSizedCredit sizedCredit = new PositionSizedCredit(
+            address(valuer), deployer, ltvBps, minNetWorthUsd8, maxCreditUsd8
+        );
 
         // 2. attested token metadata
         tokens.registerToken(
@@ -144,6 +155,13 @@ contract ProveMainnetPosition is Script {
         // 7. read back the reconstructed net worth
         PositionValuer.Valuation memory v = valuer.valuationOf(BORROWER, A_WETH, ETH_USD_AGGREGATOR);
 
+        // 8. size credit from the proven position, which is the point of the whole stack
+        address[] memory oneToken = new address[](1);
+        oneToken[0] = A_WETH;
+        address[] memory oneFeed = new address[](1);
+        oneFeed[0] = ETH_USD_AGGREGATOR;
+        PositionSizedCredit.Decision memory d = sizedCredit.limitFor(BORROWER, oneToken, oneFeed);
+
         vm.stopBroadcast();
 
         console2.log("");
@@ -152,6 +170,7 @@ contract ProveMainnetPosition is Script {
         console2.log("MainnetTokenRegistry   ", address(tokens));
         console2.log("AttestedPriceFeed      ", address(feed));
         console2.log("PositionValuer         ", address(valuer));
+        console2.log("PositionSizedCredit    ", address(sizedCredit));
         console2.log("");
         console2.log("=========== PROVED POSITION ==========");
         console2.log("borrower         ", BORROWER);
@@ -162,6 +181,11 @@ contract ProveMainnetPosition is Script {
         console2.log("price (8dp)      ", uint256(v.price));
         console2.log("NET WORTH USD 8dp", uint256(v.valueUsd8));
         console2.log("  = $", uint256(v.valueUsd8) / 1e8);
+        console2.log("");
+        console2.log("=========== CREDIT SIZED FROM IT =====");
+        console2.log("net worth (usd8)", uint256(d.netWorthUsd8));
+        console2.log("limit (usd8)    ", d.limitUsd8);
+        console2.log("status          ", uint256(d.status)); // 0 = Eligible
         console2.log("=====================================");
     }
 }
