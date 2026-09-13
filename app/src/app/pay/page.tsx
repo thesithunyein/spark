@@ -601,8 +601,9 @@ export default function PayPage() {
                   className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums text-text outline-none transition focus:border-accent/60"
                 />
                 <p className="mt-2 text-[12px] text-muted">
-                  Credit LTV rises with attested Sepolia balance and linked payment history (+2.5% /
-                  +5%). Use a fresh deposit tx to open.
+                  Your limit is a percentage of this deposit, not of your Sepolia balance. The
+                  percentage rises with a proven balance (80% → 85% → 90%) and with linked payment
+                  history (+2.5% / +5%), capped at 95%. Use a fresh deposit tx to open.
                 </p>
               </>
             )}

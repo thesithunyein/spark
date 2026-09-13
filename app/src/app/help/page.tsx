@@ -114,14 +114,37 @@ export default function HelpPage() {
           </ol>
         </Block>
 
+        <Block title="How your limit is set">
+          <p>
+            Being explicit, because it is the part people guess wrong:
+          </p>
+          <p className="font-mono text-[12px] text-white/90">
+            limit = deposit &times; LTV
+          </p>
+          <p>
+            Your attested Sepolia balance does not set the size of the line. It selects your
+            LTV, and the LTV applies to the deposit you just paid. So a 0.01 ETH deposit with a
+            proven balance above 2× that opens up to 0.0095 ETH of credit. Prove more wealth and
+            you get a better rate, not a bigger loan.
+          </p>
+          <p>
+            That ceiling is a real limit of this generation, and it is the reason Spark is
+            building a position-backed layer that sizes a limit from proven wealth instead: see{" "}
+            <Link href="/bonus" className="text-white hover:underline">
+              the mainnet position proof
+            </Link>
+            .
+          </p>
+        </Block>
+
         <Block title="Credit score (optional)">
           <p>
-            More attested Sepolia payments → higher score and bigger credit line (LTV bonus).
+            More attested Sepolia payments → higher score and a higher LTV on your next line.
           </p>
           <ul className="list-inside list-disc space-y-1">
             <li>Score: 650 base + 40 per payment (max 850)</li>
-            <li>LTV bonus: +2.5% at ≥1 payment, +5% at ≥3</li>
-            <li>Balance also raises LTV (more Sepolia ETH attested → up to 90%)</li>
+            <li>LTV: 80% base, 85% at balance ≥ deposit, 90% at balance ≥ 2× deposit</li>
+            <li>History bonus: +2.5% at ≥1 payment, +5% at ≥3, capped at 95%</li>
           </ul>
           <p>
             Go to{" "}
