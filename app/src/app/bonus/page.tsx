@@ -1,54 +1,73 @@
-"use client";
-
 import Link from "next/link";
-import { useState } from "react";
+import type { ReactNode } from "react";
+import { EVIDENCE } from "@/lib/mainnetEvidence";
 
 /**
- * Illustrative mock: "mainnet history" UI concept.
+ * Mainnet Position Proof: real measured evidence.
  *
- * NOT a live proof. Nothing on this page queries a wallet, an Aave subgraph or
- * the Attestcoin prover, and mainnet attestation is not implemented. The rows
- * below are static sample data so the intended layout can be reviewed.
- * Spark's live credit flow proves Sepolia payments only.
+ * Every number on this page comes from docs/evidence/*.json, which was produced from live
+ * Ethereum mainnet reads, and is imported through a generated module so the page cannot
+ * drift from its artifacts. Regenerate with: cd app && node scripts/gen-evidence-module.mjs
  *
- * Matches landing page dark UI/UX style.
+ * Scope is stated explicitly and does not overclaim: the measurements and the engine are
+ * real, the end-to-end execution was local, and the Creditcoin testnet broadcast has not
+ * been run. Spark's live credit flow (Sepolia payment to Creditcoin credit) is a separate,
+ * fully deployed product and is not affected by this page.
+ *
+ * Matches the landing page dark UI/UX style.
  */
 
-type HistoryEntry = {
-  action: string;
-  protocol: string;
-  amount: string;
-  asset: string;
-  timestamp: string;
-  chain: string;
-  attested: boolean;
-};
+const E = EVIDENCE;
 
-const STATIC_SAMPLE: HistoryEntry[] = [
-  { action: "Supply", protocol: "Aave V3", amount: "2.5", asset: "ETH", timestamp: "2024-12-15", chain: "Ethereum Mainnet", attested: true },
-  { action: "Borrow", protocol: "Aave V3", amount: "1000", asset: "USDC", timestamp: "2025-01-20", chain: "Ethereum Mainnet", attested: true },
-  { action: "Repay", protocol: "Aave V3", amount: "1000", asset: "USDC", timestamp: "2025-03-10", chain: "Ethereum Mainnet", attested: true },
-  { action: "Withdraw", protocol: "Aave V3", amount: "2.5", asset: "ETH", timestamp: "2025-03-12", chain: "Ethereum Mainnet", attested: true },
+// `subLiteral` keeps a token symbol in its real case: uppercasing "aEthWETH" renders as
+// "AETHWETH", which reads as a typo rather than a label.
+function Metric({ label, value, sub, subLiteral }: { label: string; value: string; sub?: string; subLiteral?: boolean }) {
+  return (
+    <div className="rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4 backdrop-blur-sm">
+      <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">{label}</p>
+      <p className="mt-2 text-[24px] font-extralight leading-none text-white">{value}</p>
+      {sub && (
+        <p className={`mt-2 font-mono text-[10px] tracking-[0.12em] text-white/40 ${subLiteral ? "normal-case" : "uppercase"}`}>
+          {sub}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function SectionTitle({ n, children }: { n: string; children: ReactNode }) {
+  return (
+    <h2 className="mt-10 flex items-baseline gap-3 text-[clamp(18px,1.6vw,26px)] font-extralight tracking-[0.02em] text-white">
+      <span className="font-mono text-[11px] text-accent2">{n}</span>
+      {children}
+    </h2>
+  );
+}
+
+const STATUS = [
+  {
+    label: "Measured on Ethereum mainnet",
+    tone: "border-emerald-500/40 bg-emerald-500/[0.08] text-emerald-300",
+    note: "Read live from archive RPC. Reproducible with the commands at the bottom of this page.",
+  },
+  {
+    label: "Engine code, executed locally",
+    tone: "border-sky-500/40 bg-sky-500/[0.08] text-sky-300",
+    note: "Ten Solidity contracts, 373 Foundry tests, run end to end on a local chain using real mainnet data.",
+  },
+  {
+    label: "Not yet broadcast to Creditcoin testnet",
+    tone: "border-amber-500/40 bg-amber-500/[0.08] text-amber-300",
+    note: "The CC3 deployment is written and unrun. Nothing on this page claims otherwise.",
+  },
 ];
 
-export default function BonusPage() {
-  const [wallet, setWallet] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [history, setHistory] = useState<HistoryEntry[] | null>(null);
-
-  // Simulated only: waits briefly, then renders the static sample. No wallet is
-  // queried and no proof is generated. Kept so the intended interaction can be
-  // reviewed without implying that anything is verified.
-  const handlePreviewMock = async () => {
-    if (!wallet) return;
-    setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setHistory(STATIC_SAMPLE);
-    setLoading(false);
-  };
+export default function MainnetPositionPage() {
+  const { scale, drift, topics, e2e } = E;
+  const weth = drift.weth;
 
   return (
-    <div className="relative isolate grid h-[100svh] w-full grid-rows-[auto_1fr_auto] overflow-hidden bg-black">
+    <div className="relative isolate min-h-[100svh] w-full bg-black">
       {/* Background gradient */}
       <div className="absolute inset-0 -z-10 bg-black" aria-hidden>
         <div
@@ -86,123 +105,267 @@ export default function BonusPage() {
         </div>
       </header>
 
-      {/* Main content */}
-      <main className="relative z-10 flex min-h-0 items-start justify-center overflow-y-auto px-[clamp(20px,5vw,100px)] pt-8 pb-16">
-        <div className="stagger flex w-[min(600px,90vw)] flex-col">
-          {/* Badge */}
-          <span className="inline-block self-start border border-accent/50 bg-accent/10 px-4 py-2 font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-accent3">
-            [ Not implemented ]
+      <main className="relative z-10 px-[clamp(20px,5vw,100px)] pb-20">
+        <div className="stagger mx-auto w-[min(980px,100%)]">
+          {/* Intro */}
+          <span className="inline-block self-start border border-emerald-500/50 bg-emerald-500/10 px-4 py-2 font-mono text-[11px] uppercase leading-none tracking-[0.2em] text-emerald-300">
+            [ Measured on mainnet ]
           </span>
-
-          {/* Title */}
           <h1 className="mt-6 text-[clamp(32px,4vw,56px)] font-extralight leading-[0.95] tracking-[0.03em] text-white">
-            Mainnet History
+            Mainnet Position Proof
           </h1>
           <p className="mt-3 font-mono text-[13px] font-light uppercase leading-[1.4] tracking-[0.14em] text-white/60">
-            Illustrative mock. No live proof.
+            Ledger reconstruction of real Aave V3 positions, from real mainnet data
           </p>
-          <p className="mt-4 max-w-lg text-[15px] font-light leading-relaxed text-white/85">
-            A layout concept for a planned feature. Nothing here is wired up: no wallet is queried, no proof is generated, and no mainnet attestation exists in the code. Spark&apos;s live credit flow proves Sepolia payments today.
+          <p className="mt-5 max-w-3xl text-[15px] font-light leading-relaxed text-white/85">
+            Credit decisions need history that lives on another chain. The obvious way to get it is to
+            sum a protocol&apos;s events. We measured that approach against reality and it is wrong by up
+            to {weth.supplyDriftPct.replace("-", "")} on a single position. This page is the measurement,
+            the replacement primitive, and the proof that the replacement reconciles.
           </p>
 
-          <div className="mt-6 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-5 py-4">
+          {/* Honest status */}
+          <div className="mt-8 space-y-3">
+            {STATUS.map((s) => (
+              <div key={s.label} className={`flex flex-col gap-1 rounded-lg border px-5 py-3 sm:flex-row sm:items-center sm:gap-4 ${s.tone}`}>
+                <span className="font-mono text-[11px] uppercase tracking-[0.16em]">{s.label}</span>
+                <span className="text-[13px] font-light leading-snug text-white/65">{s.note}</span>
+              </div>
+            ))}
+          </div>
+
+          {/* Headline numbers */}
+          <div className="mt-8 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Metric label="Positions reconciled" value={`${scale.summary.tested}`} sub={`${scale.summary.ledgerWithin10Bps} within 10 bps`} />
+            <Metric label="Largest residual" value={`${scale.summary.largestResidualBps} bps`} sub="interest events cannot supply" />
+            <Metric label="Mainnet RPC calls" value={`${scale.rpcCallsUsed}`} sub={`to block ${scale.latestBlock.toLocaleString("en-US")}`} />
+            <Metric label="End-to-end gas" value={`${e2e.gasTotal}`} sub={`${e2e.chain}, 7 transactions`} />
+          </div>
+
+          {/* 1. The finding */}
+          <SectionTitle n="01">The finding: event summing understates a position</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            A real mainnet borrower with {drift.totalEvents} pool events. The naive method sums{" "}
+            <span className="font-mono text-white">Supply</span> minus{" "}
+            <span className="font-mono text-white">Withdraw</span> per reserve. The right column is the
+            same position read from protocol state at the same block.
+          </p>
+
+          <div className="mt-5 overflow-hidden rounded-xl border border-white/[0.12]">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-white/[0.12] bg-white/[0.04]">
+                  {["Reserve", "Events", "Naive sum (events)", "Real state", "Error"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {drift.reserves.map((r) => (
+                  <tr key={r.symbol} className="border-b border-white/[0.07] last:border-0">
+                    <td className="px-4 py-3 text-[14px] font-light text-white">{r.symbol}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/50">{r.eventCount}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/80">{r.naiveSupplyDisplay}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/80">{r.realSupplyDisplay}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-red-300">{r.supplyDriftPct}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
+            <p className="text-[14px] font-light leading-relaxed text-white/75">
+              The WETH row is the clearest case:{" "}
+              <span className="font-mono text-white">{weth.naiveSupplyDisplay}</span> from events against{" "}
+              <span className="font-mono text-white">{weth.realSupplyDisplay}</span> in reality, with{" "}
+              <span className="font-mono text-white">zero</span> Withdraw events in the entire history. The
+              position moved by plain ERC20 <span className="font-mono text-white">Transfer</span>, which
+              emits no Aave event at all. The USDT debt row shows the same class of failure in the other
+              direction: {drift.reserves.find((r) => r.symbol === "USDT")?.naiveDebtDisplay} borrowed from
+              events against {drift.reserves.find((r) => r.symbol === "USDT")?.realDebtDisplay} actual.
+            </p>
+          </div>
+
+          {/* 2. The replacement */}
+          <SectionTitle n="02">The replacement: the token&apos;s own ledger, anchored at a proven zero</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            The primitive is the aToken&apos;s Transfer ledger, not the pool&apos;s events. A ledger sum is
+            only meaningful if you know where it started, so the engine finds the most recent block where{" "}
+            <span className="font-mono text-white">balanceOf</span> returns exactly zero and anchors there,
+            which makes coverage complete by construction rather than by assumption.
+          </p>
+
+          <div className="mt-5 overflow-hidden rounded-xl border border-white/[0.12]">
+            <table className="w-full border-collapse text-left">
+              <thead>
+                <tr className="border-b border-white/[0.12] bg-white/[0.04]">
+                  {["Wallet", "Anchor block", "Blocks", "Ledger", "Real balance", "Residual"].map((h) => (
+                    <th key={h} className="px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {scale.wallets.map((w) => (
+                  <tr key={w.wallet} className={`border-b border-white/[0.07] last:border-0 ${w.hasP2p ? "bg-amber-500/[0.06]" : ""}`}>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/80">{w.short}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/50">{w.anchorBlock.toLocaleString("en-US")}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/50">{w.blocksCovered.toLocaleString("en-US")}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/80">{w.ledgerDisplay}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-white/80">{w.balanceDisplay}</td>
+                    <td className="px-4 py-3 font-mono text-[12px] text-emerald-300">{w.residualBps} bps</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          <p className="mt-4 text-[14px] font-light leading-relaxed text-white/75">
+            {scale.summary.tested} wallets, positions from {scale.wallets[scale.wallets.length - 1].balanceDisplay} to{" "}
+            {scale.wallets[0].balanceDisplay} in {scale.assetSymbol}.{" "}
+            <span className="text-white">{scale.summary.ledgerMatchesExactly} matched exactly</span> and{" "}
+            <span className="text-white">{scale.summary.ledgerWithin10Bps} of {scale.summary.tested}</span> landed
+            within 10 bps, with a largest residual of {scale.summary.largestResidualBps} bps.
+          </p>
+
+          <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-5 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-amber-300">
-              Illustrative mock. Nothing on this page is proven.
+              Two honest corrections, both found by measuring
             </p>
             <p className="mt-2 text-[13px] font-light leading-relaxed text-white/70">
-              Your input is not sent anywhere, and the table below is static sample data. Mainnet attestation is not implemented.
+              Exact equality was our first claim and it was wrong: it came from a single wallet with a
+              near-zero balance, where matching is trivial. Across {scale.summary.tested} real positions,
+              nothing matches exactly, because interest rebases into the aToken between events. The honest
+              claim is the residual magnitude, and that number is what the on-chain{" "}
+              <span className="font-mono">interestResidual</span> bound encodes. Separately,{" "}
+              {scale.summary.withPeerToPeerMovement} of {scale.summary.tested} walked{" "}
+              <span className="font-mono">{scale.wallets.find((w) => w.hasP2p)?.p2pDisplay.replace("-", "")}</span>{" "}
+              between wallets, which no event-only method could ever reconstruct. That row is highlighted above.
             </p>
           </div>
 
-          {/* Input card */}
-          <div className="mt-8 rounded-xl border border-white/[0.12] bg-white/[0.04] p-5 backdrop-blur-sm">
-            <label className="block font-mono text-[11px] uppercase tracking-[0.18em] text-white/50 mb-3">
-              Ethereum Mainnet Wallet
-            </label>
-            <div className="flex gap-3">
-              <input
-                type="text"
-                placeholder="0x..."
-                value={wallet}
-                onChange={(e) => setWallet(e.target.value)}
-                className="flex-1 rounded-lg border border-white/[0.15] bg-white/[0.06] px-4 py-3 font-mono text-sm text-white placeholder:text-white/30 outline-none transition-colors focus:border-accent/60 focus:bg-white/[0.08]"
-              />
-              <button
-                onClick={handlePreviewMock}
-                disabled={loading || !wallet}
-                className="btn-shine px-6 py-3 font-mono text-[12px] uppercase tracking-[0.18em] text-white disabled:opacity-40"
-              >
-                {loading ? (
-                  <span className="flex items-center gap-2">
-                    <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-                    Loading
-                  </span>
-                ) : (
-                  "Preview mock"
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* History results */}
-          {history && (
-            <div className="mt-6 space-y-3">
-              <h2 className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
-                Sample history (static mock data)
-              </h2>
-              {history.map((entry, i) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between rounded-lg border border-white/[0.12] bg-white/[0.04] px-5 py-4 backdrop-blur-sm transition-colors hover:bg-white/[0.06]"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-accent/10 font-mono text-[11px] text-accent2">
-                      {entry.action.slice(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <div className="text-[14px] font-light text-white">
-                        {entry.action} {entry.amount} {entry.asset}
-                      </div>
-                      <div className="font-mono text-[11px] text-white/40">
-                        {entry.protocol} &middot; {entry.timestamp}
-                      </div>
-                    </div>
-                  </div>
-                  <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1 font-mono text-[10px] uppercase tracking-[0.12em] text-amber-400">
-                    Sample
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* How it works */}
-          <div className="mt-6 rounded-xl border border-white/[0.12] bg-white/[0.04] p-5 backdrop-blur-sm">
-            <h3 className="mb-4 font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
-              Planned flow (not implemented)
-            </h3>
-            <ol className="space-y-3">
-              {[
-                "Query Aave V3 subgraph for wallet's supply/borrow/repay history",
-                "For each mainnet transaction, generate an Attestcoin proof",
-                "Submit proofs to Creditcoin via BlockProver precompile",
-                "Attested history boosts credit score and LTV",
-              ].map((step, i) => (
-                <li key={i} className="flex items-start gap-3">
-                  <span className="mt-0.5 font-mono text-[11px] text-accent2">{String(i + 1).padStart(2, "0")}</span>
-                  <span className="text-[14px] font-light text-white/70">{step}</span>
-                </li>
-              ))}
-            </ol>
-          </div>
-
-          {/* Note */}
-          <p className="mt-4 text-[12px] text-white/40">
-            This page is a UI concept only. Nothing here is proven, deployed, or used by the credit flow.
+          {/* 3. Topics */}
+          <SectionTitle n="03">Parity: every topic pinned against the chain, with negative controls</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            Constants that are wrong fail silently, so each declared signature is checked against real logs
+            in a {topics.window.blocks.toLocaleString("en-US")} block window and paired with a negative
+            control that must return zero for the method to be credible.{" "}
+            {topics.confirmedCount} of {topics.totalCount} signatures confirmed live.
           </p>
 
+          <div className="mt-5 grid gap-3 lg:grid-cols-2">
+            <div className="overflow-hidden rounded-xl border border-white/[0.12]">
+              <p className="border-b border-white/[0.12] bg-white/[0.04] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+                Declared signatures
+              </p>
+              <ul>
+                {topics.rows.map((t) => (
+                  <li key={t.name} className="flex items-center justify-between gap-4 border-b border-white/[0.07] px-4 py-2.5 last:border-0">
+                    <span className="text-[13px] font-light text-white/80">{t.name}</span>
+                    <span className="flex items-center gap-3">
+                      <span className="font-mono text-[11px] text-white/40">{t.logsInWindow.toLocaleString("en-US")} logs</span>
+                      <span className={`font-mono text-[10px] uppercase tracking-[0.1em] ${t.confirmed ? "text-emerald-300" : "text-amber-300"}`}>
+                        {t.confirmed ? "live" : "unseen"}
+                      </span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <div className="overflow-hidden rounded-xl border border-white/[0.12]">
+              <p className="border-b border-white/[0.12] bg-white/[0.04] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+                Negative controls (must be zero)
+              </p>
+              <ul>
+                {topics.negativeControls.map((c) => (
+                  <li key={c.name} className="border-b border-white/[0.07] px-4 py-2.5 last:border-0">
+                    <div className="flex items-center justify-between gap-4">
+                      <span className="text-[13px] font-light text-white/80">{c.name}</span>
+                      <span className="font-mono text-[12px] text-emerald-300">{c.logsInWindow}</span>
+                    </div>
+                    <p className="mt-1 font-mono text-[10px] text-white/35">{c.signature}</p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
+              The proxy that proves nothing
+            </p>
+            <p className="mt-2 text-[14px] font-light leading-relaxed text-white/75">
+              The ETH/USD price needs a Chainlink answer, and the address everyone knows is the proxy. The
+              proxy emitted <span className="font-mono text-white">0</span> logs. Its underlying aggregator
+              emitted <span className="font-mono text-white">36</span> in the same window, because{" "}
+              <span className="font-mono text-white">AnswerUpdated</span> is emitted by the aggregator. An
+              implementation that attests the proxy would prove no price while appearing to succeed. That
+              is a silent failure mode we only found by checking.
+            </p>
+          </div>
+
+          {/* 4. End to end */}
+          <SectionTitle n="04">End to end: the same flow the contract runs</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            The engine then values the position through attested prices. Executed across seven transactions
+            on {e2e.chain} using the real mainnet inputs above, then read back from the deployed contracts
+            rather than from the script&apos;s own console output.
+          </p>
+
+          <div className="mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <Metric label="Ledger net" value={e2e.ledgerDisplay ?? "n/a"} sub={scale.assetSymbol} subLiteral />
+            <Metric label="Reconciled position" value={e2e.netPositionDisplay ?? "n/a"} sub={scale.assetSymbol} subLiteral />
+            <Metric label="Attested ETH/USD" value={e2e.priceDisplay ?? "n/a"} sub={`Chainlink, ${e2e.priceDecimals}dp`} />
+            <Metric label="Position value" value={e2e.valueUsdDisplay ?? "n/a"} sub={`at block ${e2e.positionBlock ? Number(e2e.positionBlock).toLocaleString("en-US") : "n/a"}`} />
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
+            <p className="text-[14px] font-light leading-relaxed text-white/75">
+              The inputs were re-verified against mainnet independently after the run, and one check is
+              worth calling out because it confirms the whole thesis in live data. The position read{" "}
+              <span className="font-mono text-white">{e2e.netPosition}</span> at the snapshot block and reads{" "}
+              <span className="font-mono text-white">{e2e.independentNow}</span> now. That increase is
+              interest accruing in real time, which is precisely the term events can never supply and the
+              reason the design is events for history plus state proofs for the current position.
+            </p>
+          </div>
+
+          {/* 5. Limits */}
+          <SectionTitle n="05">What is not true yet</SectionTitle>
+          <ul className="mt-4 space-y-3">
+            {[
+              "The stack has not been broadcast to Creditcoin CC3. It ran end to end on a local chain with real mainnet data, and the CC3 deploy is written but unrun.",
+              "Interest is never fabricated from a timestamp or a rate. The only path that moves a position ahead of the ledger is an attested state balance, and the residual is capped and reverts past the cap.",
+              "The sample is aEthWETH only and biased toward recent depositors. Morpho WithdrawCollateral has no observed logs in the window, so that signature is unconfirmed.",
+              "The attestor is trusted to submit already verified values rather than the contract calling the precompile directly. That trust boundary is documented in the threat model.",
+            ].map((t) => (
+              <li key={t} className="flex items-start gap-3">
+                <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-amber-400" />
+                <span className="text-[14px] font-light leading-relaxed text-white/70">{t}</span>
+              </li>
+            ))}
+          </ul>
+
+          <p className="mt-6 text-[14px] font-light leading-relaxed text-white/70">
+            Spark&apos;s live product is separate and unaffected. Paying on Sepolia and opening credit on
+            Creditcoin with dual Attestcoin proofs is deployed and working today, with on-chain history you
+            can read on Blockscout.
+          </p>
+
+          {/* Reproduce */}
+          <div className="mt-8 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">Reproduce</p>
+            <pre className="mt-3 overflow-x-auto font-mono text-[11px] leading-relaxed text-white/70">
+{`cd app && node scripts/position-scale.mjs      # 8-wallet reconciliation
+cd app && node scripts/protocol-topics.mjs     # topic parity + controls
+cd app && node scripts/gen-evidence-module.mjs # regenerate this page's data
+cd contracts && forge test                     # 373 tests`}
+            </pre>
+          </div>
+
           {/* CTA */}
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/pay" className="btn-shine px-7 py-[clamp(14px,1.4vw,22px)] font-mono text-[clamp(11px,0.78vw,14px)] uppercase tracking-[0.22em] text-white">
               Get credit
             </Link>

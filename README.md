@@ -67,7 +67,7 @@ On-chain `creditScore()` = **850** (650 + 5 x 40). Artifacts: [docs/evidence/REA
 cd app && node scripts/position-scale.mjs
 ```
 
-Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer** — movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md).
+Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer**, movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md). Same evidence rendered live, regenerated from these artifacts so the page cannot drift from the data: [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus).
 
 **5. Prove a real mainnet position across 7 transactions (one command)**
 
@@ -104,7 +104,7 @@ Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 a
 
 **Unique to Spark:** Dual proofs verify both payment AND solvency. The balance attestation (kind 3) proves the borrower holds sufficient funds — no other project in this hackathon verifies solvency.
 
-Full surface enumeration: [docs/ATTESTCOIN_SURFACE.md](docs/ATTESTCOIN_SURFACE.md)
+Full surface enumeration: [docs/ATTESTCOIN_SURFACE.md](docs/ATTESTCOIN_SURFACE.md). Where the project goes next, and what is honestly not done yet: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## The Problem
 

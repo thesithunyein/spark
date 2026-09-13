@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Sora, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/lib/wagmi";
 import { CursorGlow } from "@/components/CursorGlow";
@@ -22,12 +22,15 @@ export const metadata: Metadata = {
   description:
     "We verify your payment so credit can open. No paperwork chase. Credit on Creditcoin after verified payment.",
   icons: { icon: [{ url: "/favicon.svg", type: "image/svg+xml" }, { url: "/favicon.png", type: "image/png" }, { url: "/brand/logo.png", type: "image/png" }] },
-  viewport: {
-    width: "device-width",
-    initialScale: 1,
-    maximumScale: 1,
-    viewportFit: "cover",
-  },
+};
+
+// Next 15 requires viewport in its own export. Values are unchanged from the previous
+// metadata.viewport definition.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
