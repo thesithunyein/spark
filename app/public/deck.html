@@ -150,7 +150,7 @@
     <div class="steps">
       <div class="step"><div class="n">01</div><div class="t">Pay deposit + attest balance on Sepolia</div></div>
       <div class="step"><div class="n">02</div><div class="t">Attestcoin proves both txs via BlockProver</div></div>
-      <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin (LTV sized by balance)</div></div>
+      <div class="step"><div class="n">03</div><div class="t">CreditLine opens on Creditcoin (LTV tier set by attested balance)</div></div>
       <div class="step"><div class="n">04</div><div class="t">Repay on Sepolia &rarr; verify &rarr; line closes</div></div>
     </div>
     <p class="meta" style="margin-top: 2rem;">Optional: link past Sepolia payments to raise credit score and LTV bonus before opening.</p>
@@ -160,7 +160,7 @@
   <!-- SLIDE 5: Attestcoin depth -->
   <section class="slide">
     <span class="badge">Attestcoin Protocol</span>
-    <h2 style="margin-top: 2rem;">Deep Attestcoin integration with strict receipt verification</h2>
+    <h2 style="margin-top: 0.9rem;">15 Attestcoin surfaces load-bearing, with strict receipt verification</h2>
     <div class="row">
       <div>
         <ul>
@@ -168,7 +168,7 @@
           <li>Strict receipt log decoding: topic, payer, and <strong>amount</strong> verified from proven data</li>
           <li>One-time <code>txHash</code> (replay protected)</li>
           <li>Payer must match <code>msg.sender</code></li>
-          <li>Attested balance sizes LTV (80% / 85% / 90%)</li>
+          <li><strong>Credit = deposit × LTV</strong>; attested balance sets the tier (80% / 85% / 90%)</li>
           <li>Payment history adds LTV bonus (+250 / +500 bps)</li>
         </ul>
       </div>
@@ -178,11 +178,11 @@
           <tr><td>SepoliaPayment</td><td>Deposit, repay, balance events</td></tr>
           <tr><td>Attestcoin / USC</td><td>Cross-chain proof (dual)</td></tr>
           <tr><td>CreditLine</td><td>Credit + score + history + interest</td></tr>
-          <tr><td>BlockProver 0xFD2</td><td>On-chain verify</td></tr>
+          <tr><td>BlockProver 0x0FD2</td><td>On-chain verify</td></tr>
         </table>
       </div>
     </div>
-    <p class="meta" style="margin-top: 1.5rem; max-width: 42em;">Verifier parses receipt RLP from proven encodedTransaction. Per Aug 18 AMA: "Transaction fields and their log data are verified and available." Amount is cryptographically bound.</p>
+    <p class="meta" style="margin-top: 0.7rem; max-width: 46em;">15 surfaces across 3 attested event kinds: 10 on the critical path, 5 more integrated and tested. Verifier parses receipt RLP from the proven encodedTransaction; a decoded amount that disagrees with the claim reverts. Per Aug 18 AMA: "Transaction fields and their log data are verified and available."</p>
     <div class="footer"><span>Spark</span><span>5 / 9</span></div>
   </section>
 

@@ -23,17 +23,17 @@ Spark uses Attestcoin to prove Sepolia payments on Creditcoin. Verified payment 
 ## Slide 4 — How it works
 1. Pay deposit + attest balance on Sepolia
 2. Attestcoin proves both txs via BlockProver
-3. CreditLine opens on Creditcoin (LTV sized by balance)
+3. CreditLine opens on Creditcoin (LTV tier set by attested balance)
 4. Repay on Sepolia → verify → line closes
 Optional: link past payments to raise credit score and LTV before opening.
 
 ## Slide 5 — Attestcoin depth
-The deepest Attestcoin integration in this hackathon.
+**15 Attestcoin surfaces load-bearing**, across 3 attested event kinds and 5 on-chain entry points: 10 on the critical path, 5 more integrated and tested.
 - `openCredit` requires **two** BlockProver proofs: deposit + balance
 - Strict receipt log decoding: topic, payer, and **amount** verified from proven data
 - One-time `txHash` (replay protected)
 - Payer must match `msg.sender`
-- Attested balance sizes LTV (80% / 85% / 90%)
+- **Credit = deposit × LTV**; attested balance sets the tier (80% / 85% / 90%)
 - Payment history adds LTV bonus (+250 / +500 bps)
 - Per Aug 18 AMA: "Transaction fields and their log data are verified and available." Amount is cryptographically bound.
 
@@ -42,7 +42,7 @@ The deepest Attestcoin integration in this hackathon.
 | SepoliaPayment | Deposit, repay, balance events |
 | Attestcoin / USC | Cross-chain proof (dual) |
 | CreditLine | Credit + score + history + interest |
-| BlockProver 0xFD2 | On-chain verify |
+| BlockProver 0x0FD2 | On-chain verify |
 
 ## Slide 6 — Measured, not asserted
 A position on another chain, rebuilt from proven facts.
