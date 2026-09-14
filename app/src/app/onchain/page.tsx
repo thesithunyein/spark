@@ -216,9 +216,10 @@ export default function OnchainPage() {
               produced the {S.totalEvents} events on this page, and{" "}
               <strong className="font-normal text-white">{F.openedWithoutDeposit}</strong> of them reached
               a credit line through the deposit-free balance path. That is why &ldquo;paid a deposit&rdquo;
-              sits below &ldquo;had a balance attested&rdquo;. Two addresses and one deposit-free path is
-              still not a market, so the limit stands: the addresses are recruited one conversation at a
-              time, and no repository can supply them.
+              sits below &ldquo;had a balance attested&rdquo;. {" "}
+              <strong className="font-normal text-white">{F.distinctWallets}</strong> addresses is still
+              not a market, so the limit stands: the addresses are recruited one conversation at a time,
+              and no repository can supply them.
             </p>
           </div>
 

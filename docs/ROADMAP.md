@@ -24,10 +24,11 @@ attested Chainlink prices. Forty real mainnet wallets reconcile within 10 bps (l
 describe. It was executed end to end on a local chain with real mainnet data and has since
 been **broadcast to CC3** and verified: see `docs/addresses.md`.
 
-**Not started.** Real user acquisition. The on-chain record is unambiguous about this: the 54
-events come from **2 distinct wallets**, and the funnel it prints reads 1 at "paid a deposit"
-against 2 at every stage after it. Two wallets can prove a loop works; they cannot prove a market
-exists. This is the weakest part of the project and no amount of protocol depth fixes it, which
+**In progress, still small.** Real user acquisition. The on-chain record is unambiguous about
+this: the 74 events come from **4 distinct wallets**, one of which is mine, and the funnel it
+prints reads 1 at "paid a deposit" against 4 at every stage after it. With three wallets that
+are not mine, and every deposit-free line closed through a proven repayment, this is now a
+process rather than a single demo. It is still not a market, and three wallets cannot prove one. This is the weakest part of the project and no amount of protocol depth fixes it, which
 is why it is written here rather than left for a judge to discover.
 
 ## The thesis

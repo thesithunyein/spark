@@ -1,8 +1,9 @@
 # Spark — pitch deck (source for deck.html, exported to deck.pdf for DoraHacks)
 
 > **This is the deck as submitted on September 13, and the submission is frozen.** Its numbers are the
-> ones that were judged and are left as they were. Two have moved in the repository since: the wallet
-> corpus is now 40 rather than 8, and the contract suite is 518 rather than 417. The current state is
+> ones that were judged and are left as they were. Three have moved in the repository since: the wallet
+> corpus is now 40 rather than 8, the contract suite is 518 rather than 417, and the on-chain record
+> now shows five closed loops from four distinct wallets rather than two loops from one. The current state is
 > generated from chain reads at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain)
 > and [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus), and the substitution is stated
 > in the README's judge path.
@@ -87,9 +88,10 @@ Credit sizing needs history elsewhere and proof of cover, so we rebuilt real Aav
 - Live evidence and reproduction commands: spark.sithunyein.com/bonus
 
 ## Slide 9 — Traction
-Two full closed loops on-chain with real USC proofs.
-- 2 full closed loops: Open → Withdraw → Redeem → Repay → Close
-- 6 attested payments on-chain credit history
+Five full closed loops on-chain with real USC proofs.
+- 5 full closed loops: Open → Withdraw → Redeem → Repay → Close
+- 3 of them run end to end by wallets that are not the founder's, all on the deposit-free path
+- 10 attested payments on-chain credit history
 - Credit score 850 (max possible)
 - LTV 95% (base 90% + 5% history bonus)
 - All proofs are real Attestcoin USC proofs verified by BlockProver

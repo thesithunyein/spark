@@ -387,12 +387,21 @@ async function main() {
   const summary = summarize(events);
   const funnelData = funnel(events);
 
+  // Blockscout's /stats counter trails its own log index, so on a busy day it can report a
+  // height below events that are already in the record. A snapshot that states a block
+  // lower than a row it contains contradicts itself, and this page's whole claim is that
+  // every row is checkable, so the label is floored at the newest event actually read.
+  const newestBlockOn = (chainKey) =>
+    events.reduce((max, e) => (e.chain === chainKey ? Math.max(max, e.block) : max), 0);
+
+  const asOf = {
+    creditcoinBlock: Math.max(Number(cc3Stats.total_blocks), newestBlockOn("creditcoin")),
+    sepoliaBlock: Math.max(Number(sepStats.total_blocks), newestBlockOn("sepolia")),
+  };
+
   const chain = {
     generatedAt: new Date().toISOString(),
-    asOf: {
-      creditcoinBlock: Number(cc3Stats.total_blocks),
-      sepoliaBlock: Number(sepStats.total_blocks),
-    },
+    asOf,
     sources: SOURCES.map(({ key, chain: c, contract, role, address, explorer }) => ({
       key,
       chain: c,

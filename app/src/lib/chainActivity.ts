@@ -3,8 +3,8 @@
 // Every value below was read off the block explorers by scripts/gen-chain-activity.mjs.
 // To refresh: npm run gen:activity
 //
-// Snapshot taken at Creditcoin testnet block 5486550 and Sepolia
-// block 11702704.
+// Snapshot taken at Creditcoin testnet block 5486852 and Sepolia
+// block 11703283.
 
 export type ChainEvent = {
   chain: "creditcoin" | "sepolia";
@@ -33,10 +33,10 @@ export type ChainSource = {
 };
 
 export const chainActivity = {
-  "generatedAt": "2026-09-14T12:52:35.749Z",
+  "generatedAt": "2026-09-14T14:00:50.425Z",
   "asOf": {
-    "creditcoinBlock": 5486550,
-    "sepoliaBlock": 11702704
+    "creditcoinBlock": 5486852,
+    "sepoliaBlock": 11703283
   },
   "sources": [
     {
@@ -81,19 +81,19 @@ export const chainActivity = {
     }
   ],
   "summary": {
-    "totalEvents": 66,
-    "linesOpened": 6,
-    "linesOpenedFromBalance": 2,
-    "linesClosed": 4,
+    "totalEvents": 74,
+    "linesOpened": 7,
+    "linesOpenedFromBalance": 3,
+    "linesClosed": 5,
     "linesActive": 2,
-    "paymentsLinked": 9,
+    "paymentsLinked": 10,
     "depositsPaid": 6,
-    "repaymentsPaid": 8,
-    "balancesAttested": 11,
-    "distinctActors": 3,
+    "repaymentsPaid": 9,
+    "balancesAttested": 12,
+    "distinctActors": 4,
     "depositVolumeEth": "0.06",
-    "repayVolumeEth": "0.01278",
-    "creditDrawnEth": "0.02528"
+    "repayVolumeEth": "0.01658",
+    "creditDrawnEth": "0.02908"
   },
   "funnel": {
     "stages": [
@@ -107,41 +107,41 @@ export const chainActivity = {
       {
         "key": "attested",
         "label": "Had a balance attested",
-        "wallets": 3,
-        "entered": 2,
+        "wallets": 4,
+        "entered": 3,
         "dropped": 0
       },
       {
         "key": "opened",
         "label": "Opened a credit line on Creditcoin",
-        "wallets": 3,
+        "wallets": 4,
         "entered": 0,
         "dropped": 0
       },
       {
         "key": "drawn",
         "label": "Drew against it",
-        "wallets": 3,
+        "wallets": 4,
         "entered": 0,
         "dropped": 0
       },
       {
         "key": "repaid",
         "label": "Had a repayment proven",
-        "wallets": 3,
+        "wallets": 4,
         "entered": 0,
         "dropped": 0
       },
       {
         "key": "closed",
         "label": "Closed the line",
-        "wallets": 3,
+        "wallets": 4,
         "entered": 0,
         "dropped": 0
       }
     ],
-    "distinctWallets": 3,
-    "openedWithoutDeposit": 2
+    "distinctWallets": 4,
+    "openedWithoutDeposit": 3
   },
   "events": [
     {
@@ -1557,6 +1557,204 @@ export const chainActivity = {
       "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0x87487800e4c7e7691cf52527334a6cf9e790234db2d1f89a28d0f9f7f17cc43d"
     },
     {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "CreditOpenedFromBalance",
+      "headline": "Credit opened from a proven balance, no deposit, 0.00398 ETH line",
+      "fields": [
+        [
+          "Attested balance",
+          "0.0199 ETH"
+        ],
+        [
+          "Credit unlocked",
+          "0.00398 ETH"
+        ],
+        [
+          "Policy LTV",
+          "20.00%"
+        ],
+        [
+          "Deposit",
+          "0 ETH, none required"
+        ],
+        [
+          "Balance proof tx",
+          "0x7135e977…6e05bd"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "attestedBalance": "19904145021826268",
+        "credit": "3980829004365253",
+        "ltvBps": "2000",
+        "balanceTxHash": "0x7135e97740062076d236bde220a30adf4d278961e5926077f4070d2bf66e05bd"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 5486810,
+      "logIndex": 3,
+      "timestamp": "2026-09-14T13:48:15Z",
+      "txHash": "0x199ad66605b640429ea96245bb5fc51bdb77b0361fea9968d298a1e6a6e5ef01",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0x199ad66605b640429ea96245bb5fc51bdb77b0361fea9968d298a1e6a6e5ef01"
+    },
+    {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "CreditWithdrawn",
+      "headline": "Drew 0.0038 ETH of credit",
+      "fields": [
+        [
+          "Amount",
+          "0.0038 ETH"
+        ],
+        [
+          "Debt after",
+          "0.0038 ETH"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "amount": "3800000000000000",
+        "debt": "3800000000000000"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 5486813,
+      "logIndex": 11,
+      "timestamp": "2026-09-14T13:49:00Z",
+      "txHash": "0xef94edf3b870a058569921ff36c4abac60ed20e4d8dfee2704b9faadc756b671",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0xef94edf3b870a058569921ff36c4abac60ed20e4d8dfee2704b9faadc756b671"
+    },
+    {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "InterestAccrued",
+      "headline": "Interest accrued, debt now 0.0038 ETH",
+      "fields": [
+        [
+          "Interest",
+          "0.000000007049 ETH"
+        ],
+        [
+          "Debt after",
+          "0.0038 ETH"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "interest": "7049086757",
+        "debt": "3800007049086757"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 5486852,
+      "logIndex": 0,
+      "timestamp": "2026-09-14T13:58:45Z",
+      "txHash": "0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196"
+    },
+    {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "AttestedPaymentLinked",
+      "headline": "repayment linked, payment #1",
+      "fields": [
+        [
+          "Kind",
+          "repayment"
+        ],
+        [
+          "Amount",
+          "0.003801 ETH"
+        ],
+        [
+          "History count",
+          "1"
+        ],
+        [
+          "History volume",
+          "0.003801 ETH"
+        ],
+        [
+          "Source tx",
+          "0x287379a6…f2b45f"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "txHash": "0x287379a6a2df7ac68002d15f5ff6de26386aa049ff37e63b07ca7f6988f2b45f",
+        "kind": "2",
+        "amount": "3801000000000000",
+        "count": "1",
+        "volume": "3801000000000000"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 5486852,
+      "logIndex": 2,
+      "timestamp": "2026-09-14T13:58:45Z",
+      "txHash": "0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196"
+    },
+    {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "CreditRepaid",
+      "headline": "Repayment credited 0.0038 ETH",
+      "fields": [
+        [
+          "Amount",
+          "0.0038 ETH"
+        ],
+        [
+          "Source tx",
+          "0x287379a6…f2b45f"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "amount": "3800007049086757",
+        "txHash": "0x287379a6a2df7ac68002d15f5ff6de26386aa049ff37e63b07ca7f6988f2b45f"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 5486852,
+      "logIndex": 3,
+      "timestamp": "2026-09-14T13:58:45Z",
+      "txHash": "0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196"
+    },
+    {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "CreditClosed",
+      "headline": "Credit line closed",
+      "fields": [
+        [
+          "Closing proof tx",
+          "0x287379a6…f2b45f"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "txHash": "0x287379a6a2df7ac68002d15f5ff6de26386aa049ff37e63b07ca7f6988f2b45f"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 5486852,
+      "logIndex": 4,
+      "timestamp": "2026-09-14T13:58:45Z",
+      "txHash": "0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0xdfa72b487cdcc7e10aafe9fb3a17aa08f0e7d73133e2772188def7adfae81196"
+    },
+    {
       "chain": "sepolia",
       "role": "legacy",
       "contract": "SepoliaPayment",
@@ -2280,6 +2478,64 @@ export const chainActivity = {
       "timestamp": "2026-09-14T12:35:48Z",
       "txHash": "0x8ef8cf5e0aacff1117d14be06deb9f3ca60951a97b04e395837e6d08c6277f96",
       "explorerUrl": "https://eth-sepolia.blockscout.com/tx/0x8ef8cf5e0aacff1117d14be06deb9f3ca60951a97b04e395837e6d08c6277f96"
+    },
+    {
+      "chain": "sepolia",
+      "role": "production",
+      "contract": "SepoliaPayment",
+      "contractAddress": "0x63F0c69cf9F8b53E8eDD141d07fF2eEd2237ccc4",
+      "event": "BalanceAttested",
+      "headline": "Balance attested, 0.0199 ETH",
+      "fields": [
+        [
+          "Attested balance",
+          "0.0199 ETH"
+        ],
+        [
+          "Reference",
+          "0xdcc41f0d…681951"
+        ]
+      ],
+      "raw": {
+        "user": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "ethBalance": "19904145021826268",
+        "ref": "0xdcc41f0d730863addf3b43a6854eb9662a0df46c50b2757e4a342b4712681951"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 11703224,
+      "logIndex": 88,
+      "timestamp": "2026-09-14T13:37:24Z",
+      "txHash": "0x7135e97740062076d236bde220a30adf4d278961e5926077f4070d2bf66e05bd",
+      "explorerUrl": "https://eth-sepolia.blockscout.com/tx/0x7135e97740062076d236bde220a30adf4d278961e5926077f4070d2bf66e05bd"
+    },
+    {
+      "chain": "sepolia",
+      "role": "production",
+      "contract": "SepoliaPayment",
+      "contractAddress": "0x63F0c69cf9F8b53E8eDD141d07fF2eEd2237ccc4",
+      "event": "RepaymentPaid",
+      "headline": "Repayment paid on Sepolia, 0.003801 ETH",
+      "fields": [
+        [
+          "Amount",
+          "0.003801 ETH"
+        ],
+        [
+          "Reference",
+          "0x4146da22…9a862a"
+        ]
+      ],
+      "raw": {
+        "payer": "0x97a8daE8d55f2e127b04c7498224eB8Ea9f1876C",
+        "amount": "3801000000000000",
+        "ref": "0x4146da222bdb879997cc2a23a1bc5a326c6386a3603e9266ae6c99f1739a862a"
+      },
+      "actor": "0x97a8dae8d55f2e127b04c7498224eb8ea9f1876c",
+      "block": 11703282,
+      "logIndex": 13,
+      "timestamp": "2026-09-14T13:49:24Z",
+      "txHash": "0x287379a6a2df7ac68002d15f5ff6de26386aa049ff37e63b07ca7f6988f2b45f",
+      "explorerUrl": "https://eth-sepolia.blockscout.com/tx/0x287379a6a2df7ac68002d15f5ff6de26386aa049ff37e63b07ca7f6988f2b45f"
     }
   ]
 } as const satisfies {
