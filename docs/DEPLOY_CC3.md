@@ -14,9 +14,39 @@ before running it.
 
 ---
 
+> ### ⚠️ Read this first: `forge script` cannot run against CC3
+>
+> **Verified 2026-09-14.** CC3 block headers omit `mixHash` (prevRandao), and Foundry 1.7.1
+> validates that field when it forks a chain for a script run. Every `forge script`
+> invocation against CC3 therefore fails before it reaches the broadcast:
+>
+> ```
+> Error: Failed to deploy script:
+> EVM error; header validation error: `prevrandao` not set
+> ```
+>
+> This is not specific to Spark's scripts — a read-only script fails identically. It also
+> means the commands previously written in this document and in `PROOF_OF_NET_POSITION.md`
+> **have never been executed against CC3**, which the broadcast records confirm: every
+> `broadcast/*/run-latest.json` in this repo is chain **31337**, the local rehearsal chain.
+> The deployed contracts on CC3 were placed with `forge create`, which does not fork and so
+> does not hit the problem.
+>
+> Confirmed against both public CC3 RPCs
+> (`rpc.cc3-testnet.creditcoin.network` and `creditcoin-testnet.rpc.thirdweb.com`); neither
+> returns `mixHash`, so this is a property of Creditcoin's headers rather than one node.
+>
+> **Consequence:** part 2 below works as a single `forge create` and is verified. Part 1 is
+> a five-contract deploy followed by eight state-changing calls, which `forge create` cannot
+> express on its own, so it needs to be run as `forge create` per contract plus `cast send`
+> per step. That rewrite is described below and is **not yet executed**.
+
+---
+
 ## Part 1 — the position stack
 
-Three commands.
+Five contract deploys plus eight calls. See the note above: this cannot be run as one
+`forge script` on CC3, so it is a sequence of `forge create` and `cast send` commands.
 
 ## What is actually blocking this
 
@@ -117,13 +147,26 @@ replaced in place, so here is exactly what does and does not survive.
 
 ### It is one contract, and it reuses the verifier you already have
 
+`forge create` rather than `forge script`, because of the header issue described at the top.
+This is the **verified** form — dry-run on 2026-09-14 it built the transaction correctly
+(chainId `0x18e8f` = 102031, constructor args the verifier plus 8000 and 1000, gas 2,401,631)
+and stopped only at "add `--broadcast`".
+
 ```bash
 cd contracts
-# .env already has PRIVATE_KEY from Part 1
-VERIFIER_ADDRESS=<the deployed AttestcoinPaymentVerifier> \
-  forge script script/DeployGeneration2CreditLine.s.sol:DeployGeneration2CreditLine \
-  --rpc-url https://rpc.cc3-testnet.creditcoin.network --broadcast
+forge create --rpc-url https://rpc.cc3-testnet.creditcoin.network \
+  --private-key $PRIVATE_KEY --broadcast \
+  src/CreditLine.sol:CreditLine \
+  --constructor-args 0xF13205Bdf48A3159d4A46309C639930aE8faC130 8000 1000
 ```
+
+The constructor arguments are the deployed verifier, `collateralFactorBps` = 8000, and
+`interestPerYearBps` = 1000 — the same policy as generation 1. The verifier is **confirmed
+to hold code on CC3**, so the reuse is real rather than assumed.
+
+The script `script/DeployGeneration2CreditLine.s.sol` is kept because it documents the
+intent, checks, and expected output in readable Solidity, and it works against a local
+chain. Do not expect it to run against CC3 until the Foundry header issue is resolved.
 
 The script deploys **only** `CreditLine`. `DeployCreditcoin` would also mint a second
 `AttestcoinPaymentVerifier` with identical code, leaving two contracts making the same claim

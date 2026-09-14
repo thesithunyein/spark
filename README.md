@@ -83,6 +83,11 @@ Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstr
 
 **6. Prove a real mainnet position and size credit from it, 10 transactions (one command)**
 
+Runs against a **local** chain, which is how it was executed and recorded. It cannot be run
+against CC3 with `forge script`: Creditcoin's block headers omit `mixHash`, which Foundry
+validates when it forks, so the run fails before broadcasting. See the warning at the top of
+[docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md) for the CC3 path.
+
 ```bash
 cd contracts && PRIVATE_KEY=<funded dev key> forge script \
   script/ProveMainnetPosition.s.sol:ProveMainnetPosition \
