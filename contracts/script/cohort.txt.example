@@ -1,0 +1,24 @@
+# Cohort list for script/cohort-cc3.sh
+#
+# Copy this to `cohort.txt` in the same directory and put real addresses in it.
+# `cohort.txt` is gitignored on purpose: it is a list of participants, and participants
+# should not be published in a repository before they have chosen to take part. Their
+# activity becomes public on chain the moment they use the product, which is the right
+# mechanism for a judge to count them; a committed file is not.
+#
+# One EVM address per line. `#` starts a comment. Blank lines are ignored.
+#
+# An ADDRESS is all that is ever needed from a participant. Never a private key and
+# never a seed phrase. An address is public data.
+#
+#   Good:  0x1111111111111111111111111111111111111111   (42 characters)
+#   BAD:   0x<64 hex characters>                        (66 characters: that is a
+#                                                       PRIVATE KEY, delete it)
+#
+# The script rejects a 66-character line loudly rather than skipping it, because a
+# silently dropped line looks identical to a person who never started.
+#
+# Do not add addresses you generated, funded and drove yourself. The purpose of this
+# list is to count participants, and funding provenance is visible on the explorer.
+
+0x1111111111111111111111111111111111111111

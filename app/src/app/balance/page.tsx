@@ -211,22 +211,12 @@ export default function BalanceCreditPage() {
       subtitle="No deposit. Your Sepolia balance is proven on Creditcoin, and the line is sized from it."
     >
       <div className="mx-auto max-w-xl">
-        {/* Honest scoping, first thing on the page. */}
-        <div className="mb-5 border border-amber-500/40 bg-amber-500/[0.07] p-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-amber-300">
-            Generation 2 · deployed after the submission deadline
-          </p>
-          <p className="mt-2 text-[14px] leading-relaxed text-text/85">
-            This path exists at{" "}
-            <span className="font-mono text-[13px]">{GEN2.creditLine.slice(0, 10)}…</span> and needs no
-            deposit. It is not the flow in the demo video: that is generation 1 at{" "}
-            <span className="font-mono text-[13px]">{GEN1_CREDIT_LINE.slice(0, 10)}…</span>, still live on{" "}
-            <Link href="/pay" className="underline decoration-dotted underline-offset-2">
-              Pay
-            </Link>
-            . Everything below talks to generation 2 only.
-          </p>
-        </div>
+        {/* Scoping kept, weight removed: one muted line instead of a warning panel. The
+            detail now sits with the other honest limits at the foot of the page, so the
+            page reads cleanly without the fact disappearing. */}
+        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
+          Generation 2 · post-deadline · not the demo-video flow
+        </p>
 
         {!isConnected ? (
           <div className="border border-border bg-panel/80 p-5 shadow-soft sm:p-7">
@@ -344,6 +334,17 @@ export default function BalanceCreditPage() {
             <li>
               One proof, not two. Only the kind-3 balance attestation is needed, which is why this path
               builds a single BlockProver proof instead of a pair.
+            </li>
+            <li>
+              Generation 2, deployed after the submission deadline. This path is at{" "}
+              <span className="font-mono text-[12px]">{GEN2.creditLine.slice(0, 10)}…</span>; the demo video
+              shows generation 1 at{" "}
+              <span className="font-mono text-[12px]">{GEN1_CREDIT_LINE.slice(0, 10)}…</span>, which is still
+              the flow on{" "}
+              <Link href="/pay" className="underline decoration-dotted underline-offset-2">
+                Pay
+              </Link>
+              . Everything on this page talks to generation 2 only.
             </li>
             <li>
               The balance is verified, not locked. Nothing is custodied, and the funds stay in your Sepolia

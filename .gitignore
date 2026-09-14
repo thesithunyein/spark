@@ -21,3 +21,7 @@ contracts/lib/
 !**/.env.example
 docs/submission.md
 docs/demo-script.md
+
+# The cohort list names real participants, so only the template is tracked.
+# Copy cohort.txt.example to cohort.txt and keep the live list local.
+contracts/script/cohort.txt
