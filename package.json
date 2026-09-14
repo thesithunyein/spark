@@ -5,7 +5,7 @@
     "dev": "pnpm --dir app dev",
     "build": "pnpm --dir app build",
     "test:contracts": "cd contracts && forge test",
-    "deploy:position": "cd contracts && forge script script/ProveMainnetPosition.s.sol:ProveMainnetPosition --rpc-url https://rpc.cc3-testnet.creditcoin.network --broadcast",
+    "deploy:position": "cd contracts && bash script/deploy-position-cc3.sh",
     "verify:cc3": "cd app && node scripts/verify-cc3-position-stack.mjs",
     "evidence:regen": "cd app && node scripts/gen-evidence-module.mjs",
     "activity:regen": "cd app && node scripts/gen-chain-activity.mjs"

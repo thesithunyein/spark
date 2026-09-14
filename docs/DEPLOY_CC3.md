@@ -4,7 +4,7 @@ Two deploys live here, and they are independent:
 
 | | What it ships | Blocker |
 |---|---|---|
-| **1. The position stack** | Four contracts that size a credit limit from a proven Ethereum mainnet net worth | the key |
+| **1. The position stack** | Five contracts that size a credit limit from a proven Ethereum mainnet net worth | the key |
 | **2. Generation 2 of `CreditLine`** | The path that sizes a line from an attested balance with **no deposit** | the key, plus a decision covered under [generation 1 stays visible](#generation-1-stays-visible) |
 
 The only input for either is a private key, and it belongs in a file, not in a shell history or
@@ -37,16 +37,27 @@ before running it.
 > returns `mixHash`, so this is a property of Creditcoin's headers rather than one node.
 >
 > **Consequence:** part 2 below works as a single `forge create` and is verified. Part 1 is
-> a five-contract deploy followed by eight state-changing calls, which `forge create` cannot
-> express on its own, so it needs to be run as `forge create` per contract plus `cast send`
-> per step. That rewrite is described below and is **not yet executed**.
+> a five-contract deploy followed by five state-changing calls, which `forge create` cannot
+> express on its own, so it runs as `forge create` per contract plus `cast send` per step.
+> That rewrite is implemented in **`script/deploy-position-cc3.sh`**, and on 2026-09-14 it was
+> executed end to end against a local chain — 5 deploys, 5 calls, and decoded read-backs, exit
+> 0 — so the command sequence is proven rather than described. Only the CC3 broadcast itself
+> still needs the key.
 
 ---
 
 ## Part 1 — the position stack
 
-Five contract deploys plus eight calls. See the note above: this cannot be run as one
-`forge script` on CC3, so it is a sequence of `forge create` and `cast send` commands.
+Five contract deploys plus five state-changing calls. See the note above: this cannot be run
+as one `forge script` on CC3, so it runs as `forge create` per contract plus `cast send` per
+step, driven by **`script/deploy-position-cc3.sh`**.
+
+The script reads `PRIVATE_KEY` from the environment rather than from `.env`, prints each
+command before running it, and keeps stdout clean so the returned address can be captured.
+It verifies every state change by its transaction hash as it goes. It also refuses to
+submit a price it could not read live from the mainnet aggregator: `valuationOf` enforces
+freshness against the *current* block timestamp, so a carried-in answer would revert later
+with `StalePrice` instead of failing where the mistake was made.
 
 ## What is actually blocking this
 
@@ -61,12 +72,17 @@ If the address ever needs more testnet CTC, the faucet is a Discord bot command 
 `#token-faucet` channel of the Creditcoin Discord: `/faucet address:0x7CEC5b3F9dA312072Aa987c7266f02A8Fca1bFF6`.
 There is no faucet API; it is a manual command.
 
-## 1. Put the key in a file
+## 1. Make the key available to the script
+
+The position script reads `PRIVATE_KEY` from the environment. `contracts/.env` is the safe
+place to keep it, so load it into the environment for the run rather than typing the key into
+a shell history:
 
 ```bash
 cd contracts
 cp .env.example .env
 # then edit .env and set PRIVATE_KEY=<the deployer key>
+set -a && . ./.env && set +a
 ```
 
 `contracts/.env` is gitignored. Confirm that before anything else:
@@ -75,18 +91,21 @@ cp .env.example .env
 git check-ignore -v contracts/.env    # must print a match
 ```
 
-The deploy script logs `vm.addr(pk)` before it broadcasts, so the derived address is visible
-in the output and can be checked against the funded address above before any gas is spent.
-No script in this repo prints the key itself.
+The script prints `deployer / attestor / owner` before it sends anything, so the derived
+address can be checked against the funded address above before any gas is spent. No script
+in this repo prints the key itself.
 
 ## 2. Broadcast
 
-Foundry loads `contracts/.env` automatically, so no exporting is needed.
-
 ```bash
-cd contracts && forge script script/ProveMainnetPosition.s.sol:ProveMainnetPosition \
-  --rpc-url https://rpc.cc3-testnet.creditcoin.network --broadcast
+cd contracts
+bash script/deploy-position-cc3.sh              # dry run: prints every command, sends nothing
+DRY_RUN=0 bash script/deploy-position-cc3.sh    # broadcast
 ```
+
+`DRY_RUN=1` is the default on purpose, so a first run cannot spend gas by accident. Check
+that the `deployer / attestor / owner` address it prints matches the funded address above
+before setting `DRY_RUN=0`.
 
 This deploys five contracts and then runs the whole proof against real Ethereum mainnet
 facts: it anchors coverage at a provably zero balance, ingests the real aToken ledger,

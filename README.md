@@ -86,7 +86,7 @@ Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstr
 Runs against a **local** chain, which is how it was executed and recorded. It cannot be run
 against CC3 with `forge script`: Creditcoin's block headers omit `mixHash`, which Foundry
 validates when it forks, so the run fails before broadcasting. See the warning at the top of
-[docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md) for the CC3 path.
+[docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md) for the CC3 path, where the equivalent is `DRY_RUN=0 bash script/deploy-position-cc3.sh`.
 
 ```bash
 cd contracts && PRIVATE_KEY=<funded dev key> forge script \
@@ -96,7 +96,7 @@ cd contracts && PRIVATE_KEY=<funded dev key> forge script \
 
 Deploys the position stack, anchors at a provably-zero mainnet balance, ingests the real token ledger, reconciles against the real attested balance, and submits the real Chainlink answer — then reads the net worth back off-chain-verified. Executed end to end against a local chain; independent reads of the deployed contracts returned `netPosition = 433033874843288486772`, **$1,086,382** of proven net worth, and a **$217,276** credit limit sized from it at a 20% policy LTV. Transcript, including the 10 transactions in order and the mainnet re-verification of every input: [docs/evidence/position-stack-e2e.txt](docs/evidence/position-stack-e2e.txt).
 
-Not yet broadcast to CC3. The deployer address (`0x7CEC5b3F9dA312072Aa987c7266f02A8Fca1bFF6`) already holds testnet CTC, so funding is not the blocker; the key is, and it belongs in `contracts/.env`, which is gitignored. Steps: [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md). Once broadcast, `cd app && node scripts/verify-cc3-position-stack.mjs` reads the deployment back off CC3, asserts it reproduces these mainnet values, and writes the evidence file only if every assertion holds.
+Not yet broadcast to CC3. The deployer address (`0x7CEC5b3F9dA312072Aa987c7266f02A8Fca1bFF6`) already holds testnet CTC, so funding is not the blocker; the key is, and it belongs in `contracts/.env`, which is gitignored. Steps: [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md), which drives that path as `DRY_RUN=0 bash script/deploy-position-cc3.sh` rather than `forge script`. Once broadcast, `cd app && node scripts/verify-cc3-position-stack.mjs` reads the deployment back off CC3, asserts it reproduces these mainnet values, and writes the evidence file only if every assertion holds.
 
 **What is different here:** two BlockProver proofs on every credit open (payment + solvency), and strict receipt RLP decoding in which a decoded amount that differs from the claim **reverts**. That path is proven by crafted-receipt tests in [contracts/test/VerifierStrict.t.sol](contracts/test/VerifierStrict.t.sol); the bug it replaced is documented in [SECURITY_FINDINGS.md](SECURITY_FINDINGS.md).
 

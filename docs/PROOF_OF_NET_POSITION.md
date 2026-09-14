@@ -200,11 +200,13 @@ PRIVATE_KEY=<any funded dev key> forge script \
   script/ProveMainnetPosition.s.sol:ProveMainnetPosition \
   --rpc-url http://127.0.0.1:8545 --broadcast
 
-# Against CC3 testnet: DOES NOT WORK with forge script. See the warning in DEPLOY_CC3.md.
-# CC3 block headers omit mixHash, so Foundry 1.7.1 fails the fork with
+# Against CC3 testnet: the command above DOES NOT WORK. CC3 block headers omit mixHash, so
+# Foundry 1.7.1 fails the fork with
 #   Error: EVM error; header validation error: `prevrandao` not set
-# This is why the CC3 step has never been run. On CC3 the flow has to be expressed as
-# `forge create` per contract plus `cast send` per call.
+# For CC3 use the forge create + cast send equivalent, which runs:
+#   cd contracts && DRY_RUN=0 bash script/deploy-position-cc3.sh
+# Verified end to end against a local chain on 2026-09-14: 5 deploys, 5 calls, decoded
+# read-backs, exit 0. Details and the warning: DEPLOY_CC3.md.
 ```
 
 Measured on the local run: **3,572,773 gas used** across 10 transactions, and the deployed
