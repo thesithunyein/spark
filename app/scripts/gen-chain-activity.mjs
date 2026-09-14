@@ -281,6 +281,67 @@ function summarize(events) {
   };
 }
 
+/* ------------------------------------------------------------------------- funnel */
+
+/**
+ * The funnel, counted from the chain's own indexed actor field.
+ *
+ * Each stage is a set of DISTINCT WALLETS, not an event count, because the question a
+ * reviewer asks is "how many people got this far", not "how many times did it happen".
+ * The two are very different here: one wallet accounts for every event on the page, so
+ * an event-count funnel would read 6 and imply six separate borrowers.
+ *
+ * The counts come from `actor`, which normalize() takes from the event's indexed field.
+ * Nothing is inferred and nothing is extrapolated.
+ *
+ * One deliberate detail: a wallet that reaches a credit stage without a matching deposit
+ * is reported rather than smoothed over. With the deposit-backed generation that cannot
+ * happen, but `openCreditFromBalance` needs no deposit by design, so the moment the
+ * balance-sized path is live this number becomes a signal instead of an anomaly.
+ */
+function funnel(events) {
+  const set = (pred) => new Set(events.filter(pred).map((e) => e.actor).filter(Boolean));
+
+  const stages = [
+    { key: "paid", label: "Paid a deposit on Sepolia", wallets: set((e) => e.event === "DepositPaid") },
+    { key: "attested", label: "Had a balance attested", wallets: set((e) => e.event === "BalanceAttested") },
+    {
+      key: "opened",
+      label: "Opened a credit line on Creditcoin",
+      wallets: set((e) => e.event === "CreditOpened" || e.event === "CreditOpenedFromBalance"),
+    },
+    { key: "drawn", label: "Drew against it", wallets: set((e) => e.event === "CreditWithdrawn") },
+    { key: "repaid", label: "Had a repayment proven", wallets: set((e) => e.event === "CreditRepaid") },
+    { key: "closed", label: "Closed the line", wallets: set((e) => e.event === "CreditClosed") },
+  ];
+
+  // `entered` and `dropped` are relative to the stage above, so the shape of the funnel
+  // is readable without the reader doing set arithmetic in their head.
+  const counted = stages.map((s, i) => {
+    const prev = i > 0 ? stages[i - 1].wallets : null;
+    return {
+      key: s.key,
+      label: s.label,
+      wallets: s.wallets.size,
+      entered: prev ? [...s.wallets].filter((w) => !prev.has(w)).length : s.wallets.size,
+      dropped: prev ? [...prev].filter((w) => !s.wallets.has(w)).length : 0,
+    };
+  });
+
+  const paid = stages[0].wallets;
+  const credit = new Set(
+    stages.slice(2).flatMap((s) => [...s.wallets]),
+  );
+
+  return {
+    stages: counted,
+    distinctWallets: new Set(events.map((e) => e.actor).filter(Boolean)).size,
+    // Wallets that reached credit without an observed deposit. Expected to be 1 with a
+    // deposit-backed generation; becomes the balance-path signal once that ships.
+    openedWithoutDeposit: [...credit].filter((w) => !paid.has(w)).length,
+  };
+}
+
 /* -------------------------------------------------------------------------- main */
 
 async function main() {
@@ -298,6 +359,7 @@ async function main() {
   events.sort((a, b) => a.block - b.block || a.logIndex - b.logIndex);
 
   const summary = summarize(events);
+  const funnelData = funnel(events);
 
   const chain = {
     generatedAt: new Date().toISOString(),
@@ -314,6 +376,7 @@ async function main() {
       explorer,
     })),
     summary,
+    funnel: funnelData,
     events,
   };
 
@@ -369,6 +432,17 @@ export const chainActivity = ${JSON.stringify(chain, null, 2)} as const satisfie
     repayVolumeEth: string;
     creditDrawnEth: string;
   };
+  funnel: {
+    stages: {
+      key: string;
+      label: string;
+      wallets: number;
+      entered: number;
+      dropped: number;
+    }[];
+    distinctWallets: number;
+    openedWithoutDeposit: number;
+  };
   events: ChainEvent[];
 };
 `;
@@ -382,6 +456,10 @@ export const chainActivity = ${JSON.stringify(chain, null, 2)} as const satisfie
   console.log(`  linked:  ${summary.paymentsLinked} attested payments`);
   console.log(`  drawn:   ${summary.creditDrawnEth} ETH of credit`);
   console.log(`  actors:  ${summary.distinctActors} distinct indexed wallets`);
+  console.log(`  funnel:  ${funnelData.stages.map((s) => `${s.key}=${s.wallets}`).join(" ")}`);
+  if (funnelData.openedWithoutDeposit > 0) {
+    console.log(`  note:    ${funnelData.openedWithoutDeposit} wallet(s) reached credit with no observed deposit`);
+  }
   console.log(`  sepolia: ${summary.depositsPaid} deposits (${summary.depositVolumeEth} ETH), ${summary.repaymentsPaid} repayments (${summary.repayVolumeEth} ETH), ${summary.balancesAttested} balance attestations`);
 }
 

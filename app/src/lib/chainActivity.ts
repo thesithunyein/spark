@@ -3,8 +3,8 @@
 // Every value below was read off the block explorers by scripts/gen-chain-activity.mjs.
 // To refresh: npm run gen:activity
 //
-// Snapshot taken at Creditcoin testnet block 5482719 and Sepolia
-// block 11698039.
+// Snapshot taken at Creditcoin testnet block 5484152 and Sepolia
+// block 11700378.
 
 export type ChainEvent = {
   chain: "creditcoin" | "sepolia";
@@ -33,10 +33,10 @@ export type ChainSource = {
 };
 
 export const chainActivity = {
-  "generatedAt": "2026-09-13T21:01:15.456Z",
+  "generatedAt": "2026-09-14T04:42:26.660Z",
   "asOf": {
-    "creditcoinBlock": 5482719,
-    "sepoliaBlock": 11698039
+    "creditcoinBlock": 5484152,
+    "sepoliaBlock": 11700378
   },
   "sources": [
     {
@@ -85,6 +85,54 @@ export const chainActivity = {
     "depositVolumeEth": "0.06",
     "repayVolumeEth": "0.004",
     "creditDrawnEth": "0.0175"
+  },
+  "funnel": {
+    "stages": [
+      {
+        "key": "paid",
+        "label": "Paid a deposit on Sepolia",
+        "wallets": 1,
+        "entered": 1,
+        "dropped": 0
+      },
+      {
+        "key": "attested",
+        "label": "Had a balance attested",
+        "wallets": 1,
+        "entered": 0,
+        "dropped": 0
+      },
+      {
+        "key": "opened",
+        "label": "Opened a credit line on Creditcoin",
+        "wallets": 1,
+        "entered": 0,
+        "dropped": 0
+      },
+      {
+        "key": "drawn",
+        "label": "Drew against it",
+        "wallets": 1,
+        "entered": 0,
+        "dropped": 0
+      },
+      {
+        "key": "repaid",
+        "label": "Had a repayment proven",
+        "wallets": 1,
+        "entered": 0,
+        "dropped": 0
+      },
+      {
+        "key": "closed",
+        "label": "Closed the line",
+        "wallets": 1,
+        "entered": 0,
+        "dropped": 0
+      }
+    ],
+    "distinctWallets": 1,
+    "openedWithoutDeposit": 0
   },
   "events": [
     {
@@ -1599,6 +1647,17 @@ export const chainActivity = {
     depositVolumeEth: string;
     repayVolumeEth: string;
     creditDrawnEth: string;
+  };
+  funnel: {
+    stages: {
+      key: string;
+      label: string;
+      wallets: number;
+      entered: number;
+      dropped: number;
+    }[];
+    distinctWallets: number;
+    openedWithoutDeposit: number;
   };
   events: ChainEvent[];
 };

@@ -18,6 +18,7 @@ import { chainActivity } from "@/lib/chainActivity";
 
 const A = chainActivity;
 const S = A.summary;
+const F = A.funnel;
 
 function Metric({ label, value, sub }: { label: string; value: string; sub?: string }) {
   return (
@@ -163,7 +164,55 @@ export default function OnchainPage() {
             <Metric label="Balances attested" value={String(S.balancesAttested)} sub="The solvency half of each open" />
           </div>
 
-          <SectionTitle n="02">Every event, oldest first</SectionTitle>
+          <SectionTitle n="02">The funnel, counted from the chain</SectionTitle>
+          <p className="mt-2 max-w-3xl text-[13px] font-light leading-relaxed text-white/70">
+            Each stage counts <strong className="font-normal text-white">distinct wallets</strong>, not
+            events, because the question a reviewer asks is how many people got this far. The counts come
+            from the indexed actor field on each log, so nothing here is self-reported and nothing is
+            extrapolated.
+          </p>
+
+          <div className="mt-4 space-y-2">
+            {F.stages.map((s, i) => {
+              const pct = F.stages[0].wallets > 0 ? (s.wallets / F.stages[0].wallets) * 100 : 0;
+              return (
+                <div key={s.key} className="rounded-lg border border-white/[0.10] bg-white/[0.03] px-4 py-3">
+                  <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+                    <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/35">
+                      {String(i + 1).padStart(2, "0")}
+                    </span>
+                    <span className="text-[13px] font-light text-white/85">{s.label}</span>
+                    <span className="ml-auto font-mono text-[16px] tabular-nums leading-none text-white">{s.wallets}</span>
+                    <span className="font-mono text-[9px] uppercase tracking-[0.14em] text-white/35">
+                      wallet{s.wallets === 1 ? "" : "s"}
+                    </span>
+                  </div>
+                  <div className="mt-2.5 h-[3px] w-full overflow-hidden rounded-full bg-white/[0.08]">
+                    <div className="h-full rounded-full bg-accent2/70" style={{ width: `${pct}%` }} />
+                  </div>
+                  {i > 0 && (
+                    <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.12em] text-white/40">
+                      +{s.entered} entered &middot; {s.dropped} dropped from the stage above
+                    </p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/[0.08] px-5 py-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-amber-300">Read this number honestly</p>
+            <p className="mt-2 text-[13px] font-light leading-relaxed text-white/80">
+              It reads <strong className="font-normal text-white">{F.stages[0].wallets}</strong> at every
+              stage, because one wallet produced all {S.totalEvents} events on this page. That proves the
+              loop closes end to end. It does not prove a market exists. The funnel is published in this
+              shape so the gap is measurable rather than described, and what closes it is not code: the
+              deposit-free path that removes the hardest onboarding step is built and tested, and adoption
+              is the part no repository can supply.
+            </p>
+          </div>
+
+          <SectionTitle n="03">Every event, oldest first</SectionTitle>
           <p className="mt-2 max-w-3xl text-[13px] font-light leading-relaxed text-white/60">
             {A.sources.length} deployed contracts contribute. Chronological order, because the point
             is the loop: deposit proved, balance proved, credit opened, drawn, redeemed, repaid,
@@ -225,7 +274,7 @@ export default function OnchainPage() {
             })}
           </ol>
 
-          <SectionTitle n="03">How to check any of this yourself</SectionTitle>
+          <SectionTitle n="04">How to check any of this yourself</SectionTitle>
           <p className="mt-2 max-w-3xl text-[13px] font-light leading-relaxed text-white/70">
             The contracts are verified on Blockscout, so their source and their event logs are public.
             No key, no wallet and no permission are needed to read any of it.
