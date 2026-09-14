@@ -101,12 +101,24 @@ product multiplayer by giving a group a reason to vouch for a member.
 **Depends on:** M1 and M2, because a distribution push against a product that cannot size credit
 from real history would be wasted.
 
+**Built after the deadline:** `GroupCredit.sol` implements the multiplayer half of this — a
+shared line held by a group, sized from the members' aggregate Attestcoin-verified payment
+history, with vouching priced off the voucher's own proven record. `AttestedStanding.sol` is
+the portable record it gates membership on. 50 tests between them. Neither is deployed, and
+neither is part of the submission.
+
 ### M5. Repeat: attested history that compounds across activity rounds
 
 **Unlocks:** a borrower who repays in one round carries proven standing into the next without
 paperwork, which is the actual user-visible promise of the product.
 
 **Depends on:** M2, since a round-based mechanic needs limits that respond to proven history.
+
+**Built after the deadline:** `AttestedStanding.sol` makes standing portable. It is one
+normalized record, readable by any contract on Creditcoin, carrying the Attestcoin proof hash it
+was derived from so a consumer can verify the claim rather than trust the arithmetic. Refreshing
+is permissionless and writing without verified evidence is impossible, so the registry is a list
+of proofs rather than a list of claims. Not deployed, and not part of the submission.
 
 ## Who pays, and why
 

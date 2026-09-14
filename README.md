@@ -34,7 +34,11 @@
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
 
-**1. Contract suite: 417 tests, 0 failures**
+**1. Contract suite: 467 tests, 0 failures**
+
+**417 of these are the submitted suite.** The other 50 cover `AttestedStanding.sol` and
+`GroupCredit.sol`, written after the deadline and marked `*` below. The submission is frozen;
+these are additions to the repository, not revisions to what was judged.
 
 ```bash
 npm run test:contracts          # or: cd contracts && forge test
@@ -331,9 +335,12 @@ spark/
     │   ├── MainnetTokenRegistry.sol  # Attested mainnet decimals + asset/liability
     │   ├── PositionValuer.sol        # Signed USD net worth (8dp base units)
     │   ├── PositionSizedCredit.sol   # Proven net worth -> credit limit under an explicit policy
+    │   ├── AttestedStanding.sol      # Portable standing: one record any consumer reads, evidence ref carried* 
+    │   ├── GroupCredit.sol           # Attested group credit with vouching, capped at aggregate proven history*
     │   ├── MainnetTopics.sol         # Mainnet topic constants + verification status
     │   └── interfaces/
-    │       └── IPaymentVerifier.sol
+    │       ├── IPaymentVerifier.sol
+    │       └── ICreditLineView.sol   # Read-only CreditLine surface downstream contracts consume
     │
     ├── test/
     │   ├── Spark.t.sol               # 300 tests: score, history, dual-proof, batch, negative-path, edge cases, stress, lifecycle, events, combos
@@ -342,7 +349,9 @@ spark/
     │   ├── AttestedValuation.t.sol   # 31 tests: prices, token metadata, net worth, topic parity
     │   ├── PositionStackIntegration.t.sol # 6 tests: full stack, exact real mainnet numbers
     │   ├── PositionSizedCredit.t.sol # 23 tests: policy, half-of-net-worth cap, refusal status codes
-    │   └── BalanceSizedCredit.t.sol  # 21 tests: balance sizing, refusals, score neutrality, path separation
+    │   ├── BalanceSizedCredit.t.sol  # 21 tests: balance sizing, refusals, score neutrality, path separation
+    │   ├── AttestedStanding.t.sol    # 19 tests: evidence required, exact mirroring, eligibility, freshness*
+    │   └── GroupCredit.t.sol         # 31 tests: admission gate, vouch bounds, aggregate-proven ceiling*
     │
     ├── script/
     │   ├── Deploy.s.sol
@@ -356,6 +365,17 @@ spark/
         ├── attestcoin-ctor-args.txt
         └── creditline-ctor-args.txt
 ```
+
+\* **Written after the submission deadline, and not deployed.** `AttestedStanding.sol` and
+`GroupCredit.sol` are the first two items of [docs/CEIP.md](docs/CEIP.md) built as real code
+rather than plan text. They are labelled in-source and here because the BUIDL CTC 2026 Fall
+submission closed on 2026-09-13 23:59 ET, and work added afterwards should say so. Neither
+contract is deployed and neither is reachable from the live app. They are not part of the
+submitted project, and nothing in the submission has been edited to include them.
+
+That is also why the suite reads **467** here and **417** in `docs/deck.md` and
+`docs/DORAHACKS_UPDATE.md`: the deck and the submission text describe the frozen entry, and this
+README describes the repository as it stands.
 
 ## Deployed contracts
 

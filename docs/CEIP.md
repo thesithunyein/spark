@@ -47,11 +47,20 @@ additional expected topic, plus a policy rule that a guaranteed line is capped a
 the guarantor's own proven history. `PositionSizedCredit` already demonstrates the harder
 version of this: sizing a limit from a position rather than from a payment.
 
-**What has to be built.** A voucher registry, a policy that caps guaranteed exposure, and the UI
-that makes joining a group a two-click action. The honest risk is that group credit is
+**What has to be built.** A Telegram or web UI that makes joining a group a two-click action,
+and per-member exposure accounting inside a shared line. The honest risk is that group credit is
 socially complex — repayment incentives inside a small circle are a well-studied problem and
 Spark would be re-entering it without the lending experience to price it. That risk is why this
 is first on the list rather than assumed to be easy.
+
+**Built since this document was written.** The voucher registry and the exposure policy now
+exist as code. `GroupCredit.sol` implements the shared line and vouching, with 31 tests, and
+`AttestedStanding.sol` is the portable record that gates membership, with 19 more. The design
+choices are the ones argued above: membership requires at least one Attestcoin-verified payment,
+a vouch is priced off the voucher's own proven volume rather than anyone's promise, and the line
+is hard-capped at the members' aggregate proven history so vouching can amplify evidence but can
+never manufacture it. `GroupCredit` is a shared line only — per-member exposure is the next step
+and is not claimed. Neither contract is deployed, and both are labelled post-deadline in source.
 
 ## 2. A Telegram Mini App
 
