@@ -152,12 +152,19 @@ export default function RepayPage() {
       return;
     }
     prefilledRef.current = true;
-    // Round the debt UP to the next 1e-6 ETH. Interest accrues during the 8 to 15 minute
-    // attestation, so paying the exact debt read here leaves a residue and the contract
-    // will not close a line that is one wei short. repayCredit caps the payment with
-    // `pay = min(claim.amount, pos.debt)`, so rounding up is never taken from the borrower.
+    // Round the debt UP to the next 1e-6 ETH, then add one more micro.
+    //
+    // The ceiling alone is not enough. A round draw leaves a round debt, and 0.0038 ETH
+    // is already an exact multiple of 1e-6 ETH, so the ceiling returned the debt
+    // unchanged: the borrower paid exactly what was drawn, and the interest that accrued
+    // during the 8 to 20 minute attestation stayed behind as a few gwei of dust that kept
+    // the line Active. That cost a real participant a second full attestation cycle.
+    //
+    // One micro of headroom is about 22 hours of accrual on a 0.004 ETH debt, and
+    // repayCredit caps the payment with `pay = min(claim.amount, pos.debt)`, so the
+    // margin is never taken from the borrower. It is only there so the line can close.
     const micro = parseEther("0.000001");
-    const rounded = ((effectiveDebt + micro - 1n) / micro) * micro;
+    const rounded = (((effectiveDebt + micro - 1n) / micro) + 1n) * micro;
     const floor = parseEther("0.001");
     setAmount(formatEther(rounded < floor ? floor : rounded));
   }, [effectiveDebt, amount]);

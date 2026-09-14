@@ -143,8 +143,14 @@ for a in "${ADDRESSES[@]}"; do
 
   # Where this person actually is. "Activity" means a proven payment exists, which
   # is the only thing a judge will count and the only thing that cannot be claimed.
-  if [ "$p1" != "0" ] || [ "$p2" != "0" ]; then
-    stage="LINE OPEN"
+  # Status is a 3-valued enum, not a boolean: 0 None, 1 Active, 2 Closed. This used to
+  # test `!= 0`, which labelled a CLOSED line "LINE OPEN" and made a finished loop look
+  # like live exposure. The two are opposite facts about the same person, and this table
+  # is what decides whether they get asked to run the loop again.
+  if [ "$p1" = "1" ] || [ "$p2" = "1" ]; then
+    stage="LINE ACTIVE"
+  elif [ "$p1" = "2" ] || [ "$p2" = "2" ]; then
+    stage="LINE CLOSED"
   elif [ "$h1" != "0" ]; then
     stage="HISTORY ($h1)"
   elif [ "$c_nonce" != "0" ] || [ "$s_nonce" != "0" ]; then
@@ -203,19 +209,23 @@ for i in "${!ADDR_OUT[@]}"; do
     "${ADDR_OUT[$i]}" "${SEP_OUT[$i]}" "${CC3_OUT[$i]}" "${STATE_OUT[$i]}" "${STAGE_OUT[$i]}" "${ACTION_OUT[$i]}"
 done
 
-ready=0; fresh=0; active=0
+ready=0; fresh=0; active=0; finished=0; history=0
 for i in "${!ADDR_OUT[@]}"; do
   case "${STAGE_OUT[$i]}" in
     "NEW (untouched)") fresh=$((fresh + 1)); ready=$((ready + 1)) ;;
-    "LINE OPEN"|HISTORY*) active=$((active + 1)) ;;
+    "LINE ACTIVE") active=$((active + 1)) ;;
+    "LINE CLOSED") finished=$((finished + 1)) ;;
+    HISTORY*) history=$((history + 1)) ;;
     *) ready=$((ready + 1)) ;;
   esac
 done
 
 bold "Summary"
-info "ready to run the loop: $ready"
-info "genuinely new:         $fresh"
-info "already has proof:     $active"
+info "ready to run the loop:  $ready"
+info "genuinely new:          $fresh"
+info "completed a full loop:  $finished"
+info "line still active:      $active"
+info "has history, no line:   $history"
 info ""
 info "Next step is human, not mechanical: send each person the link, and warn them"
 info "about the attestation wait before they start, or they will read it as a hang."
