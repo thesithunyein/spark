@@ -113,23 +113,52 @@
     <p class="subtitle" style="margin-top: 1.2rem;">Pay once. Unlock credit.</p>
     <p class="lead" style="margin-top: 1.5rem; font-size: clamp(16px, 1.5vw, 22px);">Pay a deposit on Sepolia. Attestcoin verifies it on-chain. A credit line unlocks on Creditcoin. No credit check, no paperwork, no bank.</p>
     <p class="meta" style="margin-top: 2.5rem;">DeFi Track &middot; BUIDL CTC 2026 Fall &middot; Attestcoin Protocol</p>
-    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 9</span></div>
+    <div class="footer"><span>spark.sithunyein.com</span><span>1 / 11</span></div>
   </section>
 
   <!-- SLIDE 2: Problem -->
   <section class="slide">
     <span class="badge">Problem</span>
-    <h2 style="margin-top: 2rem;">2.5 billion people can't get credit without paperwork</h2>
-    <p class="lead">Most of the world is unbanked. Credit systems require physical documents, bank history, and centralized intermediaries that don't exist for millions of people.</p>
+    <h2 style="margin-top: 1.6rem;">Credit needs facts that live on another chain. Today that means trust.</h2>
+    <p class="lead">Under-collateralised lending is the growth edge of on-chain credit. Its bottleneck is not capital &mdash; it is assessment.</p>
     <ul>
-      <li>Cross-chain credit requires a trusted middleman that doesn't exist</li>
-      <li>Centralized oracles and bridges add single points of failure</li>
-      <li>No way to prove payment history across chains trustlessly</li>
+      <li>Assessment today is off-chain: delegates and auditors decide, and enforcement runs through legal process</li>
+      <li>When the deciding fact lives on another chain, the options are an <strong>oracle</strong> (a trusted party) or a <strong>bridge</strong> (a repeated point of failure)</li>
+      <li>Self-reported history is worthless: a borrower can open and repay their own loan 100 times to manufacture a perfect score</li>
     </ul>
-    <div class="footer"><span>Spark</span><span>2 / 9</span></div>
+    <div class="footer"><span>Spark</span><span>2 / 11</span></div>
   </section>
 
-  <!-- SLIDE 3: Solution -->
+  <!-- SLIDE 3: Who this is for -->
+  <section class="slide">
+    <span class="badge">Who this is for</span>
+    <h2 style="margin-top: 1.6rem;">The borrower with a proven position and no way to use it</h2>
+    <p class="lead">A DeFi borrower who holds a verifiable position on Ethereum mainnet and needs liquidity on Creditcoin &mdash; without selling the position or bridging it.</p>
+    <ul style="margin-top: 1.2rem;">
+      <li>Their facts <strong>already exist on-chain</strong>, verifiably. No bureau, no paperwork, no identity attestation</li>
+      <li>The alternative today is specific and bad: realise the gain, or accept bridge risk</li>
+      <li>Measured, not asserted: <strong>8/8</strong> real wallets rebuilt within 10 bps of the live balance</li>
+      <li><strong>Portable attested standing:</strong> a repaid line becomes proven history that follows the borrower across products and chains &mdash; not a score locked inside one app</li>
+    </ul>
+    <p class="meta" style="margin-top: 1.4rem; max-width: 46em;">The unbanked borrower is the destination this reaches. The deposit-free path that gets there is built and covered by 21 tests.</p>
+    <div class="footer"><span>Spark</span><span>3 / 11</span></div>
+  </section>
+
+  <!-- SLIDE 4: Why now -->
+  <section class="slide">
+    <span class="badge">Why now</span>
+    <h2 style="margin-top: 1.2rem;">Assessment today is a trusted opinion. It can be a verified fact.</h2>
+    <ul style="margin-top: 0.8rem;">
+      <li>Private credit is a <strong>$1.7T</strong> market moving on-chain, and it works today by trusting humans to assess risk off-chain</li>
+      <li>Maple and Goldfinch assess through off-chain delegates and auditors, and enforce through legal process</li>
+      <li>When the deciding fact lives on another chain the choice is an <strong>oracle</strong> (trust) or a <strong>bridge</strong> (risk). Attestcoin removes the fork by proving the source chain's own record</li>
+      <li>Dual proofs verify the payment <strong>and</strong> the current balance &mdash; a balance cannot be farmed, self-dealt, or bought</li>
+      <li><strong>Who pays:</strong> <strong>10% APR</strong> on drawn credit, accruing on-chain &mdash; and no delegate is needed to underwrite the line</li>
+    </ul>
+    <div class="footer"><span>Spark</span><span>4 / 11</span></div>
+  </section>
+
+  <!-- SLIDE 5: Solution -->
   <section class="slide">
     <span class="badge">Solution</span>
     <h2 style="margin-top: 2rem;">Your on-chain payment history is your credit score</h2>
@@ -140,7 +169,7 @@
       <li>LTV bonus from payment history (+2.5% at 1+, +5% at 3+ payments)</li>
       <li>No valid proof = no state change. Cryptographic guarantees only.</li>
     </ul>
-    <div class="footer"><span>Spark</span><span>3 / 9</span></div>
+    <div class="footer"><span>Spark</span><span>5 / 11</span></div>
   </section>
 
   <!-- SLIDE 4: How it works -->
@@ -154,7 +183,7 @@
       <div class="step"><div class="n">04</div><div class="t">Repay on Sepolia &rarr; verify &rarr; line closes</div></div>
     </div>
     <p class="meta" style="margin-top: 2rem;">Optional: link past Sepolia payments to raise credit score and LTV bonus before opening.</p>
-    <div class="footer"><span>Spark</span><span>4 / 9</span></div>
+    <div class="footer"><span>Spark</span><span>6 / 11</span></div>
   </section>
 
   <!-- SLIDE 5: Attestcoin depth -->
@@ -183,7 +212,7 @@
       </div>
     </div>
     <p class="meta" style="margin-top: 0.7rem; max-width: 46em;">15 surfaces across 3 attested event kinds: 10 on the critical path, 5 more integrated and tested. Verifier parses receipt RLP from the proven encodedTransaction; a decoded amount that disagrees with the claim reverts. Per Aug 18 AMA: "Transaction fields and their log data are verified and available."</p>
-    <div class="footer"><span>Spark</span><span>5 / 9</span></div>
+    <div class="footer"><span>Spark</span><span>7 / 11</span></div>
   </section>
 
   <!-- SLIDE 6: Measured on mainnet -->
@@ -203,7 +232,7 @@
       <li>Interest is never invented: positions advance only against an attested state balance</li>
       <li>And it sizes credit: <strong>$217,276</strong> against $1,086,382 of proven net worth, at a 20% policy LTV</li>
     </ul>
-    <div class="footer"><span><a href="https://spark.sithunyein.com/bonus">spark.sithunyein.com/bonus</a></span><span>6 / 9</span></div>
+    <div class="footer"><span><a href="https://spark.sithunyein.com/bonus">spark.sithunyein.com/bonus</a></span><span>8 / 11</span></div>
   </section>
 
   <!-- SLIDE 7: Traction -->
@@ -218,10 +247,10 @@
     </div>
     <p class="lead" style="margin-top: 2rem;">All proofs are real Attestcoin USC proofs verified by BlockProver. On-chain demo wallet: 0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2.</p>
     <p class="meta">Live at spark.sithunyein.com &middot; Contracts verified on Blockscout</p>
-    <div class="footer"><span>Spark</span><span>7 / 9</span></div>
+    <div class="footer"><span>Spark</span><span>9 / 11</span></div>
   </section>
 
-  <!-- SLIDE 8: Product -->
+  <!-- SLIDE 10: Product -->
   <section class="slide">
     <span class="badge">Product</span>
     <h2 style="margin-top: 2rem;">Live testnet product, not a slideware demo</h2>
@@ -247,10 +276,10 @@
         <p class="meta" style="margin-top: 1rem;">Testnet only. Not audited. MIT License.</p>
       </div>
     </div>
-    <div class="footer"><span>Spark</span><span>8 / 9</span></div>
+    <div class="footer"><span>Spark</span><span>10 / 11</span></div>
   </section>
 
-  <!-- SLIDE 8: Ask -->
+  <!-- SLIDE 11: Ask -->
   <section class="slide">
     <span class="badge">The Ask</span>
     <h2 style="margin-top: 2rem;">$10K to ship credit for the real world</h2>
@@ -260,9 +289,9 @@
       <li><strong>With $10K:</strong> Broadcast the position engine, external review of the strict verifier, faster attestation UX</li>
       <li><strong>CEIP fast-track:</strong> Funded credit book, distribution where borrowers already are, mainnet readiness</li>
     </ul>
-    <p class="lead" style="margin-top: 2rem; font-size: clamp(16px, 1.5vw, 22px);">Spark turns verified payment history into creditworthiness. No bank. No oracle. Just cryptographic proof. This is DeFi credit for the 2.5 billion people the traditional system forgot.</p>
+    <p class="lead" style="margin-top: 2rem; font-size: clamp(16px, 1.5vw, 22px);">Spark turns verified facts into creditworthiness. No bank. No oracle. No delegate. The first borrower is the one with a proven position; the path that reaches everyone else is built, tested, and one deploy away.</p>
     <p class="meta" style="margin-top: 2rem;">MIT License &middot; Sithu Nyein &middot; spark.sithunyein.com</p>
-    <div class="footer"><span>spark.sithunyein.com</span><span>9 / 9</span></div>
+    <div class="footer"><span>spark.sithunyein.com</span><span>11 / 11</span></div>
   </section>
 
 </body>
