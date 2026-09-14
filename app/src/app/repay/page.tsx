@@ -137,13 +137,29 @@ export default function RepayPage() {
         ? (GEN2.creditLine as `0x${string}`)
       : config.creditLineAddress;
 
+  // Prefill exactly once, and never after that.
+  //
+  // This used to key off `!amount`, which meant clearing the field refilled it from the
+  // chain on the next render: selecting the number and deleting it put the old number
+  // straight back, so the input could not be edited by selecting all and typing. A ref
+  // survives renders, so the field is filled once and then left alone.
+  const prefilledRef = useRef(false);
   useEffect(() => {
-    if (effectiveDebt > 0n && !amount) {
-      // Overpay tiny dust so interest accrual can't leave the line Active.
-      const floor = parseEther("0.001");
-      const pay = effectiveDebt < floor ? floor : effectiveDebt;
-      setAmount(formatEther(pay));
+    if (prefilledRef.current || effectiveDebt === 0n) return;
+    // A resume or a retry may already have put a value in the field; keep it.
+    if (amount) {
+      prefilledRef.current = true;
+      return;
     }
+    prefilledRef.current = true;
+    // Round the debt UP to the next 1e-6 ETH. Interest accrues during the 8 to 15 minute
+    // attestation, so paying the exact debt read here leaves a residue and the contract
+    // will not close a line that is one wei short. repayCredit caps the payment with
+    // `pay = min(claim.amount, pos.debt)`, so rounding up is never taken from the borrower.
+    const micro = parseEther("0.000001");
+    const rounded = ((effectiveDebt + micro - 1n) / micro) * micro;
+    const floor = parseEther("0.001");
+    setAmount(formatEther(rounded < floor ? floor : rounded));
   }, [effectiveDebt, amount]);
 
   useEffect(() => {
@@ -601,10 +617,12 @@ export default function RepayPage() {
               onChange={(e) => setAmount(e.target.value)}
               className="mt-2 w-full border border-border bg-transparent px-4 py-3.5 text-[18px] tabular-nums text-text outline-none transition focus:border-accent/60"
             />
-            {effectiveDebt > 0n && effectiveDebt < parseEther("0.001") && (
+            {effectiveDebt > 0n && (
               <p className="mt-2 text-[12px] text-muted">
-                Dust debt left after the last repay. Use <span className="tabular-nums text-text">0.001 ETH</span>{" "}
-                (overpay is fine) so interest can&apos;t leave the line open.
+                Rounded up past the debt on purpose. Interest accrues while the proof
+                attests, and <code className="text-[11px]">repayCredit</code> caps what it
+                takes at what is owed, so paying a little over closes the line instead of
+                stranding dust. You can still type any amount you want.
               </p>
             )}
             <div className="mt-8 flex flex-col gap-2">

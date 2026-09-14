@@ -99,12 +99,19 @@ export default function WithdrawPage() {
   const isConfirming = Boolean(txHash && pendingAction && !success);
   const isBusy = awaitingWallet || isConfirming;
 
+  // Fill the field once, then leave it alone. This prefill used to key off `!amount`, so
+  // clearing the field put the same number straight back and the input could not be
+  // retyped. The Max button is still there for anyone who wants it refilled.
+  const withdrawPrefilled = useRef(false);
+
   const refetchBalances = useCallback(async () => {
     await Promise.all([refetchPosition(), refetchAvailable(), refetchWallet()]);
   }, [refetchPosition, refetchAvailable, refetchWallet]);
 
   useEffect(() => {
+    if (withdrawPrefilled.current) return;
     if (availableWei > 0n && !amount && !success) {
+      withdrawPrefilled.current = true;
       setAmount(formatEther(availableWei));
     }
   }, [availableWei, amount, success]);
