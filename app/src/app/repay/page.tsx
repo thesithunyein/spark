@@ -18,6 +18,7 @@ import { AttestcoinProofPanel } from "@/components/AttestcoinProofPanel";
 import { ConnectButton } from "@/components/ConnectButton";
 import { config } from "@/lib/config";
 import { sepoliaPaymentAbi, creditLineAbi } from "@/lib/abi";
+import { GEN2 } from "@/lib/gen2";
 import { encodePaymentProof, formatEth } from "@/lib/format";
 import {
   buildAttestcoinProof,
@@ -100,20 +101,40 @@ export default function RepayPage() {
     },
   });
 
+  // Generation 2 is read here too. Its Position struct is field-for-field identical to
+  // generation 1's, so the same ABI decodes it and the same proof flow repays it. Without this
+  // read, a line opened from a proven balance reports no debt and cannot be repaid, which left
+  // the deposit-free path unable to close at all.
+  const { data: gen2Position, refetch: refetchGen2 } = useReadContract({
+    address: GEN2.creditLine as `0x${string}`,
+    abi: creditLineAbi,
+    functionName: "getPosition",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: { enabled: Boolean(address) },
+  });
+
   const status = position ? Number(position.status) : 0;
   const legacyStatus = legacyPosition ? Number(legacyPosition.status) : 0;
+  const gen2Status = gen2Position ? Number(gen2Position.status) : 0;
   const hasActiveLine = status === 1;
   const legacyActive = legacyStatus === 1;
-  const effectiveActive = hasActiveLine || legacyActive;
+  const gen2Active = gen2Status === 1;
+  const effectiveActive = hasActiveLine || legacyActive || gen2Active;
   const debt = position?.debt ?? 0n;
   const legacyDebt = legacyPosition?.debt ?? 0n;
-  const effectiveDebt = hasActiveLine ? debt : legacyDebt;
+  const gen2Debt = gen2Position?.debt ?? 0n;
+  // The generation that actually holds the debt is the one a repayment is applied to, so the
+  // preference order matches which line is active rather than which was deployed first.
+  const effectiveDebt = hasActiveLine ? debt : legacyActive ? legacyDebt : gen2Debt;
   const isLegacyClose = legacyActive && !hasActiveLine;
 
   creditLineRef.current = hasActiveLine
     ? config.creditLineAddress
     : legacyActive
       ? config.legacyCreditLineAddress
+      : gen2Active
+        ? (GEN2.creditLine as `0x${string}`)
       : config.creditLineAddress;
 
   useEffect(() => {
@@ -146,6 +167,10 @@ export default function RepayPage() {
     void (async () => {
       const lines: `0x${string}`[] = [];
       if (hasLegacy) lines.push(config.legacyCreditLineAddress);
+      // Checked so a repayment already applied to the balance-sized line is not offered twice.
+      if (GEN2.creditLine !== config.creditLineAddress) {
+        lines.push(GEN2.creditLine as `0x${string}`);
+      }
       if (config.creditLineAddress !== ZERO) lines.push(config.creditLineAddress);
 
       for (const line of lines) {
@@ -214,7 +239,7 @@ export default function RepayPage() {
     setVerifyStartedAt(null);
     sepoliaTx.reset();
     if (!address) return setError("Connect a wallet first.");
-    if (!hasActiveLine) return setError("No active credit line to repay.");
+    if (!effectiveActive) return setError("No active credit line to repay.");
     if (config.paymentAddress.endsWith("0000")) {
       return setError("Payment contract not configured.");
     }
@@ -271,7 +296,14 @@ export default function RepayPage() {
         });
         if (used) {
           const pos = await refetchPosition();
-          if (pos.data && Number(pos.data.status) === 2) {
+          const pos2 = await refetchGen2();
+          // Closed on either generation counts as applied. A balance-sized line closes on the
+          // generation-2 contract, so checking only generation 1 here would report a completed
+          // repayment as unapplied and reset the flow.
+          const closedSomewhere =
+            (pos.data && Number(pos.data.status) === 2) ||
+            (pos2.data && Number(pos2.data.status) === 2);
+          if (closedSomewhere) {
             clearRepayFlow(address);
             setStep(4);
             setAttestPhase("done");
@@ -376,6 +408,7 @@ export default function RepayPage() {
       await new Promise((r) => setTimeout(r, 1500));
       const posAfter = await refetchPosition();
       void refetchLegacy();
+      void refetchGen2();
       const nextStatus = posAfter.data ? Number(posAfter.data.status) : 0;
       let nextDebt = posAfter.data?.debt ?? 0n;
       if (creditClient && address) {
@@ -463,7 +496,8 @@ export default function RepayPage() {
   const sepoliaPaid = sepoliaTx.confirmed && step >= 2 && step < 4;
   const stage: 0 | 1 | 2 | 3 | 4 =
     step === 4 ? 4 : verifying ? 3 : sepoliaTx.confirmed ? 2 : sepoliaTx.hash ? 2 : step;
-  const lineClosed = step === 4 || (!effectiveActive && (status === 2 || legacyStatus === 2));
+  const lineClosed =
+    step === 4 || (!effectiveActive && (status === 2 || legacyStatus === 2 || gen2Status === 2));
   const pendingJournal = address ? getPendingSepoliaRepay(address) : null;
 
   return (
@@ -557,7 +591,7 @@ export default function RepayPage() {
           </p>
         )}
 
-        {hasActiveLine && !isLegacyClose && step < 2 && (
+        {(hasActiveLine || gen2Active) && step < 2 && (
           <>
             <label className="text-[11px] font-mono uppercase tracking-[0.14em] text-muted">
               Repay amount (ETH)
@@ -592,7 +626,7 @@ export default function RepayPage() {
 
         {effectiveActive && (step >= 2 || isLegacyClose) && step < 4 && (
           <>
-            <div className={hasActiveLine && !isLegacyClose && step < 2 ? "mt-8" : ""}>
+            <div className={(hasActiveLine || gen2Active) && step < 2 ? "mt-8" : ""}>
               <ConfirmingStages step={stage} />
             </div>
             <div className="mt-8 flex flex-col gap-2">

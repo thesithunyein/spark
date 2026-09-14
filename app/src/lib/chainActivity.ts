@@ -3,7 +3,7 @@
 // Every value below was read off the block explorers by scripts/gen-chain-activity.mjs.
 // To refresh: npm run gen:activity
 //
-// Snapshot taken at Creditcoin testnet block 5485109 and Sepolia
+// Snapshot taken at Creditcoin testnet block 5485591 and Sepolia
 // block 11701540.
 
 export type ChainEvent = {
@@ -33,9 +33,9 @@ export type ChainSource = {
 };
 
 export const chainActivity = {
-  "generatedAt": "2026-09-14T08:30:58.680Z",
+  "generatedAt": "2026-09-14T08:55:57.105Z",
   "asOf": {
-    "creditcoinBlock": 5485109,
+    "creditcoinBlock": 5485591,
     "sepoliaBlock": 11701540
   },
   "sources": [
@@ -81,7 +81,7 @@ export const chainActivity = {
     }
   ],
   "summary": {
-    "totalEvents": 48,
+    "totalEvents": 49,
     "linesOpened": 5,
     "linesOpenedFromBalance": 1,
     "linesClosed": 2,
@@ -93,7 +93,7 @@ export const chainActivity = {
     "distinctActors": 2,
     "depositVolumeEth": "0.06",
     "repayVolumeEth": "0.004",
-    "creditDrawnEth": "0.0175"
+    "creditDrawnEth": "0.02148"
   },
   "funnel": {
     "stages": [
@@ -121,16 +121,16 @@ export const chainActivity = {
       {
         "key": "drawn",
         "label": "Drew against it",
-        "wallets": 1,
+        "wallets": 2,
         "entered": 0,
-        "dropped": 1
+        "dropped": 0
       },
       {
         "key": "repaid",
         "label": "Had a repayment proven",
         "wallets": 1,
         "entered": 0,
-        "dropped": 0
+        "dropped": 1
       },
       {
         "key": "closed",
@@ -1100,6 +1100,35 @@ export const chainActivity = {
       "timestamp": "2026-09-14T08:10:00Z",
       "txHash": "0x404393fc98e2b1d41a72b8a562feff3e6a82cdea5f68a7bf1fc91bb41c64d3b5",
       "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0x404393fc98e2b1d41a72b8a562feff3e6a82cdea5f68a7bf1fc91bb41c64d3b5"
+    },
+    {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "CreditWithdrawn",
+      "headline": "Drew 0.00398 ETH of credit",
+      "fields": [
+        [
+          "Amount",
+          "0.00398 ETH"
+        ],
+        [
+          "Debt after",
+          "0.00398 ETH"
+        ]
+      ],
+      "raw": {
+        "user": "0x75507D3f46bd3df69A314be70D972838B24FCAE7",
+        "amount": "3980000000000000",
+        "debt": "3980000000000000"
+      },
+      "actor": "0x75507d3f46bd3df69a314be70d972838b24fcae7",
+      "block": 5485639,
+      "logIndex": 1,
+      "timestamp": "2026-09-14T08:54:30Z",
+      "txHash": "0xf160ffd264afd6ebf6d0d31ecf2558701d6751a77a446925a818215629bf2b74",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0xf160ffd264afd6ebf6d0d31ecf2558701d6751a77a446925a818215629bf2b74"
     },
     {
       "chain": "sepolia",

@@ -95,6 +95,7 @@ export default function OverviewPage() {
   const gen2Credit = gen2Position ? gen2Position.credit : 0n;
   const gen2Attested = gen2Position ? gen2Position.attestedBalance : 0n;
   const gen2Drawable = gen2Available ?? 0n;
+  const gen2Debt = gen2Position ? gen2Position.debt : 0n;
 
   // The metric cards below describe a line. When the only line this wallet has is the
   // balance-sized one, they should describe that line instead of showing zeroes alongside a
@@ -125,11 +126,13 @@ export default function OverviewPage() {
           >
             Pay deposit
           </Link>
+          {/* Drawing on a balance-sized line only exists on /balance, so the shortcut follows
+              whichever generation actually holds the line rather than always going to /withdraw. */}
           <Link
-            href="/withdraw"
+            href={gen2Only ? "/balance" : "/withdraw"}
             className=" border border-border px-4 py-2 text-[13px] font-medium text-text transition hover:border-accent/40 hover:bg-accent/[0.05]"
           >
-            Withdraw
+            {gen2Only ? "Draw" : "Withdraw"}
           </Link>
           <Link
             href="/repay"
@@ -246,7 +249,12 @@ export default function OverviewPage() {
 
       <div className="mt-3 grid gap-3 lg:grid-cols-5">
         <div className="lg:col-span-3">
-          <PositionSnapshot deposit={deposit} credit={credit} debt={debt} empty={status === 0} />
+          <PositionSnapshot
+            deposit={gen2Only ? 0n : deposit}
+            credit={gen2Only ? gen2Credit : credit}
+            debt={gen2Only ? gen2Debt : debt}
+            empty={gen2Only ? false : status === 0}
+          />
         </div>
         <div className="lg:col-span-2">
           <div className="mb-3 flex items-center justify-between">

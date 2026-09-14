@@ -57,6 +57,12 @@ Eight forged proofs (forged merkle root, wrong chain key, zero height, empty enc
 
 [spark.sithunyein.com](https://spark.sithunyein.com): pay a testnet deposit, watch the dual proof run, withdraw sCREDIT, repay, close.
 
+[spark.sithunyein.com/balance](https://spark.sithunyein.com/balance) is the other generation: no deposit at all. It proves only the Sepolia balance, sizes the line at 20% of it, and carries its own draw, redeem and repay actions. The first line opened this way was drawn in full — 0.00398 ETH against 0.0199 ETH attested, from the product rather than a script:
+
+| | Open (kind-3 balance proof) | Draw |
+|---|---|---|
+| First deposit-free line, Sep 14 | [0x0a360e92...](https://creditcoin-testnet.blockscout.com/tx/0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34) | [0xf160ffd2...](https://creditcoin-testnet.blockscout.com/tx/0xf160ffd264afd6ebf6d0d31ecf2558701d6751a77a446925a818215629bf2b74) |
+
 **Two completed credit loops, verifiable on Blockscout**
 
 | | Open (dual proof) | Repay + close |
@@ -68,9 +74,9 @@ On-chain `creditScore()` = **850**, which is the cap: 650 plus 40 per linked pay
 
 **4. The whole on-chain record, with no wallet (read-only, zero cost)**
 
-[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) renders all **46 events** the deployed contracts have emitted, across both chains, oldest first, each row linking to its Blockscout entry. No wallet, no sign-in, nothing to take on trust.
+[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) renders all **49 events** the deployed contracts have emitted, across both chains, oldest first, each row linking to its Blockscout entry. No wallet, no sign-in, nothing to take on trust.
 
-The page leads with its own scope rather than burying it: **every one of those 46 events came from a single wallet.** One wallet is enough to prove the loop works end to end; it is not enough to prove a market exists, and the page says so in its own words. Measured, not asserted: **4 credit lines opened, 2 closed, 6 attested payments linked, 0.0175 ETH of credit drawn, 6 Sepolia deposits, 5 repayments, 9 balance attestations.** Rows are generated from chain reads into a typed module, so the page cannot drift from the chain:
+The page leads with its own scope rather than burying it: **those events came from 2 distinct wallets**, and the funnel it prints is no longer flat. Measured, not asserted: **5 credit lines opened (one with no deposit), 2 closed, 6 attested payments linked, 0.02148 ETH of credit drawn, 6 Sepolia deposits, 5 repayments, 10 balance attestations.** Rows are generated from chain reads into a typed module, so the page cannot drift from the chain:
 
 ```bash
 npm run activity:regen          # or: cd app && node scripts/gen-chain-activity.mjs
@@ -499,7 +505,7 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 | Phase | Focus |
 |---|---|
 | **Now** | Live testnet: dual Attestcoin proofs, score, history LTV, **strict receipt log decoding with amount binding**, full borrow/repay loop |
-| **Deposit-free credit, live** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Both are live on CC3 and verified. The balance-sized path is reachable from the product rather than only from a script: a first line was opened on 2026-09-14, and `/balance` now carries the draw, redeem and close actions for that generation, so the path runs open to draw to close in the app. The demo-described deposit flow is untouched on `/pay`. The mainnet position layer is executed locally and not broadcast. [docs/ROADMAP.md](docs/ROADMAP.md) |
+| **Deposit-free credit, live** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Both are live on CC3 and verified. The balance-sized path runs end to end from the product rather than from a script: a first line was opened on 2026-09-14 and the full 0.00398 ETH limit was drawn from `/balance`, which carries that generation's draw, redeem and close actions, while `/repay` settles it from a proven Sepolia repayment. The demo-described deposit flow is untouched on `/pay`. The mainnet position layer is executed locally and not broadcast. [docs/ROADMAP.md](docs/ROADMAP.md) |
 | **Portable standing** | A verified record that a *different* product reads and gates on, with the Attestcoin evidence reference carried into the decision. Deployed and exercised end to end — [docs/addresses.md](docs/addresses.md) |
 | **Next** | Faster verify UX (parallel attestation, caching) |
 | **Later** | Mainnet, audit, lending pool, single-network UX |

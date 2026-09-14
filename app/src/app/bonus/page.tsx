@@ -484,7 +484,7 @@ export default function MainnetPositionPage() {
           <SectionTitle n="08">What is not true yet</SectionTitle>
           <ul className="mt-4 space-y-3">
             {[
-              "The generation-2 stack has now been used once. A 0.0199 ETH Sepolia balance attestation opened a 0.00398 ETH limit with no deposit, which is the first time that path has opened a line for anyone. What it still does not show is a market: it is one account, nothing has been drawn against the credit, and a mechanism is not demand.",
+              "The generation-2 stack has now been used end to end once: a 0.0199 ETH Sepolia balance attestation opened a 0.00398 ETH limit with no deposit, and the full limit was then drawn from the product itself. That is the first time this path has carried a borrower from proof to credit, and it is still one account. A mechanism that works once is not demand, and one draw is not a credit book.",
               "Interest is never fabricated from a timestamp or a rate. The only path that moves a position ahead of the ledger is an attested state balance, and the residual is capped and reverts past the cap.",
               "The sample is aEthWETH only and biased toward recent depositors. Morpho WithdrawCollateral has no observed logs in the window, so that signature is unconfirmed.",
               "The attestor is trusted to submit already verified values rather than the contract calling the precompile directly. That trust boundary is documented in the threat model.",

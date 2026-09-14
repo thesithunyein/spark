@@ -158,7 +158,11 @@ export default function OnchainPage() {
           <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <Metric label="Credit lines opened" value={String(S.linesOpened)} sub={`${S.linesClosed} closed, ${S.linesActive} still open`} />
             <Metric label="Attested payments linked" value={String(S.paymentsLinked)} sub="On-chain history, not self-reported" />
-            <Metric label="Credit drawn" value={`${S.creditDrawnEth} ETH`} sub="Withdrawn against proven deposits" />
+            <Metric
+              label="Credit drawn"
+              value={`${S.creditDrawnEth} ETH`}
+              sub="Against proven deposits and a proven balance"
+            />
             <Metric label="Events recorded" value={String(S.totalEvents)} sub="Across both chains" />
           </div>
 

@@ -6,12 +6,16 @@ that starts from an inflated present is worthless to the person reading it.
 ## Where Spark actually is
 
 **Live and working.** A user pays on Sepolia, two Attestcoin proofs verify the deposit event
-and the wallet balance, and credit opens on Creditcoin. Four credit lines have been opened
-across the two deployed `CreditLine` contracts and two complete loops have been closed. That
-record is public, wallet-free and independently verifiable: 46 events, every one linking to
-Blockscout, at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain). On-chain
-`creditScore()` reads 850. Contract suite is 417 tests, 0 failures. The BlockProver precompile
-rejects all eight forged-proof scenarios we throw at it, read-only and free to re-run.
+and the wallet balance, and credit opens on Creditcoin. Five credit lines have been opened
+across the deployed `CreditLine` generations and two complete loops have been closed. One of
+those lines skipped the deposit entirely: a proven Sepolia balance sizes it at 20% of the
+attested amount, and the full 0.00398 ETH limit was then drawn from the product rather than
+from a script. That record is public, wallet-free and independently verifiable: 49 events across
+two chains, every one linking to Blockscout, at
+[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain). On-chain `creditScore()`
+reads 850. Contract suite is 518 tests (417 of them the submitted suite), 0 failures. The
+BlockProver precompile rejects all eight forged-proof scenarios we throw at it, read-only and
+free to re-run.
 
 **Measured but not deployed.** The mainnet position engine reconstructs a real Aave V3 position
 from the aToken Transfer ledger, anchored at a provably-zero block, and values it through
@@ -20,10 +24,11 @@ attested Chainlink prices. Forty real mainnet wallets reconcile within 10 bps (l
 describe. It was executed end to end on a local chain with real mainnet data and has since
 been **broadcast to CC3** and verified: see `docs/addresses.md`.
 
-**Not started.** Real user acquisition. The on-chain record is unambiguous about this: every
-one of the 46 events was produced by a **single wallet**. One wallet can prove a loop works; it
-cannot prove a market exists. This is the weakest part of the project and no amount of protocol
-depth fixes it, which is why it is written here rather than left for a judge to discover.
+**Not started.** Real user acquisition. The on-chain record is unambiguous about this: the 49
+events come from **2 distinct wallets**, and the funnel it prints reads 1 at "paid a deposit"
+against 2 at every stage after it. Two wallets can prove a loop works; they cannot prove a market
+exists. This is the weakest part of the project and no amount of protocol depth fixes it, which
+is why it is written here rather than left for a judge to discover.
 
 ## The thesis
 

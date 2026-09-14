@@ -4,6 +4,13 @@ Copy-paste text for the submission fields. Every number here was read off the ch
 produced by the commands in the README, and the credit-policy numbers match
 `collateralFactorBps()` and `_factorFor()` in the deployed `CreditLine`.
 
+**These numbers describe the submission as entered on September 13, and the submission is
+frozen.** The repository has moved since: the live record at
+[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) now reads 49 events across
+2 distinct wallets, and the deposit-free path has been opened and drawn from rather than only
+built. This file is left as the record of what was judged rather than rewritten to match the
+current state; the current state is generated from chain reads and cannot drift.
+
 ## What is Spark
 
 Spark turns a payment on one chain into credit on another using cryptographic proofs
