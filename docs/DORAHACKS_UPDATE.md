@@ -97,9 +97,13 @@ worth on Ethereum mainnet rather than a Sepolia balance.
 ## Attestcoin Protocol Integration Summary
 
 Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing, across 3 attested
-event kinds and 5 on-chain entry points.
+event kinds and 5 on-chain entry points. Ten are on the path a user actually walks; five
+more are integrated at the contract or SDK layer and covered by tests. Both are counted,
+and the split is stated rather than blurred.
 
-### On-Chain Surfaces (9)
+### On the critical path (10)
+
+**On-chain (7)**
 
 1. **verifyAndEmit (`0x0FD2`)** — BlockProver precompile, proves transaction inclusion and
    chain continuity. Called **twice per credit open** (deposit + balance).
@@ -110,20 +114,28 @@ event kinds and 5 on-chain entry points.
    custom Solidity, extracting events from proven transaction data
 5. **Topic matching** — matches the event signature against decoded logs to identify the
    correct payment event
-6. **Amount binding** — the decoded amount must equal the claimed amount, so value is
+6. **Payer validation** — requires `topics[1]` to equal the claimed payer, so one address
+   cannot claim credit for another's payment
+7. **Amount binding** — the decoded amount must equal the claimed amount, so value is
    cryptographically bound to the proof rather than trusted
-7. **calculateTxIndex** — Merkle path position of a transaction within its block
-8. **previewIngest** — dry-run proof validation via `staticcall`, returning
-   `(wouldPass, reason)` without spending gas
-9. **executeBatch** — atomic multi-proof verification, all-or-nothing
 
-### Off-Chain SDK Surfaces (4)
+**Off-chain SDK (3)**
 
-1. **ProofBuilder** — assembles Merkle + continuity proofs via `@gluwa/usc-sdk`
-2. **waitUntilHeightAttested** — polls until the source block is attested, **in parallel**
+8. **ProofBuilder** — assembles Merkle + continuity proofs via `@gluwa/usc-sdk`
+9. **waitUntilHeightAttested** — polls until the source block is attested, **in parallel**
    for the dual proofs
-3. **getProof** — generates the proof blob for on-chain verification
-4. **getBatchProof** — batch proof generation in one SDK call
+10. **getProof** — generates the proof blob for on-chain verification
+
+### Integrated and tested, not on the payment path (5)
+
+11. **ChainInfo (`0x0FD3`)** — reads supported source chains and attested heights; reports
+   both Sepolia (chainKey 1) and Ethereum mainnet (chainKey 3)
+12. **previewIngest** — dry-run proof validation via `staticcall`, returning
+   `(wouldPass, reason)` without spending gas
+13. **executeBatch** — atomic multi-proof verification, all-or-nothing
+14. **calculateTxIndex** — Merkle path position of a transaction within its block, exposed
+   through the verifier
+15. **getBatchProof** — batch proof generation in one SDK call
 
 ### Attested Event Kinds (3)
 

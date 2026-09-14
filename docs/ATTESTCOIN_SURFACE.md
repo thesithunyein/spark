@@ -5,16 +5,18 @@
 
 ## Summary
 
-Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points. Remove any one and the product degrades or stops existing.
+Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points. The 15 split into two groups, and the split is stated rather than blurred: ten are on the path a user actually walks, and five more are integrated at the contract or SDK layer and covered by tests.
 
-| Category | Count |
-|---|---|
-| On-chain precompile surfaces | 5 (verifyAndEmit, MerkleProof, ContinuityProof, ChainInfo 0x0FD3, previewIngest staticcall) |
-| On-chain verification logic | 4 (receipt RLP parsing, topic matching, payer validation, amount binding) |
-| Off-chain SDK surfaces | 3 (ProofBuilder, waitUntilHeightAttested, getProof) |
-| On-chain batch surface | 1 (executeBatch — atomic multi-proof verification) |
-| Attested event kinds | 3 (DepositPaid, RepaymentPaid, BalanceAttested) |
-| On-chain entry points | 5 (openCredit ×2, repayCredit, submitAttestedPayment, executeBatch) |
+| Category | Count | Items |
+|---|---|---|
+| **On the critical path** | **10** | `verifyAndEmit` (0x0FD2), `MerkleProof`, `ContinuityProof`, receipt RLP parsing, topic matching, payer validation, amount binding, `ProofBuilder`, `waitUntilHeightAttested`, `getProof` |
+| **Integrated and tested, not on the payment path** | **5** | ChainInfo (0x0FD3), `previewIngest`, `executeBatch`, `calculateTxIndex`, `getBatchProof` |
+| **Surfaces subtotal** | **15** | |
+| Attested event kinds | 3 | DepositPaid, RepaymentPaid, BalanceAttested |
+| **Integration points** | **18** | |
+| On-chain entry points | 5 | `openCredit` (calls `verifyAndEmit` twice), `openCreditFromBalance`, `repayCredit`, `submitAttestedPayment`, `submitAttestMultiple` |
+
+Being precise about which group a surface belongs to is deliberate: a reviewer can open `app/src/lib/usc.ts` and `contracts/src/AttestcoinPaymentVerifier.sol` and check every row above, and the five in the second group are named as integrated-but-not-on-the-payment-path rather than presented as if the product depends on them.
 
 ---
 
@@ -171,19 +173,23 @@ Both are verified by separate `verifyAndEmit` calls to the BlockProver precompil
 | Wash-lend: borrow + repay in same block to fake history | No solvency check | ✅ Balance proof verifies funds exist |
 | Self-reported history without real capital | If own contract, no lender | ✅ Balance attestation proves real capital |
 
-The balance proof is Spark's architectural advantage — it's the only project that verifies **solvency**, not just **payment**.
+The balance proof is Spark's architectural difference: it verifies **solvency**, not only **payment**. A single-proof design lets a borrower with an empty wallet open credit by making one payment, because nothing checks whether the funds still exist at the moment of the decision.
 
 ---
 
 ## 6. Gas and Timing
 
+Measured with `forge test --gas-report`, not estimated. Full table: [evidence/gas.md](evidence/gas.md).
+
 | Metric | Value |
 |---|---|
-| Attestestation wait (Sepolia) | ~8–20 minutes |
+| Attestation wait (Sepolia) | ~8–20 minutes |
 | Dual proof wait | Parallel (one window, not two) |
-| On-chain `verifyAndEmit` | ~300K gas per call |
-| Two calls per `openCredit` | ~600K gas total |
-| Full `openCredit` with both proofs | ~800K gas |
+| `openCredit` (both proofs verified) | median **268,060** gas, max 268,564 |
+| `openCreditFromBalance` (balance-sized, no deposit) | median **173,826** gas |
+| `executeBatch` (atomic multi-proof, ≤10) | median **104,234** gas |
+| `submitAttestMultiple` (batch history link) | median **26,167** gas |
+| `submitAttestedPayment` (single history link) | median **66,246** gas |
 
 ---
 
@@ -223,10 +229,8 @@ The balance proof is Spark's architectural advantage — it's the only project t
 
 ## 9. What Spark Does NOT Use (Disclosed)
 
-| Surface | Why Not |
+| Surface | Status |
 |---|---|
-| `calculateTxIndex` | Spark doesn't need merkle path position — it needs transaction inclusion |
-| `EvmV1Decoder` (external library) | Spark implements its own receipt RLP parser in Solidity — more gas but no external dependency |
-| `getBatchProof` (SDK) | **Now used** — `buildAttestcoinBatchProof()` generates multiple proofs atomically |
+| `EvmV1Decoder` (external decoder library) | Not used — Spark implements its own receipt RLP parser in Solidity. More gas, no external dependency |
 
-**Previously unused surfaces now integrated:** ChainInfo (0x0FD3), previewIngest, executeBatch.
+**Everything else in the protocol surface area is integrated:** ChainInfo (0x0FD3), `previewIngest`, `executeBatch`, `calculateTxIndex` (exposed through `AttestcoinPaymentVerifier.calculateTxIndex()` and covered by tests), and the SDK's `getBatchProof` via `buildAttestcoinBatchProof()`. The last five are listed in the summary as integrated-but-not-on-the-payment-path.

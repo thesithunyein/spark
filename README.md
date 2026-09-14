@@ -97,7 +97,9 @@ Not yet broadcast to CC3. The deployer address (`0x7CEC5b3F9dA312072Aa987c7266f0
 
 ## Attestcoin Protocol Integration Summary
 
-Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points:
+Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 attested event kinds and 5 on-chain entry points. Ten sit on the path a user actually walks; five more are integrated at the contract or SDK layer and covered by tests. Both are counted, and the split is stated rather than blurred.
+
+**On the critical path (10)** — remove any one and the product stops working:
 
 | Surface | What It Does | Why Needed |
 |---|---|---|
@@ -106,15 +108,23 @@ Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 a
 | `ContinuityProof` struct | Chain continuity proof construction | Ensures source block is genuinely part of the chain |
 | Receipt RLP parsing | `_parseReceiptLogs()` decodes Ethereum receipt on-chain | Extracts events from proven transaction data |
 | Topic matching | Matches event signature from decoded logs | Identifies the correct payment event |
-| Amount binding | Extracts amount from proven receipt data | Prevents amount forgery — amount is cryptographically bound |
-| 3 event kinds | DepositPaid, RepaymentPaid, BalanceAttested | Most event diversity in the hackathon |
-| Parallel dual proofs | Two proofs generated simultaneously | Avoids sequential 16-20 min wait |
-| `ProofBuilder` SDK | Off-chain proof generation via @gluwa/usc-sdk | Assembles Merkle + continuity proofs |
-| `waitUntilHeightAttested` | Polls until source block is attested | Required before proof generation |
+| Payer validation | Requires `topics[1]` to equal the claimed payer | Stops one address claiming credit for another's payment |
+| Amount binding | Requires decoded amount == claimed amount | Prevents amount forgery — value is cryptographically bound |
+| `ProofBuilder` SDK | Off-chain proof construction via @gluwa/usc-sdk | Assembles Merkle + continuity proofs |
+| `waitUntilHeightAttested` | Polls until the source block is attested, in parallel for the dual proofs | Required before proof generation; parallel avoids a second 16-20 min wait |
+| `getProof` | Generates the proof blob for on-chain verification | Produces the artifact every entry point consumes |
+
+**Integrated and tested, not on the payment path (5):**
+
+| Surface | What It Does | Why Needed |
+|---|---|---|
 | ChainInfo (0x0FD3) | Reads supported chains + attested heights | Discovers protocol state, explains attestation lag |
 | `previewIngest` | Dry-run proof validation (staticcall) | Saves gas by checking validity before submitting |
 | `executeBatch` | Atomic multi-proof verification | Batch N proofs in one tx, all-or-nothing |
-| `getBatchProof` (SDK) | Batch proof generation via @gluwa/usc-sdk | Generate multiple proofs atomically in one SDK call |
+| `calculateTxIndex` | Merkle path position of a transaction in its block | Exposed through the verifier for index queries |
+| `getBatchProof` (SDK) | Batch proof generation via @gluwa/usc-sdk | Generates multiple proofs atomically in one SDK call |
+
+**Plus 3 attested event kinds** (DepositPaid, RepaymentPaid, BalanceAttested) — **18 integration points in total.**
 
 **What is distinctive here:** every credit open requires two proofs — one that the payment happened, one that the wallet holds funds at that moment. A single-proof design lets a borrower with an empty wallet open credit by making one payment; the second proof checks the balance at the moment of the decision.
 
