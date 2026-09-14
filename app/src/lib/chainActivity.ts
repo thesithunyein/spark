@@ -3,12 +3,12 @@
 // Every value below was read off the block explorers by scripts/gen-chain-activity.mjs.
 // To refresh: npm run gen:activity
 //
-// Snapshot taken at Creditcoin testnet block 5484152 and Sepolia
-// block 11700378.
+// Snapshot taken at Creditcoin testnet block 5485109 and Sepolia
+// block 11701540.
 
 export type ChainEvent = {
   chain: "creditcoin" | "sepolia";
-  role: "production" | "legacy";
+  role: "production" | "legacy" | "generation-2";
   contract: string;
   contractAddress: string;
   event: string;
@@ -27,16 +27,16 @@ export type ChainSource = {
   key: string;
   chain: "creditcoin" | "sepolia";
   contract: string;
-  role: "production" | "legacy";
+  role: "production" | "legacy" | "generation-2";
   address: string;
   explorer: string;
 };
 
 export const chainActivity = {
-  "generatedAt": "2026-09-14T04:42:26.660Z",
+  "generatedAt": "2026-09-14T08:30:58.680Z",
   "asOf": {
-    "creditcoinBlock": 5484152,
-    "sepoliaBlock": 11700378
+    "creditcoinBlock": 5485109,
+    "sepoliaBlock": 11701540
   },
   "sources": [
     {
@@ -45,6 +45,14 @@ export const chainActivity = {
       "contract": "CreditLine",
       "role": "production",
       "address": "0x2C3585019B957b16459C409f34973b583267C742",
+      "explorer": "https://creditcoin-testnet.blockscout.com"
+    },
+    {
+      "key": "cc3-creditline-gen2",
+      "chain": "creditcoin",
+      "contract": "CreditLine",
+      "role": "generation-2",
+      "address": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
       "explorer": "https://creditcoin-testnet.blockscout.com"
     },
     {
@@ -73,15 +81,16 @@ export const chainActivity = {
     }
   ],
   "summary": {
-    "totalEvents": 46,
-    "linesOpened": 4,
+    "totalEvents": 48,
+    "linesOpened": 5,
+    "linesOpenedFromBalance": 1,
     "linesClosed": 2,
-    "linesActive": 2,
+    "linesActive": 3,
     "paymentsLinked": 6,
     "depositsPaid": 6,
     "repaymentsPaid": 5,
-    "balancesAttested": 9,
-    "distinctActors": 1,
+    "balancesAttested": 10,
+    "distinctActors": 2,
     "depositVolumeEth": "0.06",
     "repayVolumeEth": "0.004",
     "creditDrawnEth": "0.0175"
@@ -98,14 +107,14 @@ export const chainActivity = {
       {
         "key": "attested",
         "label": "Had a balance attested",
-        "wallets": 1,
-        "entered": 0,
+        "wallets": 2,
+        "entered": 1,
         "dropped": 0
       },
       {
         "key": "opened",
         "label": "Opened a credit line on Creditcoin",
-        "wallets": 1,
+        "wallets": 2,
         "entered": 0,
         "dropped": 0
       },
@@ -114,7 +123,7 @@ export const chainActivity = {
         "label": "Drew against it",
         "wallets": 1,
         "entered": 0,
-        "dropped": 0
+        "dropped": 1
       },
       {
         "key": "repaid",
@@ -131,8 +140,8 @@ export const chainActivity = {
         "dropped": 0
       }
     ],
-    "distinctWallets": 1,
-    "openedWithoutDeposit": 0
+    "distinctWallets": 2,
+    "openedWithoutDeposit": 1
   },
   "events": [
     {
@@ -1050,6 +1059,49 @@ export const chainActivity = {
       "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0x3a70c28fd7e6374cfe0ba56681c1c7293aa16a5dff6168a826d2c9149381776f"
     },
     {
+      "chain": "creditcoin",
+      "role": "generation-2",
+      "contract": "CreditLine",
+      "contractAddress": "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+      "event": "CreditOpenedFromBalance",
+      "headline": "Credit opened from a proven balance, no deposit, 0.00398 ETH line",
+      "fields": [
+        [
+          "Attested balance",
+          "0.0199 ETH"
+        ],
+        [
+          "Credit unlocked",
+          "0.00398 ETH"
+        ],
+        [
+          "Policy LTV",
+          "20.00%"
+        ],
+        [
+          "Deposit",
+          "0 ETH, none required"
+        ],
+        [
+          "Balance proof tx",
+          "0x0a360e92…cf5d34"
+        ]
+      ],
+      "raw": {
+        "user": "0x75507D3f46bd3df69A314be70D972838B24FCAE7",
+        "attestedBalance": "19904691533442134",
+        "credit": "3980938306688426",
+        "ltvBps": "2000",
+        "balanceTxHash": "0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34"
+      },
+      "actor": "0x75507d3f46bd3df69a314be70d972838b24fcae7",
+      "block": 5485461,
+      "logIndex": 1,
+      "timestamp": "2026-09-14T08:10:00Z",
+      "txHash": "0x404393fc98e2b1d41a72b8a562feff3e6a82cdea5f68a7bf1fc91bb41c64d3b5",
+      "explorerUrl": "https://creditcoin-testnet.blockscout.com/tx/0x404393fc98e2b1d41a72b8a562feff3e6a82cdea5f68a7bf1fc91bb41c64d3b5"
+    },
+    {
       "chain": "sepolia",
       "role": "legacy",
       "contract": "SepoliaPayment",
@@ -1628,6 +1680,35 @@ export const chainActivity = {
       "timestamp": "2026-08-23T10:33:24Z",
       "txHash": "0x38d82855a67a8a2051378833eb1d6aee62306d4c696392c5539aedf49ba271e1",
       "explorerUrl": "https://eth-sepolia.blockscout.com/tx/0x38d82855a67a8a2051378833eb1d6aee62306d4c696392c5539aedf49ba271e1"
+    },
+    {
+      "chain": "sepolia",
+      "role": "production",
+      "contract": "SepoliaPayment",
+      "contractAddress": "0x63F0c69cf9F8b53E8eDD141d07fF2eEd2237ccc4",
+      "event": "BalanceAttested",
+      "headline": "Balance attested, 0.0199 ETH",
+      "fields": [
+        [
+          "Attested balance",
+          "0.0199 ETH"
+        ],
+        [
+          "Reference",
+          "0x67cfce8a…537b87"
+        ]
+      ],
+      "raw": {
+        "user": "0x75507D3f46bd3df69A314be70D972838B24FCAE7",
+        "ethBalance": "19904691533442134",
+        "ref": "0x67cfce8a178da239e405c5a3111861b2217b9c28c254e05dcc22835bf1537b87"
+      },
+      "actor": "0x75507d3f46bd3df69a314be70d972838b24fcae7",
+      "block": 11701597,
+      "logIndex": 2,
+      "timestamp": "2026-09-14T08:01:00Z",
+      "txHash": "0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34",
+      "explorerUrl": "https://eth-sepolia.blockscout.com/tx/0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34"
     }
   ]
 } as const satisfies {
@@ -1637,6 +1718,7 @@ export const chainActivity = {
   summary: {
     totalEvents: number;
     linesOpened: number;
+    linesOpenedFromBalance: number;
     linesClosed: number;
     linesActive: number;
     paymentsLinked: number;

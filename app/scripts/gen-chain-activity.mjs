@@ -30,6 +30,18 @@ const SOURCES = [
     explorer: "https://creditcoin-testnet.blockscout.com",
   },
   {
+    // Generation 2, deployed after the submission deadline. Read for the same reason as
+    // the rest of this page: an action that happened on chain and is not counted here is
+    // an action a reviewer cannot see. Its opens carry no deposit, which is why the funnel
+    // below tracks them separately rather than folding them into the deposit-backed ones.
+    key: "cc3-creditline-gen2",
+    chain: "creditcoin",
+    contract: "CreditLine",
+    role: "generation-2",
+    address: "0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682",
+    explorer: "https://creditcoin-testnet.blockscout.com",
+  },
+  {
     key: "cc3-creditline-legacy",
     chain: "creditcoin",
     contract: "CreditLine",
@@ -121,6 +133,17 @@ function interpret(contract, event, p) {
             ["History count", p.count],
             ["History volume", `${eth(p.volume)} ETH`],
             ["Source tx", short(p.txHash)],
+          ],
+        };
+      case "CreditOpenedFromBalance":
+        return {
+          headline: `Credit opened from a proven balance, no deposit, ${eth(p.credit)} ETH line`,
+          fields: [
+            ["Attested balance", `${eth(p.attestedBalance)} ETH`],
+            ["Credit unlocked", `${eth(p.credit)} ETH`],
+            ["Policy LTV", bps(p.ltvBps)],
+            ["Deposit", "0 ETH, none required"],
+            ["Balance proof tx", short(p.balanceTxHash ?? p.txHash ?? "")],
           ],
         };
       case "CreditWithdrawn":
@@ -252,7 +275,7 @@ function normalize(source, it) {
 
 function summarize(events) {
   const count = (e) => events.filter((x) => x.event === e).length;
-  const opened = count("CreditOpened");
+  const opened = count("CreditOpened") + count("CreditOpenedFromBalance");
   const closed = count("CreditClosed");
 
   const sumRaw = (event, field) =>
@@ -268,6 +291,9 @@ function summarize(events) {
   return {
     totalEvents: events.length,
     linesOpened: opened,
+    // Kept separate from linesOpened on purpose. A line that needed no deposit is a
+    // different kind of evidence from one that did, and merging them would hide that.
+    linesOpenedFromBalance: count("CreditOpenedFromBalance"),
     linesClosed: closed,
     linesActive: opened - closed,
     paymentsLinked: count("AttestedPaymentLinked"),
@@ -390,7 +416,7 @@ async function main() {
 
 export type ChainEvent = {
   chain: "creditcoin" | "sepolia";
-  role: "production" | "legacy";
+  role: "production" | "legacy" | "generation-2";
   contract: string;
   contractAddress: string;
   event: string;
@@ -409,7 +435,7 @@ export type ChainSource = {
   key: string;
   chain: "creditcoin" | "sepolia";
   contract: string;
-  role: "production" | "legacy";
+  role: "production" | "legacy" | "generation-2";
   address: string;
   explorer: string;
 };
@@ -421,6 +447,7 @@ export const chainActivity = ${JSON.stringify(chain, null, 2)} as const satisfie
   summary: {
     totalEvents: number;
     linesOpened: number;
+    linesOpenedFromBalance: number;
     linesClosed: number;
     linesActive: number;
     paymentsLinked: number;
@@ -454,6 +481,9 @@ export const chainActivity = ${JSON.stringify(chain, null, 2)} as const satisfie
   console.log(`  events:  ${summary.totalEvents}`);
   console.log(`  opened:  ${summary.linesOpened}  closed: ${summary.linesClosed}  active: ${summary.linesActive}`);
   console.log(`  linked:  ${summary.paymentsLinked} attested payments`);
+  if (summary.linesOpenedFromBalance > 0) {
+    console.log(`  balance: ${summary.linesOpenedFromBalance} line(s) opened with no deposit`);
+  }
   console.log(`  drawn:   ${summary.creditDrawnEth} ETH of credit`);
   console.log(`  actors:  ${summary.distinctActors} distinct indexed wallets`);
   console.log(`  funnel:  ${funnelData.stages.map((s) => `${s.key}=${s.wallets}`).join(" ")}`);

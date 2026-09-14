@@ -7,6 +7,7 @@ import { sepolia } from "wagmi/chains";
 import { config, isConfigured } from "@/lib/config";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { creditLineAbi } from "@/lib/abi";
+import { GEN2 } from "@/lib/gen2";
 import { formatEth, type ActivityItem as TableItem } from "@/lib/format";
 
 export type ActivityKind =
@@ -57,6 +58,12 @@ const creditRedeemed = parseAbiItem(
 );
 const creditClosed = parseAbiItem(
   "event CreditClosed(address indexed user, bytes32 indexed txHash)",
+);
+// Generation 2 emits a different open event, because the line is sized from a proven balance
+// rather than a deposit. Its withdraw/redeem/close/repaid events share generation 1's
+// signatures, so only the open needs its own item.
+const creditOpenedFromBalance = parseAbiItem(
+  "event CreditOpenedFromBalance(address indexed user, uint256 attestedBalance, uint256 credit, uint256 ltvBps, bytes32 txHash)",
 );
 
 function readJournal(address: string): ActivityItem[] {
@@ -366,7 +373,7 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
             push({
               id: `${log.transactionHash}-closed`,
               type: "Credit closed",
-              amount: "—",
+              amount: "-",
               status: "Completed",
               at: "Creditcoin",
               kind: "credit",
@@ -375,6 +382,114 @@ export function usePaymentActivity(filter: ActivityFilter = "all") {
           }
         } catch {
           /* timeout or RPC range limits */
+        }
+
+        // Generation 2 is read in its own round of calls with its own timeout, on purpose. A
+        // balance-sized line lives on a different contract, and leaving it out would make a
+        // recruit's activity invisible in the product they used. Folding these into the batch
+        // above would mean a slow generation-2 read empties the whole journal for a wallet
+        // whose real history is on generation 1, so the two are kept independent. Ids carry a
+        // `g2` suffix so an event present on both deployments cannot collide in the dedupe.
+        try {
+          const startG2 = await fromBlock(creditClient);
+          const [openedG2, repaidG2, withdrawnG2, redeemedG2, closedG2] = await withTimeout(
+            Promise.all([
+              creditClient.getLogs({
+                address: GEN2.creditLine,
+                event: creditOpenedFromBalance,
+                args: { user: address },
+                fromBlock: startG2,
+                toBlock: "latest",
+              }),
+              creditClient.getLogs({
+                address: GEN2.creditLine,
+                event: creditRepaid,
+                args: { user: address },
+                fromBlock: startG2,
+                toBlock: "latest",
+              }),
+              creditClient.getLogs({
+                address: GEN2.creditLine,
+                event: creditWithdrawn,
+                args: { user: address },
+                fromBlock: startG2,
+                toBlock: "latest",
+              }),
+              creditClient.getLogs({
+                address: GEN2.creditLine,
+                event: creditRedeemed,
+                args: { user: address },
+                fromBlock: startG2,
+                toBlock: "latest",
+              }),
+              creditClient.getLogs({
+                address: GEN2.creditLine,
+                event: creditClosed,
+                args: { user: address },
+                fromBlock: startG2,
+                toBlock: "latest",
+              }),
+            ]),
+            LOG_TIMEOUT_MS,
+          );
+
+          for (const log of openedG2) {
+            push({
+              id: `${log.transactionHash}-open-g2`,
+              type: "Credit opened from a proven balance",
+              amount: `${formatEther(log.args.credit ?? 0n)} sCREDIT`,
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "credit",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of repaidG2) {
+            push({
+              id: `${log.transactionHash}-crepay-g2`,
+              type: "Credit repaid",
+              amount: `${formatEther(log.args.amount ?? 0n)} sCREDIT`,
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "repay",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of withdrawnG2) {
+            push({
+              id: `${log.transactionHash}-wd-g2`,
+              type: "Credit withdrawn",
+              amount: `${formatEther(log.args.amount ?? 0n)} sCREDIT`,
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "withdraw",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of redeemedG2) {
+            push({
+              id: `${log.transactionHash}-rd-g2`,
+              type: "Credit redeemed",
+              amount: `${formatEther(log.args.amount ?? 0n)} sCREDIT`,
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "redeem",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+          for (const log of closedG2) {
+            push({
+              id: `${log.transactionHash}-closed-g2`,
+              type: "Credit closed",
+              amount: "-",
+              status: "Completed",
+              at: "Creditcoin",
+              kind: "credit",
+              href: `${config.explorerCreditcoin}/tx/${log.transactionHash}`,
+            });
+          }
+        } catch {
+          /* generation-2 read failed; generation-1 history above still stands */
         }
       }
 

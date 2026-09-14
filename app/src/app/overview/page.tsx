@@ -10,6 +10,7 @@ import { OnboardingChecklist } from "@/components/OnboardingChecklist";
 import { SuccessBanner } from "@/components/SuccessBanner";
 import { config } from "@/lib/config";
 import { creditLineAbi } from "@/lib/abi";
+import { GEN2, GEN2_CREDIT_LINE_ABI } from "@/lib/gen2";
 import { formatEth, statusLabel } from "@/lib/format";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { usePaymentActivity } from "@/hooks/usePaymentActivity";
@@ -57,6 +58,28 @@ export default function OverviewPage() {
     },
   });
 
+  // Generation 2, read separately because a balance-sized line lives on a different
+  // contract. Without this, a wallet that opened a line through the deposit-free path sees
+  // "No credit line yet" on its own overview, which reads as a broken product rather than
+  // as a second generation.
+  const { data: gen2Position } = useReadContract({
+    address: GEN2.creditLine as `0x${string}`,
+    abi: GEN2_CREDIT_LINE_ABI,
+    functionName: "getPosition",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: { enabled: Boolean(address) },
+  });
+
+  const { data: gen2Available } = useReadContract({
+    address: GEN2.creditLine as `0x${string}`,
+    abi: GEN2_CREDIT_LINE_ABI,
+    functionName: "availableCredit",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: { enabled: Boolean(address) },
+  });
+
   const status = position ? Number(position.status) : 0;
   const credit = position ? position.credit : 0n;
   const deposit = position ? position.deposit : 0n;
@@ -66,6 +89,29 @@ export default function OverviewPage() {
   const activity = recent.slice(0, 5);
   const scoreN = score != null ? Number(score) : null;
   const histCount = hist ? Number(hist.count) : 0;
+
+  const gen2Status = gen2Position ? Number(gen2Position.status) : 0;
+  const gen2Open = gen2Status === 1;
+  const gen2Credit = gen2Position ? gen2Position.credit : 0n;
+  const gen2Attested = gen2Position ? gen2Position.attestedBalance : 0n;
+  const gen2Drawable = gen2Available ?? 0n;
+
+  // The metric cards below describe a line. When the only line this wallet has is the
+  // balance-sized one, they should describe that line instead of showing zeroes alongside a
+  // banner that says a line is open.
+  const gen2Only = gen2Open && status !== 1;
+  const cardAvailable = gen2Only ? gen2Drawable : available;
+  const cardStatusLabel = gen2Only ? "Active (balance-sized)" : statusLabel(status);
+  const cardStatusHint = gen2Only
+    ? "Sized from an attested balance · 10% APR on debt"
+    : debt > 0n
+      ? `Debt ${formatEth(debt)} sCREDIT (accruing)`
+      : undefined;
+  const cardDepositHint = gen2Only
+    ? "Nothing deposited: the balance was proven instead"
+    : attestedBalance > 0n
+      ? `Attested Sepolia bal ${formatEth(attestedBalance)} ETH`
+      : undefined;
 
   return (
     <AppShell
@@ -118,9 +164,30 @@ export default function OverviewPage() {
         </div>
       )}
 
-      <OnboardingChecklist hasCreditLine={status === 1 || status === 2} />
+      <OnboardingChecklist hasCreditLine={status === 1 || status === 2 || gen2Open} />
 
-      {isConnected && status === 0 && (
+      {/* Generation 2 carries its own header, because the overview's own position read is
+          generation 1 and would otherwise report this wallet as having nothing at all. */}
+      {isConnected && gen2Open && (
+        <div className="mb-8 max-w-2xl">
+          <SuccessBanner
+            title={`Generation-2 line open · ${formatEth(gen2Credit)} ETH limit`}
+            description={`${formatEth(gen2Attested)} ETH proven on Sepolia, no deposit. ${formatEth(
+              gen2Drawable,
+            )} ETH is available to draw on the balance credit page.`}
+            actions={
+              <Link
+                href="/balance"
+                className="btn-shine px-4 py-2 font-mono text-[12px] uppercase tracking-[0.16em] text-white"
+              >
+                Balance credit
+              </Link>
+            }
+          />
+        </div>
+      )}
+
+      {isConnected && status === 0 && !gen2Open && (
         <div className="mb-8 max-w-lg">
           <p className="text-[15px] font-medium text-text">No credit line yet</p>
           <p className="mt-1 text-[13px] text-muted">Pay a deposit, verify it, then credit unlocks.</p>
@@ -136,17 +203,23 @@ export default function OverviewPage() {
       <div className="grid gap-3 md:grid-cols-4">
         <MetricCard
           label="Credit available"
-          value={`${formatEth(available)} sCREDIT`}
+          value={`${formatEth(cardAvailable)} sCREDIT`}
           loading={isFetchingPos}
-          hint={status === 1 ? "Ready to withdraw · 10% APR on debt" : status === 2 ? "Closed" : "—"}
+          hint={
+            gen2Only
+              ? "Ready to draw on Balance credit · 10% APR on debt"
+              : status === 1
+                ? "Ready to withdraw · 10% APR on debt"
+                : status === 2
+                  ? "Closed"
+                  : "—"
+          }
         />
         <MetricCard
           label="Deposit locked"
           value={`${formatEth(deposit)} ETH`}
           loading={isFetchingPos}
-          hint={
-            attestedBalance > 0n ? `Attested Sepolia bal ${formatEth(attestedBalance)} ETH` : undefined
-          }
+          hint={cardDepositHint}
         />
         <MetricCard
           label="Credit score"
@@ -156,13 +229,13 @@ export default function OverviewPage() {
         />
         <MetricCard
           label="Status"
-          value={statusLabel(status)}
+          value={cardStatusLabel}
           loading={isFetchingPos}
-          hint={debt > 0n ? `Debt ${formatEth(debt)} sCREDIT (accruing)` : undefined}
+          hint={cardStatusHint}
         />
       </div>
 
-      {isConnected && histCount === 0 && status === 0 && (
+      {isConnected && histCount === 0 && status === 0 && !gen2Open && (
         <p className="mt-3 text-[13px] text-muted">
           <Link href="/score" className="text-accent2 transition hover:text-accent3 hover:underline">
             Link payment history

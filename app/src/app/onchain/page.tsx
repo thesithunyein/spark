@@ -79,6 +79,10 @@ const CHAIN_STYLE: Record<string, { label: string; badge: string }> = {
 
 export default function OnchainPage() {
   const events = A.events;
+  // The generated module is emitted `as const`, so every count arrives as a literal type and
+  // a runtime branch on it fails to compile. Widening here keeps the copy below able to
+  // branch on the numbers without casting at each use site.
+  const actors: number = S.distinctActors;
 
   return (
     <div className="relative isolate min-h-[100svh] w-full bg-black">
@@ -142,10 +146,10 @@ export default function OnchainPage() {
             <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-amber-300">Scope</p>
             <p className="mt-2 text-[13px] font-light leading-relaxed text-white/80">
               All {S.totalEvents} events were produced by{" "}
-              <strong className="font-normal text-white">{S.distinctActors === 1 ? "a single wallet" : `${S.distinctActors} wallets`}</strong>{" "}
-              ({S.distinctActors} distinct indexed address
-              {S.distinctActors === 1 ? "" : "es"}). One wallet is enough to prove the loop works
-              end to end. It is not enough to prove a market exists, and this page does not claim
+              <strong className="font-normal text-white">{actors === 1 ? "a single wallet" : `${actors} wallets`}</strong>{" "}
+              ({actors} distinct indexed address
+              {actors === 1 ? "" : "es"}). That is enough to prove the loop closes end to
+              end. It is not enough to prove a market exists, and this page does not claim
               otherwise.
             </p>
           </div>
@@ -203,12 +207,14 @@ export default function OnchainPage() {
           <div className="mt-4 rounded-xl border border-amber-500/40 bg-amber-500/[0.08] px-5 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.16em] text-amber-300">Read this number honestly</p>
             <p className="mt-2 text-[13px] font-light leading-relaxed text-white/80">
-              It reads <strong className="font-normal text-white">{F.stages[0].wallets}</strong> at every
-              stage, because one wallet produced all {S.totalEvents} events on this page. That proves the
-              loop closes end to end. It does not prove a market exists. The funnel is published in this
-              shape so the gap is measurable rather than described, and what closes it is not code: the
-              deposit-free path that removes the hardest onboarding step is built and tested, and adoption
-              is the part no repository can supply.
+              It no longer reads the same number at every stage.{" "}
+              <strong className="font-normal text-white">{F.distinctWallets}</strong> distinct wallets
+              produced the {S.totalEvents} events on this page, and{" "}
+              <strong className="font-normal text-white">{F.openedWithoutDeposit}</strong> of them reached
+              a credit line through the deposit-free balance path. That is why &ldquo;paid a deposit&rdquo;
+              sits below &ldquo;had a balance attested&rdquo;. Two addresses and one deposit-free path is
+              still not a market, so the limit stands: the addresses are recruited one conversation at a
+              time, and no repository can supply them.
             </p>
           </div>
 

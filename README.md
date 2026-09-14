@@ -489,7 +489,7 @@ Open [http://localhost:3000](http://localhost:3000). User guide: in-app **Help**
 | Score | 650 base + 40 × attested payments (cap **850**) |
 | LTV bonus | +250 bps (≥1 payment), +500 bps (≥3 payments) |
 | Balance LTV | ≥2× deposit → 90%, ≥1× → 85%, else 80% base |
-| Balance-sized line (generation 2) | **No deposit.** `openCreditFromBalance`: `limit = attested balance × 20%`, floor 0.0001 ETH, and a balance attestation never moves the score because a balance is not a payment. Built and covered by 21 tests, but it needs a `CreditLine` redeploy to go live — [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md) |
+| Balance-sized line (generation 2) | **No deposit.** `openCreditFromBalance`: `limit = attested balance × 20%`, floor 0.0001 ETH, and a balance attestation never moves the score because a balance is not a payment. Live on CC3 since 2026-09-14 with a line opened and drawn against it — [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md) |
 | Proof | `submitAttestedPayment` links past Sepolia txs; `openCredit` / `repayCredit` also count |
 
 Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()` and `getHistory()`.
@@ -499,7 +499,7 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 | Phase | Focus |
 |---|---|
 | **Now** | Live testnet: dual Attestcoin proofs, score, history LTV, **strict receipt log decoding with amount binding**, full borrow/repay loop |
-| **Broadcast, unused** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Both are live on CC3 and verified, and nothing has drawn against them — the live app still runs the deposit-backed flow the demo describes. [docs/ROADMAP.md](docs/ROADMAP.md) |
+| **Deposit-free credit, live** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Both are live on CC3 and verified. The balance-sized path is reachable from the product rather than only from a script: a first line was opened on 2026-09-14, and `/balance` now carries the draw, redeem and close actions for that generation, so the path runs open to draw to close in the app. The demo-described deposit flow is untouched on `/pay`. The mainnet position layer is executed locally and not broadcast. [docs/ROADMAP.md](docs/ROADMAP.md) |
 | **Portable standing** | A verified record that a *different* product reads and gates on, with the Attestcoin evidence reference carried into the decision. Deployed and exercised end to end — [docs/addresses.md](docs/addresses.md) |
 | **Next** | Faster verify UX (parallel attestation, caching) |
 | **Later** | Mainnet, audit, lending pool, single-network UX |

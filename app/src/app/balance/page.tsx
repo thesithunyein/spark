@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import {
   useAccount,
   usePublicClient,
@@ -9,13 +8,13 @@ import {
   useSwitchChain,
   useWriteContract,
 } from "wagmi";
-import { keccak256, toBytes, type Hex } from "viem";
+import { keccak256, parseEther, toBytes, type Hex } from "viem";
 import { sepolia } from "wagmi/chains";
 import { AppShell } from "@/components/AppShell";
 import { ConnectButton } from "@/components/ConnectButton";
 import { sepoliaPaymentAbi } from "@/lib/abi";
 import { config } from "@/lib/config";
-import { GEN2, GEN1_CREDIT_LINE, GEN2_CREDIT_LINE_ABI } from "@/lib/gen2";
+import { GEN2, GEN2_CREDIT_LINE_ABI } from "@/lib/gen2";
 import { buildAttestcoinProof, type AttestcoinPhase } from "@/lib/usc";
 import { ensureCreditcoinChain, ensureSepoliaChain } from "@/lib/chains";
 import { creditcoinTestnet } from "@/lib/wagmi";
@@ -74,6 +73,9 @@ export default function BalanceCreditPage() {
   const [balanceTxHash, setBalanceTxHash] = useState<Hex | undefined>();
   const [attestedWei, setAttestedWei] = useState<bigint | null>(null);
   const [openHash, setOpenHash] = useState<Hex | undefined>();
+  const [drawAmount, setDrawAmount] = useState("");
+  const [drawHash, setDrawHash] = useState<Hex | undefined>();
+  const [closeHash, setCloseHash] = useState<Hex | undefined>();
 
   const { data: ltvBps } = useReadContract({
     address: GEN2.creditLine as `0x${string}`,
@@ -93,6 +95,24 @@ export default function BalanceCreditPage() {
     address: GEN2.creditLine as `0x${string}`,
     abi: GEN2_CREDIT_LINE_ABI,
     functionName: "getPosition",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: { enabled: Boolean(address) },
+  });
+
+  const { data: availableWei, refetch: refetchAvailable } = useReadContract({
+    address: GEN2.creditLine as `0x${string}`,
+    abi: GEN2_CREDIT_LINE_ABI,
+    functionName: "availableCredit",
+    args: address ? [address] : undefined,
+    chainId: creditcoinTestnet.id,
+    query: { enabled: Boolean(address) },
+  });
+
+  const { data: debtWei, refetch: refetchDebt } = useReadContract({
+    address: GEN2.creditLine as `0x${string}`,
+    abi: GEN2_CREDIT_LINE_ABI,
+    functionName: "currentDebt",
     args: address ? [address] : undefined,
     chainId: creditcoinTestnet.id,
     query: { enabled: Boolean(address) },
@@ -205,18 +225,169 @@ export default function BalanceCreditPage() {
     }
   }
 
+  function parseDrawAmount(): bigint | null {
+    const value = drawAmount.trim();
+    if (!value) {
+      setError("Enter an amount first.");
+      return null;
+    }
+    let amountWei: bigint;
+    try {
+      amountWei = parseEther(value);
+    } catch {
+      setError("That is not a valid ETH amount.");
+      return null;
+    }
+    if (amountWei <= 0n) {
+      setError("Amount must be greater than zero.");
+      return null;
+    }
+    return amountWei;
+  }
+
+  /**
+   * Draw against an already-open generation-2 line.
+   *
+   * ── Why this exists here and not on /withdraw ───────────────────────────────
+   * /withdraw is wired to generation 1, so it cannot reach this contract. Without a draw
+   * on this page the deposit-free path opens a limit and stops there, which is a credit
+   * product nobody can spend from. `withdraw` mints sCREDIT to the drawer, so the drawn
+   * amount arrives as the credit token rather than as ETH.
+   */
+  async function drawCredit() {
+    setError(null);
+    setNote(null);
+    if (!address || !creditClient) {
+      setError("Connect a wallet first.");
+      return;
+    }
+    const amountWei = parseDrawAmount();
+    if (amountWei == null) return;
+    if (availableWei != null && amountWei > availableWei) {
+      setError(`Only ${formatEth(availableWei)} ETH is available to draw.`);
+      return;
+    }
+    setBusy(true);
+    try {
+      await ensureCreditcoinChain(switchChainAsync);
+      const hash = await writeContractAsync({
+        address: GEN2.creditLine as `0x${string}`,
+        abi: GEN2_CREDIT_LINE_ABI,
+        functionName: "withdraw",
+        args: [amountWei],
+        chainId: creditcoinTestnet.id,
+      });
+      if (creditClient) await creditClient.waitForTransactionReceipt({ hash });
+      setDrawHash(hash);
+      setDrawAmount("");
+      journalActivity(address, {
+        id: `${hash}-draw2`,
+        type: "Credit withdrawn",
+        amount: `${formatEth(amountWei)} ETH`,
+        status: "Completed",
+        at: "Creditcoin",
+        kind: "withdraw",
+        href: `${config.explorerCreditcoin}/tx/${hash}`,
+      });
+      void refetchPosition();
+      void refetchAvailable();
+      void refetchDebt();
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Burn sCREDIT back against the debt. This reduces the balance, it does not repay the loan. */
+  async function redeemCredit() {
+    setError(null);
+    setNote(null);
+    if (!address || !creditClient) {
+      setError("Connect a wallet first.");
+      return;
+    }
+    const amountWei = parseDrawAmount();
+    if (amountWei == null) return;
+    if (debtWei != null && amountWei > debtWei) {
+      setError(`Outstanding debt is ${formatEth(debtWei)} ETH, so that is more than can be redeemed.`);
+      return;
+    }
+    setBusy(true);
+    try {
+      await ensureCreditcoinChain(switchChainAsync);
+      const hash = await writeContractAsync({
+        address: GEN2.creditLine as `0x${string}`,
+        abi: GEN2_CREDIT_LINE_ABI,
+        functionName: "redeem",
+        args: [amountWei],
+        chainId: creditcoinTestnet.id,
+      });
+      if (creditClient) await creditClient.waitForTransactionReceipt({ hash });
+      setDrawHash(hash);
+      setDrawAmount("");
+      journalActivity(address, {
+        id: `${hash}-redeem2`,
+        type: "Credit redeemed",
+        amount: `${formatEth(amountWei)} ETH`,
+        status: "Completed",
+        at: "Creditcoin",
+        kind: "redeem",
+        href: `${config.explorerCreditcoin}/tx/${hash}`,
+      });
+      void refetchPosition();
+      void refetchAvailable();
+      void refetchDebt();
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Close an unused line. The contract refuses while any debt stands, so this is only offered at zero. */
+  async function closeLine() {
+    setError(null);
+    setNote(null);
+    if (!address || !creditClient) {
+      setError("Connect a wallet first.");
+      return;
+    }
+    setBusy(true);
+    try {
+      await ensureCreditcoinChain(switchChainAsync);
+      const hash = await writeContractAsync({
+        address: GEN2.creditLine as `0x${string}`,
+        abi: GEN2_CREDIT_LINE_ABI,
+        functionName: "closeUnused",
+        chainId: creditcoinTestnet.id,
+      });
+      if (creditClient) await creditClient.waitForTransactionReceipt({ hash });
+      setCloseHash(hash);
+      journalActivity(address, {
+        id: `${hash}-close2`,
+        type: "Credit line closed",
+        amount: "Unused",
+        status: "Completed",
+        at: "Creditcoin",
+        kind: "credit",
+        href: `${config.explorerCreditcoin}/tx/${hash}`,
+      });
+      void refetchPosition();
+      void refetchAvailable();
+    } catch (e) {
+      setError(friendlyError(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <AppShell
       title="Open from a proven balance"
       subtitle="No deposit. Your Sepolia balance is proven on Creditcoin, and the line is sized from it."
     >
       <div className="mx-auto max-w-xl">
-        {/* Scoping kept, weight removed: one muted line instead of a warning panel. The
-            detail now sits with the other honest limits at the foot of the page, so the
-            page reads cleanly without the fact disappearing. */}
-        <p className="mb-4 font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-          Generation 2 · post-deadline · not the demo-video flow
-        </p>
 
         {!isConnected ? (
           <div className="border border-border bg-panel/80 p-5 shadow-soft sm:p-7">
@@ -247,32 +418,106 @@ export default function BalanceCreditPage() {
             )}
 
             {hasLine && position && (
-              <p className="mt-4 border border-border/70 bg-panel2/60 p-3 text-[13px] leading-relaxed text-muted">
-                You already have a generation-2 line: {formatEth(position.attestedBalance)} ETH attested,{" "}
-                {formatEth(position.credit)} ETH limit. One line per address, so this page can only open a
-                new one after the current line is closed.
-              </p>
+              <div className="mt-4 border border-border/70 bg-panel2/60 p-3">
+                <p className="text-[13px] leading-relaxed text-muted">
+                  Your generation-2 line: {formatEth(position.attestedBalance)} ETH attested,{" "}
+                  {formatEth(position.credit)} ETH limit, one per address. The buttons below draw on it.
+                </p>
+                <div className="mt-3">
+                  <Row label="Available to draw" value={`${formatEth(availableWei ?? 0n)} ETH`} />
+                  <Row label="Outstanding debt" value={`${formatEth(debtWei ?? 0n)} ETH`} />
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={drawAmount}
+                    onChange={(e) => setDrawAmount(e.target.value)}
+                    inputMode="decimal"
+                    placeholder="0.001"
+                    aria-label="Amount in ETH"
+                    className="w-full border border-border bg-transparent px-3 py-2 font-mono text-[13px] text-text placeholder:text-muted/60 focus:border-text focus:outline-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={drawCredit}
+                    disabled={busy || (availableWei ?? 0n) === 0n}
+                    className="border border-border bg-accent/10 px-5 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
+                  >
+                    Draw
+                  </button>
+                  <button
+                    type="button"
+                    onClick={redeemCredit}
+                    disabled={busy || (debtWei ?? 0n) === 0n}
+                    className="border border-border bg-panel/70 px-5 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
+                  >
+                    Redeem
+                  </button>
+                </div>
+
+                {(debtWei ?? 0n) === 0n && (
+                  <button
+                    type="button"
+                    onClick={closeLine}
+                    disabled={busy}
+                    className="mt-2 w-full border border-border bg-panel/70 px-5 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-muted transition disabled:opacity-40"
+                  >
+                    Close this unused line
+                  </button>
+                )}
+
+                {drawHash && (
+                  <p className="mt-3 text-[13px] text-accent2">
+                    Confirmed.{" "}
+                    <a
+                      href={`${config.explorerCreditcoin}/tx/${drawHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline decoration-dotted underline-offset-2"
+                    >
+                      View tx
+                    </a>
+                  </p>
+                )}
+                {closeHash && (
+                  <p className="mt-3 text-[13px] text-accent2">
+                    Line closed.{" "}
+                    <a
+                      href={`${config.explorerCreditcoin}/tx/${closeHash}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="underline decoration-dotted underline-offset-2"
+                    >
+                      View tx
+                    </a>
+                  </p>
+                )}
+              </div>
             )}
 
-            <div className="mt-5 space-y-3">
-              <button
-                type="button"
-                onClick={attest}
-                disabled={busy || hasLine}
-                className="w-full border border-border bg-panel2/70 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
-              >
-                {balanceTxHash ? "1. Balance attested" : "1. Attest my Sepolia balance"}
-              </button>
+            {/* The two opening buttons disappear once a line exists, because the only way
+                forward from there is to draw on it, not to open a second one. */}
+            {!hasLine && (
+              <div className="mt-5 space-y-3">
+                <button
+                  type="button"
+                  onClick={attest}
+                  disabled={busy}
+                  className="w-full border border-border bg-panel2/70 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
+                >
+                  {balanceTxHash ? "1. Balance attested" : "1. Attest my Sepolia balance"}
+                </button>
 
-              <button
-                type="button"
-                onClick={proveAndOpen}
-                disabled={busy || hasLine || !balanceTxHash}
-                className="w-full border border-border bg-accent/10 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
-              >
-                {step === "done" ? "Line opened" : "2. Prove it and open the line"}
-              </button>
-            </div>
+                <button
+                  type="button"
+                  onClick={proveAndOpen}
+                  disabled={busy || !balanceTxHash}
+                  className="w-full border border-border bg-accent/10 px-5 py-3 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
+                >
+                  {step === "done" ? "Line opened" : "2. Prove it and open the line"}
+                </button>
+              </div>
+            )}
 
             {attestedWei != null && (
               <div className="mt-5">
@@ -325,42 +570,16 @@ export default function BalanceCreditPage() {
           </div>
         )}
 
-        {/* The honesty the path requires, stated rather than buried. */}
-        <div className="mt-5 border border-border bg-panel/60 p-4">
-          <p className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted">
-            What this does and does not do
-          </p>
-          <ul className="mt-3 space-y-2 text-[13px] leading-relaxed text-muted">
-            <li>
-              One proof, not two. Only the kind-3 balance attestation is needed, which is why this path
-              builds a single BlockProver proof instead of a pair.
-            </li>
-            <li>
-              Generation 2, deployed after the submission deadline. This path is at{" "}
-              <span className="font-mono text-[12px]">{GEN2.creditLine.slice(0, 10)}…</span>; the demo video
-              shows generation 1 at{" "}
-              <span className="font-mono text-[12px]">{GEN1_CREDIT_LINE.slice(0, 10)}…</span>, which is still
-              the flow on{" "}
-              <Link href="/pay" className="underline decoration-dotted underline-offset-2">
-                Pay
-              </Link>
-              . Everything on this page talks to generation 2 only.
-            </li>
-            <li>
-              The balance is verified, not locked. Nothing is custodied, and the funds stay in your Sepolia
-              wallet, which is why the line is 20% of the attested amount rather than 95%.
-            </li>
-            <li>
-              A balance attestation deliberately does not count as a payment, so opening this way does not
-              move your credit score.
-            </li>
-            <li>
-              Interest accrues at 10% APR on drawn credit, and there is no liquidation path. The economics
-              of that are worked through in{" "}
-              <span className="font-mono text-[12px]">docs/UNIT_ECONOMICS.md</span>.
-            </li>
-          </ul>
-        </div>
+        {/* Terms kept, essay removed. The rate and the absence of liquidation are the two facts a
+            borrower has to see before drawing, so they stay on the screen a borrower actually uses.
+            The rest is argued at length in docs/UNIT_ECONOMICS.md and in-source, where length costs
+            nothing and here it costs attention. */}
+        <p className="mt-5 text-[13px] leading-relaxed text-muted">
+          10% APR accrues on drawn credit, and there is no liquidation path. Drawing mints sCREDIT to your
+          wallet rather than sending ETH, and redeeming burns it back against the debt. Your balance stays
+          in your Sepolia wallet rather than being custodied, which is why the line is 20% of it. Opening
+          this way is not a payment, so it does not move your credit score.
+        </p>
       </div>
     </AppShell>
   );

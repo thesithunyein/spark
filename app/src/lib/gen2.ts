@@ -159,5 +159,16 @@ export const GEN2_CREDIT_LINE_ABI = parseAbi([
   "function getPosition(address user) view returns ((uint256 deposit, uint256 debt, uint256 credit, uint256 attestedBalance, uint64 lastAccrual, uint8 status, bytes32 openTxHash, bytes32 balanceTxHash, bytes32 closeTxHash))",
   "function BALANCE_LTV_BPS() view returns (uint256)",
   "function MIN_BALANCE_LINE_WEI() view returns (uint256)",
+  // Read and spend the line once it exists. Without these the deposit-free path could
+  // open a limit and stop there, which is a credit product nobody can draw on.
+  "function availableCredit(address user) view returns (uint256)",
+  "function currentDebt(address user) view returns (uint256)",
+  "function creditScore(address user) view returns (uint256)",
+  "function withdraw(uint256 amount)",
+  "function redeem(uint256 amount)",
+  "function closeUnused()",
   "event CreditOpenedFromBalance(address indexed user, uint256 attestedBalance, uint256 credit, uint256 ltvBps, bytes32 txHash)",
+  "event CreditWithdrawn(address indexed user, uint256 amount, uint256 debt)",
+  "event CreditRedeemed(address indexed user, uint256 amount, uint256 debt)",
+  "event CreditClosed(address indexed user, bytes32 indexed txHash)",
 ]);

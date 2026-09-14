@@ -64,9 +64,11 @@ nothing to liquidate: a proven mainnet position is verified data, not seizable c
 
 ### M2b. Credit sized by a proven balance, with no deposit
 
-**Status: built and tested, needs a `CreditLine` redeploy.** The deployed generation sizes its
-line as `deposit x LTV`, which means the borrower's own deposit is both the collateral and the
-ceiling. `openCreditFromBalance` removes the deposit entirely and sizes from the attested
+**Status: live on CC3, reachable from the product.** Generation 2 deployed its own `CreditLine` at
+`0xD8cd1d29...2682` on 2026-09-14, the first line was opened from a proven balance the same day,
+and `/balance` carries the draw, redeem and close actions for that generation. The gen-1 flow at
+`0x2C35...C742` still sizes its line as `deposit x LTV`, which means the borrower's own deposit is
+both the collateral and the ceiling. `openCreditFromBalance` removes the deposit entirely and sizes from the attested
 Sepolia balance instead, at a conservative 20% policy LTV, with a floor that refuses dust
 lines rather than opening an unusable one.
 
@@ -80,8 +82,8 @@ For the same borrower wealth the two models differ by more than 200x: a 0.01 ETH
 10 ETH attested lends 0.009 ETH, while the balance path lends 2 ETH. That is the difference
 between a deposit mirror and credit, and it is why this path exists.
 
-**Depends on:** a funded CC3 key. Adding a function to a deployed contract means deploying a
-new `CreditLine`, which is why it is not live yet.
+**Depends on:** nothing outstanding. Adding a function to a deployed contract required a new
+`CreditLine`, which is deployed; what remains is usage, not code.
 
 ### M3. State proofs for current position, ledger proofs for history
 
