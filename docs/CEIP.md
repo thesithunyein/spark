@@ -12,7 +12,7 @@ this is the plan for after it.**
 ## Why these three, and not more protocol surfaces
 
 Spark's weakest judged pillar is not technical. It is user-based expansion, and the measured
-reason is exact: **the 49 on-chain events come from 2 distinct wallets, one of which is the
+reason is exact: **the 54 on-chain events come from 2 distinct wallets, one of which is the
 founder's.** That number is public and stays public, because the alternative — wallets we
 control wearing different hats — would be worse than admitting the weakness.
 

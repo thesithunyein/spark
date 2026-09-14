@@ -59,24 +59,25 @@ Eight forged proofs (forged merkle root, wrong chain key, zero height, empty enc
 
 [spark.sithunyein.com/balance](https://spark.sithunyein.com/balance) is the other generation: no deposit at all. It proves only the Sepolia balance, sizes the line at 20% of it, and carries its own draw, redeem and repay actions. The first line opened this way was drawn in full — 0.00398 ETH against 0.0199 ETH attested, from the product rather than a script:
 
-| | Open (kind-3 balance proof) | Draw |
-|---|---|---|
-| First deposit-free line, Sep 14 | [0x0a360e92...](https://creditcoin-testnet.blockscout.com/tx/0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34) | [0xf160ffd2...](https://creditcoin-testnet.blockscout.com/tx/0xf160ffd264afd6ebf6d0d31ecf2558701d6751a77a446925a818215629bf2b74) |
+| | Open (kind-3 balance proof) | Draw | Repay (kind-2) |
+|---|---|---|---|
+| First deposit-free line, Sep 14 | [0x0a360e92...](https://creditcoin-testnet.blockscout.com/tx/0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34) | [0xf160ffd2...](https://creditcoin-testnet.blockscout.com/tx/0xf160ffd264afd6ebf6d0d31ecf2558701d6751a77a446925a818215629bf2b74) | [Sepolia 0xf8870b20...](https://eth-sepolia.blockscout.com/tx/0xf8870b20d6303b9fc73defccb8cc8a6b0e0944db6bff75b9cf2ce2969f1fdce0) · [Creditcoin 0xa165a57f...](https://creditcoin-testnet.blockscout.com/tx/0xa165a57f0ff7a19b064eaf0dd3e1753b36644487ecd3ccb3a0400dee725d3da6)
 
-**Two completed credit loops, verifiable on Blockscout**
+**Three completed credit loops, verifiable on Blockscout**
 
 | | Open (dual proof) | Repay + close |
 |---|---|---|
 | Loop 1, Aug 13, 90% LTV | [0xe5ec5506...](https://creditcoin-testnet.blockscout.com/tx/0xe5ec5506ccdc54851e6c08674b2649d7efa1033220ef768dcc0583f1bf1da9c1) | [0x5092e516...](https://creditcoin-testnet.blockscout.com/tx/0x5092e5165c0fedaf85b53a8c20b9710d4b60a97b3ccaa3e815ec5fda42c18eb4) |
 | Loop 2, Aug 14, 95% LTV | [0xbbec27e6...](https://creditcoin-testnet.blockscout.com/tx/0xbbec27e622b18d21bdedb24fabc072041aa0fe3ad7419b952a1e2b8754bba618) | [0x5fc0b4fb...](https://creditcoin-testnet.blockscout.com/tx/0x5fc0b4fb25493606c451ef46a1dfad0a2eab775f558b2b6820b3e1a2e723e122) |
+| Loop 3, Sep 14, deposit-free, drawn in full | [0x0a360e92...](https://creditcoin-testnet.blockscout.com/tx/0x0a360e92412bd42ba97350101c46ca44bf9ad7b71ffa45c2cf3f773fb8cf5d34) | [0xa165a57f...](https://creditcoin-testnet.blockscout.com/tx/0xa165a57f0ff7a19b064eaf0dd3e1753b36644487ecd3ccb3a0400dee725d3da6) |
 
 On-chain `creditScore()` = **850**, which is the cap: 650 plus 40 per linked payment, and **6** payments are linked, so the score is clamped rather than exactly derived. Artifacts: [docs/evidence/README.md](docs/evidence/README.md) · Gas benchmarks: [docs/evidence/gas.md](docs/evidence/gas.md) · Deck: [deck.pdf](https://spark.sithunyein.com/deck.pdf)
 
 **4. The whole on-chain record, with no wallet (read-only, zero cost)**
 
-[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) renders all **49 events** the deployed contracts have emitted, across both chains, oldest first, each row linking to its Blockscout entry. No wallet, no sign-in, nothing to take on trust.
+[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) renders all **54 events** the deployed contracts have emitted, across both chains, oldest first, each row linking to its Blockscout entry. No wallet, no sign-in, nothing to take on trust.
 
-The page leads with its own scope rather than burying it: **those events came from 2 distinct wallets**, and the funnel it prints is no longer flat. Measured, not asserted: **5 credit lines opened (one with no deposit), 2 closed, 6 attested payments linked, 0.02148 ETH of credit drawn, 6 Sepolia deposits, 5 repayments, 10 balance attestations.** Rows are generated from chain reads into a typed module, so the page cannot drift from the chain:
+The page leads with its own scope rather than burying it: **those events came from 2 distinct wallets**, and the funnel it prints is no longer flat. Measured, not asserted: **5 credit lines opened (one with no deposit), 3 closed, 7 attested payments linked, 0.02148 ETH of credit drawn, 6 Sepolia deposits, 6 repayments, 10 balance attestations.** Rows are generated from chain reads into a typed module, so the page cannot drift from the chain:
 
 ```bash
 npm run activity:regen          # or: cd app && node scripts/gen-chain-activity.mjs

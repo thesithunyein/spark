@@ -7,10 +7,10 @@ that starts from an inflated present is worthless to the person reading it.
 
 **Live and working.** A user pays on Sepolia, two Attestcoin proofs verify the deposit event
 and the wallet balance, and credit opens on Creditcoin. Five credit lines have been opened
-across the deployed `CreditLine` generations and two complete loops have been closed. One of
+across the deployed `CreditLine` generations and three lines have been closed. One of
 those lines skipped the deposit entirely: a proven Sepolia balance sizes it at 20% of the
 attested amount, and the full 0.00398 ETH limit was then drawn from the product rather than
-from a script. That record is public, wallet-free and independently verifiable: 49 events across
+from a script. That record is public, wallet-free and independently verifiable: 54 events across
 two chains, every one linking to Blockscout, at
 [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain). On-chain `creditScore()`
 reads 850. Contract suite is 518 tests (417 of them the submitted suite), 0 failures. The
@@ -24,7 +24,7 @@ attested Chainlink prices. Forty real mainnet wallets reconcile within 10 bps (l
 describe. It was executed end to end on a local chain with real mainnet data and has since
 been **broadcast to CC3** and verified: see `docs/addresses.md`.
 
-**Not started.** Real user acquisition. The on-chain record is unambiguous about this: the 49
+**Not started.** Real user acquisition. The on-chain record is unambiguous about this: the 54
 events come from **2 distinct wallets**, and the funnel it prints reads 1 at "paid a deposit"
 against 2 at every stage after it. Two wallets can prove a loop works; they cannot prove a market
 exists. This is the weakest part of the project and no amount of protocol depth fixes it, which

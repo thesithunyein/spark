@@ -61,6 +61,14 @@ export function AttestcoinProofPanel({
 }: Props) {
   const [elapsed, setElapsed] = useState(0);
   const waiting = phase === "waiting_attestation";
+  // The panel is shared by every flow, and "credit opened" is wrong on the repay flow, where
+  // the same proof settles debt instead of creating a line. The claim kind is already passed
+  // in, so the copy follows it rather than assuming the deposit path.
+  const settling = claim?.kind === "repay";
+  const doneLine = settling ? "credit repaid on Creditcoin" : "credit opened on Creditcoin";
+  const settleLabel = settling ? "Settle" : "Unlock";
+  const settleDone = settling ? "Debt cleared" : "Credit opened";
+  const doneBanner = settling ? "Credit repaid on Creditcoin" : "Credit opened on Creditcoin";
   const statusLine: Record<string, string> = {
     finding_tx: "locating payment on Sepolia",
     waiting_attestation: "waiting for Attestcoin to attest the block",
@@ -68,7 +76,7 @@ export function AttestcoinProofPanel({
     building_proof: "building BlockProver proof",
     proof_ready: "proof ready",
     submitting: "submitting on Creditcoin",
-    done: "credit opened on Creditcoin",
+    done: doneLine,
   };
 
   useEffect(() => {
@@ -94,7 +102,7 @@ export function AttestcoinProofPanel({
         ? "Waiting for Attestcoin"
         : "Queued",
     phase === "done"
-      ? "Credit opened"
+      ? settleDone
       : stageIdx === 2
         ? "Submitting to Creditcoin"
         : "Queued",
@@ -169,7 +177,7 @@ export function AttestcoinProofPanel({
                       : "mt-2 font-mono text-[11px] uppercase tracking-[0.14em] text-white/30"
                   }
                 >
-                  {st.label}
+                  {st.id === "unlock" ? settleLabel : st.label}
                 </p>
                 <p className="mt-1 text-[11px] leading-snug text-muted">{stageSub[i]}</p>
               </div>
@@ -182,7 +190,7 @@ export function AttestcoinProofPanel({
         <div className="mt-4 flex items-center gap-2 border border-[#3DDC97]/40 bg-[#3DDC97]/[0.06] px-3 py-2.5">
           <span className="font-mono text-[12px] text-[#3DDC97]">✓</span>
           <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-[#3DDC97]">
-            Credit opened on Creditcoin
+            {doneBanner}
           </p>
         </div>
       )}

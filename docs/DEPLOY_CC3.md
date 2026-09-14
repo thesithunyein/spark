@@ -209,8 +209,8 @@ Rehearsed on a local chain, which is where these numbers come from:
 
 Read this before broadcasting, because both consequences are visible to anyone who looks.
 
-1. **It starts with an empty record.** The live contract carries the 49-event record across two
-   chains: 5 lines opened (one of them deposit-free), 2 closed, 6 attested payments. A new
+1. **It starts with an empty record.** The live contract carries the 54-event record across two
+   chains: 5 lines opened (one of them deposit-free), 3 closed, 7 attested payments. A new
    contract starts at zero. The record does not
    vanish — it stays on generation 1's address forever — but the address a judge lands on when
    they click through the app stops having it.
