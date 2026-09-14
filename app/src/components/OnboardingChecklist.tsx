@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 import { useAccount, useBalance } from "wagmi";
 import { sepolia } from "wagmi/chains";
 import { creditcoinTestnet } from "@/lib/wagmi";
+import { FaucetHelper } from "@/components/FaucetHelper";
 import clsx from "clsx";
 
 const DISMISS_KEY = "spark.onboarding.dismissed";
@@ -136,6 +137,10 @@ export function OnboardingChecklist({ hasCreditLine }: { hasCreditLine: boolean 
           </li>
         ))}
       </ul>
+
+      {/* The steps above say what is missing. This is the part that actually removes the
+          work, so it appears whenever either gas step is still outstanding. */}
+      {!(hasSepoliaGas && hasCtcGas) && <FaucetHelper />}
     </div>
   );
 }
