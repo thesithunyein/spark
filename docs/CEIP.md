@@ -55,12 +55,24 @@ is first on the list rather than assumed to be easy.
 
 **Built since this document was written.** The voucher registry and the exposure policy now
 exist as code. `GroupCredit.sol` implements the shared line and vouching, with 31 tests, and
-`AttestedStanding.sol` is the portable record that gates membership, with 19 more. The design
+`AttestedStanding.sol` is the portable record that gates membership, with 19 more, and
+`StandingGatedCheckout.sol` is a second consumer of that record with 51 more. The design
 choices are the ones argued above: membership requires at least one Attestcoin-verified payment,
 a vouch is priced off the voucher's own proven volume rather than anyone's promise, and the line
 is hard-capped at the members' aggregate proven history so vouching can amplify evidence but can
 never manufacture it. `GroupCredit` is a shared line only — per-member exposure is the next step
-and is not claimed. Neither contract is deployed, and both are labelled post-deadline in source.
+and is not claimed. `AttestedStanding` and its consumer are deployed to CC3 and exercised end to
+end; `GroupCredit` is not deployed. All are labelled post-deadline in source.
+
+**What the consumer proved, and what it found.** A record nothing reads is an interface, not a
+fact, so a merchant product was built against the registry, applying its own policy and
+snapshotting the Attestcoin evidence reference with each decision. Exercising it surfaced a real
+gap: because `AttestedStanding` derives that reference from the borrower's position transaction
+hashes and `getHistory` exposes only `(count, volume)`, a wallet that linked attested payments
+without ever opening a line gets a record whose reference is zero — proven volume with nothing to
+point at. That is reachable, because `submitAttestMultiple` does not require an open position. The
+consumer therefore refuses such a record instead of snapshotting zeros. Detail in
+[docs/ROADMAP.md](ROADMAP.md).
 
 ## 2. A Telegram Mini App
 

@@ -3,12 +3,13 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Undo2, List, CircleHelp, Settings, X, BadgeCheck, Blocks } from "lucide-react";
+import { LayoutDashboard, ArrowDownToLine, ArrowUpFromLine, ArrowLeftRight, Undo2, List, CircleHelp, Settings, X, BadgeCheck, Blocks, Wallet } from "lucide-react";
 import { Logo } from "./Logo";
 
 const items = [
   { href: "/overview", label: "Overview", icon: LayoutDashboard },
   { href: "/pay", label: "Pay deposit", icon: ArrowDownToLine },
+  { href: "/balance", label: "Balance credit", icon: Wallet },
   { href: "/score", label: "Credit score", icon: BadgeCheck },
   { href: "/withdraw", label: "Withdraw", icon: ArrowUpFromLine },
   { href: "/transfer", label: "Send & Receive", icon: ArrowLeftRight },

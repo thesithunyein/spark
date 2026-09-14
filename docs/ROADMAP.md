@@ -15,9 +15,10 @@ rejects all eight forged-proof scenarios we throw at it, read-only and free to r
 
 **Measured but not deployed.** The mainnet position engine reconstructs a real Aave V3 position
 from the aToken Transfer ledger, anchored at a provably-zero block, and values it through
-attested Chainlink prices. Eight real mainnet wallets reconcile within 0.51 bps. It has been
-executed end to end on a local chain with real mainnet data and read back from the deployed
-contracts, but it has **not** been broadcast to CC3.
+attested Chainlink prices. Forty real mainnet wallets reconcile within 10 bps (largest residual
+4.36 bps, median 1.98 bps), and 7 of the 40 show peer-to-peer movement no Aave event can
+describe. It was executed end to end on a local chain with real mainnet data and has since
+been **broadcast to CC3** and verified: see `docs/addresses.md`.
 
 **Not started.** Real user acquisition. The on-chain record is unambiguous about this: every
 one of the 46 events was produced by a **single wallet**. One wallet can prove a loop works; it
@@ -47,11 +48,13 @@ verifiable artifact instead of a local execution plus a transcript.
 
 ### M2. Position-aware credit limits
 
-**Status: built, not deployed.** `PositionSizedCredit` sizes a limit from proven net worth,
-with an explicit policy, a hard half-of-net-worth cap, and distinct status codes for why a
-limit is zero. In the local end-to-end run it returns **$217,276** against a proven net worth
-of **$1,086,382** at a 20% policy LTV. 23 tests cover it, including the cases where the answer
-must be reported rather than flattened to zero.
+**Status: built, broadcast and unused.** `PositionSizedCredit` sizes a limit from proven net
+worth, with an explicit policy, a hard half-of-net-worth cap, and distinct status codes for why a
+limit is zero. In the local end-to-end run it returns **$217,276** against a proven net worth of
+**$1,086,382** at a 20% policy LTV; read live on CC3 it returns **$217,365.68** against the same
+byte-identical position at a later attested price, which is the design working rather than a
+discrepancy. 23 tests cover it, including the cases where the answer must be reported rather than
+flattened to zero. Deployed post-deadline; nothing has drawn against it.
 
 **What is still missing:** no enforcement path. Nothing draws against the limit, so it is a
 policy output rather than a funded line, and there is no liquidation logic because there is
@@ -104,8 +107,8 @@ from real history would be wasted.
 **Built after the deadline:** `GroupCredit.sol` implements the multiplayer half of this — a
 shared line held by a group, sized from the members' aggregate Attestcoin-verified payment
 history, with vouching priced off the voucher's own proven record. `AttestedStanding.sol` is
-the portable record it gates membership on. 50 tests between them. Neither is deployed, and
-neither is part of the submission.
+the portable record it gates membership on. 69 tests between them. `AttestedStanding` is
+deployed; `GroupCredit` is not, and neither is part of the submission.
 
 ### M5. Repeat: attested history that compounds across activity rounds
 
@@ -118,7 +121,24 @@ paperwork, which is the actual user-visible promise of the product.
 normalized record, readable by any contract on Creditcoin, carrying the Attestcoin proof hash it
 was derived from so a consumer can verify the claim rather than trust the arithmetic. Refreshing
 is permissionless and writing without verified evidence is impossible, so the registry is a list
-of proofs rather than a list of claims. Not deployed, and not part of the submission.
+of proofs rather than a list of claims.
+
+**Portability demonstrated, not just published.** A record that nothing reads is an interface,
+not a fact, so `StandingGatedCheckout.sol` was built as the second consumer: a merchant that
+defers payment for an item, applying its OWN policy to a record it did not create, and
+snapshotting the Attestcoin evidence reference alongside the decision so a later refresh cannot
+rewrite what it relied on. Both are deployed to CC3 and were exercised end to end — record
+issued, order deferred at 0.0064 ETH (20% of the borrower's 0.032 ETH proven volume), then
+settled.
+
+Building the consumer surfaced a genuine gap rather than confirming the design. `AttestedStanding`
+derives its evidence reference from the borrower's POSITION transaction hashes, and
+`CreditLine.getHistory` exposes only `(count, volume)`, so a wallet that linked attested payments
+WITHOUT ever opening a line gets a record whose `evidenceRef` is zero — proven volume with nothing
+to point at. That is reachable, because `submitAttestMultiple` does not require an open position.
+Rather than snapshot zeros, the consumer refuses such a record with `NoEvidence`, which is
+asserted by test. Fixing it at the source would mean adding a hash to `getHistory`'s tuple, and
+that ABI is what the deployed generation and the frozen app already consume.
 
 ## Who pays, and why
 

@@ -137,7 +137,9 @@ Why this is the right first customer, and not a compromise:
   articulable pain, not an abstract lack of access.
 - **It is measurable.** `PositionValuer` reconstructs the position from the token
   `Transfer` ledger and totals it against an attested price. On a sample of real wallets
-  the reconstruction reconciled within **0.51 bps across 8/8**, where the obvious method —
+  the reconstruction reconciled within **10 bps across 38 of 38** measurable wallets, with a
+  largest residual of **4.36 bps** and **7 of 40** showing peer-to-peer movement no Aave event
+  can describe, where the obvious method —
   summing Aave's own protocol events — was wrong by up to **66.8% on a single position**,
   because aTokens are transferable and a wallet-to-wallet move emits no Aave event. Method
   and measurements: `docs/PROOF_OF_NET_POSITION.md`.

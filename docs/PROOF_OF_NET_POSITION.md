@@ -65,19 +65,31 @@ and peer-to-peer moves — and never protocol-specific events.
 
 ### 2. Interest cannot come from events at all
 
-aToken balances rebase continuously. Across 8 real wallets with positions from 35 to
-2,163 aWETH (`docs/evidence/position-scale.json`):
+aToken balances rebase continuously. Across 40 real wallets with positions from 2 wei to 13,005 aWETH
+(`docs/evidence/position-scale.json`):
 
 | | |
 |---|---|
-| ledger matched **exactly** | 0/8 |
-| ledger within 10 bps | **8/8** |
-| largest residual | **0.51 bps** |
-| had peer-to-peer movement | 1/8 (**288.49 aWETH**) |
+| wallets reconstructed | **40** |
+| ledger matched **exactly** | 1/40 |
+| ledger within 10 bps | **38 of 38** measurable (2 excluded as sub-dust) |
+| largest residual | **4.36 bps** |
+| median residual | 1.98 bps |
+| had peer-to-peer movement | 7/40 (**288 to 1,715 aWETH**) |
 
 So the ledger does not reproduce a live balance to the wei — it understates it by a
 sub-basis-point residual that is interest. That is not a bug to hide, it is a quantity
-to bound. `MainnetPositionRegistry` therefore refuses to advance a position except
+to bound.
+
+**The dust finding, which only the larger sample produced.** One of the 40 wallets holds
+2 wei of aEthWETH and its ledger nets to 2 wei, so a one-wei difference printed as
+-5000 bps and briefly *became* the largest-residual headline. A percentage against a
+two-wei denominator is an artifact rather than a measurement, so `position-scale.mjs` now
+applies a dust floor of 1e14 wei and counts excluded wallets explicitly instead of dropping
+them. The raw `balance`, `ledgerNet` and `residual` fields in the evidence file are
+unchanged, so the underlying measurement is intact; only the derived percentage statistics
+were recomputed, and the file records that recomputation. Scaling the sample from eight to
+forty is what surfaced this, which is the argument for a corpus over an anecdote. `MainnetPositionRegistry` therefore refuses to advance a position except
 against an **attested state balance**, records the gap as an explicit
 `interestResidual`, and **reverts** if that gap exceeds a configured cap, because a
 large residual means the ledger is missing history rather than that interest is huge.
@@ -169,11 +181,13 @@ archive access.
   because this workspace contains no funded deployer key. That step is one command away
   and is the deployer's to run; until it runs, treat the on-chain proof as
   locally-executed rather than testnet-live.
-- **The scale sample is aETHWETH only**, 8 wallets, and it selects recent depositors.
+- **The scale sample is aETHWETH only**, 40 wallets, and it selects recent depositors.
   Other reserves, other protocols, and long-lived positions are not covered.
-- **6 candidates were skipped for zero balance and several for having no provable-zero
-  anchor** within the 300,000-block search budget. Skipped is reported, not dropped,
-  but it is a coverage limit rather than a clean sample.
+- **64 candidates were skipped for having no provable-zero anchor and 23 for a zero
+  balance** within the 300,000-block search budget. Skipped is reported, not dropped, but
+  it is a coverage limit rather than a clean sample: the 40 reconstructed wallets are the
+  slice of the candidate pool that happens to hold a recent zero balance, which correlates
+  with recent depositors rather than sampling Aave depositors at random.
 - **`MORPHO_WITHDRAW_COLLATERAL` is unverified** — zero logs in the window.
 - **The exponent guard in `PositionValuer` is defensive and currently unreachable**,
   given the registries cap decimals at 18. It is not covered by a test because no
@@ -231,7 +245,7 @@ cd contracts && forge test                    # 417 tests, 0 failures
 cd ../app
 node scripts/protocol-topics.mjs              # topic parity + negative controls
 WALLET=0x76f30e3f75437fb862b8d2c4d80a671bceba5b1a node scripts/aave-drift-window.mjs
-node scripts/position-scale.mjs               # 8 wallets, reconciliation stats
+TARGET=40 DISCOVERY_CHUNKS=8 node scripts/position-scale.mjs  # 40 wallets, reconciliation stats
 ```
 
 And the end-to-end execution transcript, with the independent on-chain reads and the

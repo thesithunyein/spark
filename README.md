@@ -34,11 +34,12 @@
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
 
-**1. Contract suite: 467 tests, 0 failures**
+**1. Contract suite: 518 tests, 0 failures**
 
-**417 of these are the submitted suite.** The other 50 cover `AttestedStanding.sol` and
-`GroupCredit.sol`, written after the deadline and marked `*` below. The submission is frozen;
-these are additions to the repository, not revisions to what was judged.
+**417 of these are the submitted suite.** The other 101 cover `AttestedStanding.sol`,
+`StandingGatedCheckout.sol` and `GroupCredit.sol`, written after the deadline and marked `*`
+below. The submission is frozen; these are additions to the repository, not revisions to what
+was judged.
 
 ```bash
 npm run test:contracts          # or: cd contracts && forge test
@@ -83,7 +84,7 @@ This exists because the product's own history was invisible: `/activity` is scop
 cd app && node scripts/position-scale.mjs
 ```
 
-Across 8 real mainnet wallets holding 35 to 2,163 aWETH, a token-ledger reconstruction lands within **0.51 bps** of the live balance in **8/8** cases, and **1/8** moved **288 aWETH peer-to-peer**, movement no Aave event describes, so no event-only method could have been correct. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md). Same evidence rendered live, regenerated from these artifacts so the page cannot drift from the data: [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus).
+Across **40** real mainnet wallets holding 2 wei to 13,005 aWETH, a token-ledger reconstruction lands within **10 bps** of the live balance in **38 of 38** measurable cases (with a largest residual of **4.36 bps** and a median of 1.98 bps), and **7/40** moved between wallets peer-to-peer, up to **1,715 aWETH** — movement no Aave event describes, so no event-only method could have been correct. Two sub-dust wallets are excluded because a percentage against a near-zero denominator is an artifact. The submitted deck reports the earlier 8-wallet sample; this is the expanded post-deadline corpus. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md). Same evidence rendered live, regenerated from these artifacts so the page cannot drift from the data: [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus).
 
 **6. Prove a real mainnet position and size credit from it, 10 transactions (one command)**
 
@@ -139,7 +140,7 @@ Spark makes **15 distinct Attestcoin Protocol surfaces** load-bearing across 3 a
 
 Stated precisely, because the distinction is checkable on chain: the balance claim is verified by the second proof and recorded as `CreditOpened.attestedBalance` and the Sepolia `BalanceAttested` event. The linked-history events (`AttestedPaymentLinked`) observed on chain carry **kind 1 and kind 2**; the `BalanceAttested` event type is present as the solvency input.
 
-Full surface enumeration: [docs/ATTESTCOIN_SURFACE.md](docs/ATTESTCOIN_SURFACE.md). Where the project goes next, and what is honestly not done yet: [docs/ROADMAP.md](docs/ROADMAP.md).
+Full surface enumeration: [docs/ATTESTCOIN_SURFACE.md](docs/ATTESTCOIN_SURFACE.md). Where the project goes next, and what is honestly not done yet: [docs/ROADMAP.md](docs/ROADMAP.md). What the economics actually look like, with every fact separated from every labelled assumption: [docs/UNIT_ECONOMICS.md](docs/UNIT_ECONOMICS.md).
 
 ## The Problem
 
@@ -218,6 +219,7 @@ spark/
 │   ├── THREAT_MODEL.md               # What attacks are prevented, what is still open
 │   ├── SCORING.md                    # Credit score formula, LTV bonus, constants rationale
 │   ├── PROOF_OF_NET_POSITION.md      # Net-position primitive: design + measured evidence
+│   ├── UNIT_ECONOMICS.md             # Interest, LTV and loss given default: facts vs assumptions
 │   ├── evidence/                     # On-chain proof artifacts
 │   ├── ROADMAP.md                    # Milestones, what is built vs deployed vs planned
 │   ├── DEPLOY_CC3.md                 # Deploying the position stack and generation 2 to CC3
@@ -366,14 +368,19 @@ spark/
         └── creditline-ctor-args.txt
 ```
 
-\* **Written after the submission deadline, and not deployed.** `AttestedStanding.sol` and
-`GroupCredit.sol` are the first two items of [docs/CEIP.md](docs/CEIP.md) built as real code
-rather than plan text. They are labelled in-source and here because the BUIDL CTC 2026 Fall
-submission closed on 2026-09-13 23:59 ET, and work added afterwards should say so. Neither
-contract is deployed and neither is reachable from the live app. They are not part of the
-submitted project, and nothing in the submission has been edited to include them.
+\* **Written after the submission deadline.** `AttestedStanding.sol`, `StandingGatedCheckout.sol`
+and `GroupCredit.sol` are items of [docs/CEIP.md](docs/CEIP.md) built as real code rather than
+plan text. They are labelled in-source and here because the BUIDL CTC 2026 Fall submission
+closed on 2026-09-13 23:59 ET, and work added afterwards should say so. None is reachable from
+the live app, and nothing in the submission has been edited to include them.
 
-That is also why the suite reads **467** here and **417** in `docs/deck.md` and
+`AttestedStanding.sol` and `StandingGatedCheckout.sol` are deployed to CC3 and exercised end to
+end: a record was issued from generation-1 Attestcoin evidence, a merchant applied its own
+policy to it, deferred an order, and was settled. The addresses and the full read-back are in
+[docs/addresses.md](docs/addresses.md), and `/bonus` reads the pair live. `GroupCredit.sol` is
+not deployed.
+
+That is also why the suite reads **518** here and **417** in `docs/deck.md` and
 `docs/DORAHACKS_UPDATE.md`: the deck and the submission text describe the frozen entry, and this
 README describes the repository as it stands.
 
@@ -492,7 +499,8 @@ Formula lives in `contracts/src/CreditLine.sol` — readable via `creditScore()`
 | Phase | Focus |
 |---|---|
 | **Now** | Live testnet: dual Attestcoin proofs, score, history LTV, **strict receipt log decoding with amount binding**, full borrow/repay loop |
-| **Built, not deployed** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Neither is broadcast — [docs/ROADMAP.md](docs/ROADMAP.md) |
+| **Broadcast, unused** | Credit that does not require a deposit: sized from a proven Sepolia balance (`openCreditFromBalance`) or from a proven Ethereum mainnet net worth (`PositionSizedCredit`). Both are live on CC3 and verified, and nothing has drawn against them — the live app still runs the deposit-backed flow the demo describes. [docs/ROADMAP.md](docs/ROADMAP.md) |
+| **Portable standing** | A verified record that a *different* product reads and gates on, with the Attestcoin evidence reference carried into the decision. Deployed and exercised end to end — [docs/addresses.md](docs/addresses.md) |
 | **Next** | Faster verify UX (parallel attestation, caching) |
 | **Later** | Mainnet, audit, lending pool, single-network UX |
 

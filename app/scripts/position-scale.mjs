@@ -41,6 +41,12 @@ const SPAN = CHUNK - 1;
 const MAX_LAG = Number(process.env.MAX_LAG || 300_000);
 const TARGET = Number(process.env.TARGET || 8);
 const MIN_MINT = 10n ** 16n; // 0.01 aWETH: skip dust-spam recipients
+// A percentage is only meaningful against a non-trivial denominator. The first 8-wallet run
+// never hit this; the 40-wallet run did, on a wallet holding 2 wei, where a one-wei ledger
+// error printed as a 5000 bps "residual" and became the headline. That is a denominator
+// artifact, not a reconstruction failure, so sub-dust wallets are excluded from the bps
+// statistics and counted separately rather than silently dropped.
+const DUST_FLOOR = 10n ** 14n; // 0.0001 aEthWETH
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(HERE, "../../docs/evidence/position-scale.json");
 
@@ -142,20 +148,34 @@ async function main() {
   console.log("latest  :", latest);
   console.log("maxLag  :", MAX_LAG.toLocaleString(), "| target:", TARGET, "\n");
 
-  console.log("discovering candidates from recent aETHWETH mints...");
-  const mints = await getLogs(
-    p,
-    { address: AETHWETH, topics: [TRANSFER_TOPIC, padAddr(ZERO)], fromBlock: latest - SPAN, toBlock: latest },
-    "mint scan",
+  // A single 10k-block window yields only a handful of mint recipients, which caps the
+  // sample no matter what TARGET says: raising TARGET alone silently changes nothing.
+  // Scanning DISCOVERY_CHUNKS windows backwards makes a larger sample reachable.
+  // Default 1 preserves the original single-window behaviour exactly.
+  const DISCOVERY_CHUNKS = Number(process.env.DISCOVERY_CHUNKS || 1);
+  console.log(
+    `discovering candidates from aETHWETH mints over ${DISCOVERY_CHUNKS} window(s) of ${CHUNK.toLocaleString()} blocks...`,
   );
   const sums = new Map();
-  for (const l of mints) {
-    const e = ERC20_IFACE.parseLog({ topics: l.topics, data: l.data });
-    const to = e.args.to.toLowerCase();
-    sums.set(to, (sums.get(to) || 0n) + BigInt(e.args.value));
+  let mintCount = 0;
+  for (let c = 0; c < DISCOVERY_CHUNKS; c++) {
+    const to = latest - c * CHUNK;
+    const from = to - SPAN;
+    const mints = await getLogs(
+      p,
+      { address: AETHWETH, topics: [TRANSFER_TOPIC, padAddr(ZERO)], fromBlock: from, toBlock: to },
+      `mint scan ${c + 1}/${DISCOVERY_CHUNKS}`,
+    );
+    mintCount += mints.length;
+    for (const l of mints) {
+      const e = ERC20_IFACE.parseLog({ topics: l.topics, data: l.data });
+      const a = e.args.to.toLowerCase();
+      sums.set(a, (sums.get(a) || 0n) + BigInt(e.args.value));
+    }
+    if (c + 1 < DISCOVERY_CHUNKS) await sleep(100);
   }
   const cands = [...sums.entries()].filter(([, v]) => v >= MIN_MINT).sort((a, b) => Number(b[1] - a[1]));
-  console.log(`  mints ${mints.length}, recipients >= 0.01 aWETH: ${cands.length}\n`);
+  console.log(`  mints ${mintCount}, distinct recipients >= 0.01 aWETH: ${cands.length}\n`);
 
   const results = [];
   let skippedNoAnchor = 0;
@@ -180,7 +200,8 @@ async function main() {
       const p2p = l.movedIn - l.movedOut;
       const exact = l.net === bal;
       // residual as basis points of the ledger, to 2dp. This is the interest term.
-      const bps = l.net === 0n ? null : Number((residual * 1_000_000n) / l.net) / 100;
+      const bps =
+        l.net === 0n || l.net < DUST_FLOOR ? null : Number((residual * 1_000_000n) / l.net) / 100;
 
       results.push({
         wallet,
@@ -210,6 +231,7 @@ async function main() {
   const exact = results.filter((r) => r.ledgerMatchesExactly).length;
   const withP2p = results.filter((r) => BigInt(r.p2pMoved) !== 0n).length;
   const bpsValues = results.map((r) => r.residualBps).filter((b) => b !== null);
+  const dustWallets = results.filter((r) => r.residualBps === null).length;
   const maxBps = bpsValues.length ? Math.max(...bpsValues.map(Math.abs)) : null;
   const within10bps = bpsValues.filter((b) => Math.abs(b) <= 10).length;
 
@@ -219,6 +241,7 @@ async function main() {
   console.log(`  ledger within 10 bps         : ${within10bps}/${bpsValues.length}`);
   console.log(`  largest residual             : ${maxBps === null ? "n/a" : maxBps.toFixed(2)} bps`);
   console.log(`  had wallet-to-wallet movement: ${withP2p}/${tested}`);
+  console.log(`  excluded as sub-dust          : ${dustWallets}`);
   console.log(`  skipped (no zero anchor)     : ${skippedNoAnchor}`);
   console.log(`  skipped (zero balance)       : ${skippedZeroBalance}`);
   console.log(`  rpc calls used               : ${rpcCalls}`);
@@ -251,8 +274,10 @@ async function main() {
           ledgerWithin10Bps: within10bps,
           largestResidualBps: maxBps,
           withPeerToPeerMovement: withP2p,
+          excludedAsSubDust: dustWallets,
+          dustFloorWei: DUST_FLOOR.toString(),
           finding:
-            "The ledger understates a live position by a small positive residual on every wallet measured, because interest rebases into the aToken between events. Exact equality is therefore not the acceptance criterion; the residual magnitude is, and it is what the on-chain interestResidual bound encodes.",
+            "The ledger understates a live position by a small positive residual on nearly every wallet measured, because interest rebases into the aToken between events. Exact equality is therefore not the acceptance criterion; the residual magnitude is, and it is what the on-chain interestResidual bound encodes. Wallets whose ledger net falls below DUST_FLOOR are excluded from the bps statistics and counted in excludedAsSubDust, because a percentage against a near-zero denominator is an artifact rather than a measurement.",
         },
         wallets: results,
       },

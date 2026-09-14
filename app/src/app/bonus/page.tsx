@@ -2,8 +2,9 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { EVIDENCE } from "@/lib/mainnetEvidence";
 import { config } from "@/lib/config";
-import { GEN1_CREDIT_LINE, GEN2 } from "@/lib/gen2";
+import { GEN1_CREDIT_LINE, GEN2, PORTABILITY } from "@/lib/gen2";
 import LivePositionRead from "@/components/LivePositionRead";
+import LiveStandingRead from "@/components/LiveStandingRead";
 
 /**
  * Mainnet Position Proof: real measured evidence.
@@ -57,7 +58,7 @@ const STATUS = [
   {
     label: "Engine code, executed locally",
     tone: "border-sky-500/40 bg-sky-500/[0.08] text-sky-300",
-    note: "Thirteen Solidity contracts, 467 Foundry tests, run end to end on a local chain using real mainnet data.",
+    note: "Thirteen Solidity contracts, 518 Foundry tests, run end to end on a local chain using real mainnet data.",
   },
   {
     label: "Broadcast to Creditcoin CC3 testnet",
@@ -234,7 +235,7 @@ export default function MainnetPositionPage() {
 
           <div className="mt-4 rounded-xl border border-amber-500/30 bg-amber-500/[0.07] px-5 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-amber-300">
-              Two honest corrections, both found by measuring
+              Three honest corrections, all found by measuring
             </p>
             <p className="mt-2 text-[13px] font-light leading-relaxed text-white/70">
               Exact equality was our first claim and it was wrong: it came from a single wallet with a
@@ -245,6 +246,15 @@ export default function MainnetPositionPage() {
               {scale.summary.withPeerToPeerMovement} of {scale.summary.tested} walked{" "}
               <span className="font-mono">{scale.wallets.find((w) => w.hasP2p)?.p2pDisplay.replace("-", "")}</span>{" "}
               between wallets, which no event-only method could ever reconstruct. That row is highlighted above.
+            </p>
+            <p className="mt-3 text-[13px] font-light leading-relaxed text-white/70">
+              The third correction came only from scaling this measurement from 8 wallets to 40. One of the
+              40 holds 2 wei of aEthWETH, so a one-wei ledger difference printed as -5000 bps and briefly
+              became the largest-residual headline on this page. A percentage against a two-wei denominator
+              is an artifact rather than a measurement, so the metric now applies a dust floor and counts
+              excluded wallets explicitly instead of dropping them. The raw balances and residuals are
+              untouched; only the derived percentages were recomputed. Eight wallets never hit this case,
+              which is the argument for a corpus over a sample.
             </p>
           </div>
 
@@ -430,8 +440,48 @@ export default function MainnetPositionPage() {
             </p>
           </div>
 
-          {/* 7. Limits */}
-          <SectionTitle n="07">What is not true yet</SectionTitle>
+          {/* 7. Portable standing, consumed by a different product */}
+          <SectionTitle n="07">A verified record, consumed by someone else</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            The standing registry publishes a proof-anchored record any protocol can read. Until this
+            deployment, nothing read it, which made portability an interface rather than a fact. So a
+            second, independent product was deployed against it: a merchant that defers payment for an
+            item, using its own policy, on a record it did not create. Spark cannot change that policy,
+            and the merchant cannot change what the record says.
+          </p>
+
+          <LiveStandingRead />
+
+          <div className="mt-4 overflow-hidden rounded-xl border border-white/[0.12]">
+            <p className="border-b border-white/[0.12] bg-white/[0.04] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+              The portability pair, Creditcoin CC3 testnet
+            </p>
+            <ul>
+              {[
+                { label: "AttestedStanding (registry, anchored to the live generation)", address: PORTABILITY.registry },
+                { label: "StandingGatedCheckout (a merchant that is not Spark)", address: PORTABILITY.checkout },
+                { label: "CreditLine generation 1 (where the record's evidence lives)", address: PORTABILITY.anchoredTo },
+              ].map((r) => (
+                <li
+                  key={r.label}
+                  className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-2.5 last:border-0"
+                >
+                  <span className="text-[13px] font-light text-white/80">{r.label}</span>
+                  <a
+                    href={`${config.explorerCreditcoin}/address/${r.address}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[11px] text-white/50 transition-colors duration-[250ms] hover:text-accent2"
+                  >
+                    {r.address.slice(0, 10)}...{r.address.slice(-6)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* 8. Limits */}
+          <SectionTitle n="08">What is not true yet</SectionTitle>
           <ul className="mt-4 space-y-3">
             {[
               "The generation-2 stack is broadcast and unused. Its limit is real and read live, but no borrower has opened a line through the deposit-free path, so it is a verified engine rather than a working market.",
@@ -439,6 +489,7 @@ export default function MainnetPositionPage() {
               "The sample is aEthWETH only and biased toward recent depositors. Morpho WithdrawCollateral has no observed logs in the window, so that signature is unconfirmed.",
               "The attestor is trusted to submit already verified values rather than the contract calling the precompile directly. That trust boundary is documented in the threat model.",
               "The credit limit has no on-chain enforcement path yet. Nothing draws against it, so it is a policy output rather than a funded line.",
+              "The portability pair is exercised by one account acting as both borrower and merchant. It shows the mechanism is consumable by a different contract under a different policy; it does not show two parties using it.",
             ].map((t) => (
               <li key={t} className="flex items-start gap-3">
                 <span className="mt-[7px] h-1 w-1 shrink-0 rounded-full bg-amber-400" />
@@ -457,11 +508,12 @@ export default function MainnetPositionPage() {
           <div className="mt-8 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">Reproduce</p>
             <pre className="mt-3 overflow-x-auto font-mono text-[11px] leading-relaxed text-white/70">
-{`cd app && node scripts/position-scale.mjs      # 8-wallet reconciliation
+{`cd app && node scripts/position-scale.mjs      # 40-wallet reconciliation
 cd app && node scripts/protocol-topics.mjs     # topic parity + controls
 cd app && node scripts/gen-evidence-module.mjs # regenerate this page's data
-cd contracts && forge test                     # 467 tests
-cd contracts && bash script/deploy-all-cc3.sh  # the CC3 broadcast (dry run by default)`}
+cd contracts && forge test                     # 518 tests
+cd contracts && bash script/deploy-all-cc3.sh  # the CC3 broadcast (dry run by default)
+cd contracts && bash script/standing-consumer-cc3.sh  # the portability pair (dry run by default)`}
             </pre>
           </div>
 

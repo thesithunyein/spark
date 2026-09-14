@@ -44,6 +44,51 @@ mainnet ETH/USD answer (2509.80, block 25973626).
 The live site still points at generation 1 (`NEXT_PUBLIC_CREDITLINE_ADDRESS`), which is
 what the frozen submission describes.
 
+## Portability pair (deployed after the submission deadline)
+
+The same post-deadline status. These two exist because `AttestedStanding` published a record
+and an `isEligible` predicate that nothing consumed, which made portability an interface claim
+rather than a demonstrated fact. `StandingGatedCheckout` is the second consumer: a merchant
+that is not Spark, applying its own policy to a record it did not create.
+
+| Contract | Network | Address | Verified |
+|---|---|---|---|
+| AttestedStanding (registry over generation 1) | Creditcoin testnet | `0x88ea1190e5dbC1e8Cb0406Bc868B4db4ad57FbEa` | Yes (Blockscout) |
+| StandingGatedCheckout (the second consumer) | Creditcoin testnet | `0x199A3E0e797A01C5909fE52a8C0c66ed83f2cA11` | Yes (Blockscout) |
+
+Deployed with `script/standing-consumer-cc3.sh`, which also runs the demonstration: refresh,
+setPolicy, listItem, checkout, settle. Two notes on it that are worth keeping:
+
+**The registry is anchored to generation 1 on purpose.** The registry in the batch above points
+at the generation-2 CreditLine, which is clean (`getHistory(deployer)` returns `(0, 0)`), so
+`refresh` correctly reverts with `NotAttested` there. Generation 1 holds real evidence today and
+is the deployment the demo video and the frozen entry describe, so anchoring here needs no new
+Sepolia deposit and is closer to what was judged. `ICreditLineView` exists so a registry can
+point at any generation.
+
+**Every `cast send` in that script carries an explicit gas limit.** CC3's `eth_estimateGas`
+fails on calls that write storage, returning an empty revert (`revert, data: "0x"`), while the
+identical call succeeds through `eth_call`. It is the same block-header shape that stops
+`forge script --broadcast` (CC3 omits `mixHash`), surfacing in the estimation path instead.
+
+Read back from the chain after the run, not from intent:
+
+| Fact | Value |
+|---|---|
+| Records in the registry | 1 |
+| Standing score / payments | 850 / 6 |
+| Proven volume | 0.032 ETH |
+| Attested balance | 0.346 ETH |
+| Evidence reference | `0x38d82855a67a8a2051378833eb1d6aee62306d4c696392c5539aedf49ba271e1` |
+| Merchant policy | min score 650, min 3 payments, 30-day freshness window, 30-day term, 0.05 ETH ceiling, 20% advance |
+| Item price / deferred | 0.01 ETH / 0.0064 ETH |
+| Order state | settled, outstanding 0, not overdue |
+
+The evidence reference is an actual transaction hash, so the Attestcoin proof behind the record
+is checkable at
+`https://creditcoin-testnet.blockscout.com/tx/0x38d82855a67a8a2051378833eb1d6aee62306d4c696392c5539aedf49ba271e1`.
+`/bonus` reads the same pair live, in the browser, with no wallet.
+
 ## Legacy (Aug 13 dual-proof — finish open repay via Repay page)
 
 | Contract | Network | Address |
