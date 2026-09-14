@@ -508,7 +508,8 @@ export default function MainnetPositionPage() {
           <div className="mt-8 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
             <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">Reproduce</p>
             <pre className="mt-3 overflow-x-auto font-mono text-[11px] leading-relaxed text-white/70">
-{`cd app && node scripts/position-scale.mjs      # 40-wallet reconciliation
+{`cd app && TARGET=40 DISCOVERY_CHUNKS=8 node scripts/position-scale.mjs   # the 40-wallet corpus
+#   the bare command defaults to TARGET=8 DISCOVERY_CHUNKS=1 and reconstructs 8 wallets, not 40
 cd app && node scripts/protocol-topics.mjs     # topic parity + controls
 cd app && node scripts/gen-evidence-module.mjs # regenerate this page's data
 cd contracts && forge test                     # 518 tests

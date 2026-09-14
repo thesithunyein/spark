@@ -153,6 +153,17 @@ async function main() {
   // Scanning DISCOVERY_CHUNKS windows backwards makes a larger sample reachable.
   // Default 1 preserves the original single-window behaviour exactly.
   const DISCOVERY_CHUNKS = Number(process.env.DISCOVERY_CHUNKS || 1);
+  // The committed 40-wallet evidence needs TARGET set explicitly, and the default of 8 is small
+  // enough that a reader comparing this output against that evidence would see a different n with
+  // no explanation. Print the parameters that matter and the command the evidence came from.
+  if (TARGET <= 8) {
+    console.warn(
+      `  note: target is ${TARGET}, which is the default and NOT the published sample size.\n` +
+        "  The committed 40-wallet evidence is:\n" +
+        "      TARGET=40 DISCOVERY_CHUNKS=8 node scripts/position-scale.mjs\n" +
+        "  Roughly 1,600 archive RPC calls and several minutes.\n",
+    );
+  }
   console.log(
     `discovering candidates from aETHWETH mints over ${DISCOVERY_CHUNKS} window(s) of ${CHUNK.toLocaleString()} blocks...`,
   );
@@ -260,7 +271,18 @@ async function main() {
         capturedAt: new Date().toISOString(),
         rpc: RPC,
         asset: { aToken: AETHWETH, symbol: "aEthWETH" },
-        params: { latestBlock: latest, maxLag: MAX_LAG, target: TARGET, minMintWei: MIN_MINT.toString(), chunk: CHUNK },
+        params: {
+          latestBlock: latest,
+          maxLag: MAX_LAG,
+          target: TARGET,
+          // Recorded because it was part of the run that produced the 40-wallet evidence, so a
+          // future run can be shown to match it rather than assumed to. `target` is the variable
+          // that actually caps the sample: at DISCOVERY_CHUNKS=1 a single window still offered 181
+          // candidates, so discovery is headroom, not the limit.
+          discoveryChunks: DISCOVERY_CHUNKS,
+          minMintWei: MIN_MINT.toString(),
+          chunk: CHUNK,
+        },
         method: {
           anchor: "most recent block within maxLag where balanceOf(wallet) == 0, via archive eth_call",
           ledger: "sum(Transfer to wallet) - sum(Transfer from wallet) on the aToken, from anchor to latest",

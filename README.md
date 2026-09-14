@@ -87,8 +87,17 @@ This exists because the product's own history was invisible: `/activity` is scop
 **5. Reconstruction is measured, not asserted (read-only, zero cost)**
 
 ```bash
-cd app && node scripts/position-scale.mjs
+cd app && TARGET=40 DISCOVERY_CHUNKS=8 node scripts/position-scale.mjs
 ```
+
+**Set `TARGET`. The bare command reproduces a different number.** The script defaults to
+`TARGET=8`, so running it with no arguments reconstructs **8** wallets and reports `7/7`, not the
+40-wallet corpus above. `DISCOVERY_CHUNKS` is what the committed run used alongside it, and the
+script now prints both its parameters and a warning when the combination cannot reach the
+requested sample. This is not a fast command: the committed run spent **1,613 archive RPC
+calls** and several minutes, and the public endpoint throttles under repetition. The exact output
+is committed at [docs/evidence/position-scale.json](docs/evidence/position-scale.json), so the
+numbers can be checked against a recorded run instead of repeating the wait.
 
 Across **40** real mainnet wallets holding 2 wei to 13,005 aWETH, a token-ledger reconstruction lands within **10 bps** of the live balance in **38 of 38** measurable cases (with a largest residual of **4.36 bps** and a median of 1.98 bps), and **7/40** moved between wallets peer-to-peer, up to **1,715 aWETH** — movement no Aave event describes, so no event-only method could have been correct. Two sub-dust wallets are excluded because a percentage against a near-zero denominator is an artifact. The submitted deck reports the earlier 8-wallet sample; this is the expanded post-deadline corpus. Design and limits: [docs/PROOF_OF_NET_POSITION.md](docs/PROOF_OF_NET_POSITION.md). Same evidence rendered live, regenerated from these artifacts so the page cannot drift from the data: [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus).
 
