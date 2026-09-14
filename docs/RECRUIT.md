@@ -1,11 +1,11 @@
 # Recruiting real wallets
 
 > **A working document, not a submission artifact.** It exists because the single weakest
-> number on this project is that one wallet produced every on-chain event, and no amount of
+> number on this project is how few wallets have produced its on-chain events, and no amount of
 > code changes that. This is the part a solo builder cannot do from a repository.
 
 **The goal is ten to thirty people who run the loop with their own wallets.** Ten real
-participants moves the measured funnel from one wallet to eleven, which is a genuine result.
+participants takes the measured funnel from two wallets to twelve, which is a genuine result.
 Inflating that number with wallets we control would be worse than leaving it at one, because
 the addresses are public and a reviewer can count them.
 

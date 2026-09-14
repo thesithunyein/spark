@@ -162,7 +162,7 @@ way.
 | Every on-chain event, publicly, no wallet | <https://spark.sithunyein.com/onchain> |
 | The deployed model sizes from the deposit | `contracts/src/CreditLine.sol`; README, credit-sizing section |
 | The position stack uses one attestor, not direct precompile calls | header comment of `MainnetPositionRegistry.sol` |
-| 417 tests pass | `cd contracts && forge test` |
+| 518 tests pass (417 of them the submitted suite) | `cd contracts && forge test` |
 
 The last four rows are the uncomfortable ones. They are included because a reviewer will
 find them anyway, and a claim you can check is worth more than one you cannot.

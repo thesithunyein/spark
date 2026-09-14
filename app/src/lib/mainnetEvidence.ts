@@ -35,6 +35,8 @@ export const EVIDENCE = {
       "ledgerMatchesExactly": 1,
       "ledgerWithin10Bps": 38,
       "largestResidualBps": 4.36,
+      "medianResidualBps": 2.17,
+      "medianConvention": "interpolated: the mean of the two middle values of the absolute residuals over the measurable wallets, excluding sub-dust. Back-filled into this record from the per-wallet residualBps values below, because the field was not written at capture time; the residuals themselves are untouched.",
       "withPeerToPeerMovement": 7,
       "finding": "The ledger understates a live position by a small positive residual on every wallet measured, because interest rebases into the aToken between events. Exact equality is therefore not the acceptance criterion; the residual magnitude is, and it is what the on-chain interestResidual bound encodes.",
       "excludedAsSubDust": 2,

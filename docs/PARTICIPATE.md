@@ -1,8 +1,8 @@
 # Running the Spark loop yourself
 
-Spark's on-chain record was produced by **one wallet**. That is enough to prove the loop
-works and nowhere near enough to prove anyone wants it, so this document exists to make
-running it yourself as cheap as possible.
+Spark's on-chain record was produced by **two wallets**, one of which is mine. That is enough
+to prove the loop works and nowhere near enough to prove anyone wants it, so this document
+exists to make running it yourself as cheap as possible.
 
 Read the honest part first, because it decides whether this is worth your twenty minutes.
 
@@ -59,8 +59,9 @@ your deposit is not lost: the line stays open until you close it.
 wallet addresses. Ten addresses from one person is one user wearing ten hats, and the whole
 point of publishing that record is that it is checkable.
 
-An honest single wallet is worth more to this project than ten faked ones, because the
-single wallet is true and it is already counted.
+An honest second wallet is worth more to this project than ten faked ones, because a second
+real person is true and is already counted. The record currently reads two distinct wallets,
+and one of them is mine.
 
 ## A message you can send
 

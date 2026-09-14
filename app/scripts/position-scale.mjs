@@ -245,12 +245,23 @@ async function main() {
   const dustWallets = results.filter((r) => r.residualBps === null).length;
   const maxBps = bpsValues.length ? Math.max(...bpsValues.map(Math.abs)) : null;
   const within10bps = bpsValues.filter((b) => Math.abs(b) <= 10).length;
+  // The median was quoted in the docs but never written down here, so a reader could not check it
+  // and two conventions gave different answers (1.98 as the lower-middle element, 2.17 as the
+  // interpolated one). Computed and recorded, with the convention named, so the number in the
+  // prose is one the artifact can be checked against.
+  const medianBps = (() => {
+    if (!bpsValues.length) return null;
+    const sorted = [...bpsValues].map(Math.abs).sort((a, b) => a - b);
+    const mid = sorted.length >> 1;
+    return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+  })();
 
   console.log("\n─── VERDICT ───");
   console.log(`  wallets reconstructed        : ${tested}`);
   console.log(`  ledger matched EXACTLY       : ${exact}/${tested}`);
   console.log(`  ledger within 10 bps         : ${within10bps}/${bpsValues.length}`);
   console.log(`  largest residual             : ${maxBps === null ? "n/a" : maxBps.toFixed(2)} bps`);
+  console.log(`  median residual              : ${medianBps === null ? "n/a" : medianBps.toFixed(2)} bps  (interpolated)`);
   console.log(`  had wallet-to-wallet movement: ${withP2p}/${tested}`);
   console.log(`  excluded as sub-dust          : ${dustWallets}`);
   console.log(`  skipped (no zero anchor)     : ${skippedNoAnchor}`);
@@ -295,6 +306,9 @@ async function main() {
           ledgerMatchesExactly: exact,
           ledgerWithin10Bps: within10bps,
           largestResidualBps: maxBps,
+          medianResidualBps: medianBps,
+          medianConvention:
+            "interpolated: the mean of the two middle values of the absolute residuals over the measurable wallets, excluding sub-dust",
           withPeerToPeerMovement: withP2p,
           excludedAsSubDust: dustWallets,
           dustFloorWei: DUST_FLOOR.toString(),

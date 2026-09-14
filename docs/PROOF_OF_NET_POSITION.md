@@ -74,8 +74,8 @@ aToken balances rebase continuously. Across 40 real wallets with positions from 
 | ledger matched **exactly** | 1/40 |
 | ledger within 10 bps | **38 of 38** measurable (2 excluded as sub-dust) |
 | largest residual | **4.36 bps** |
-| median residual | 1.98 bps |
-| had peer-to-peer movement | 7/40 (**288 to 1,715 aWETH**) |
+| median residual | **2.17 bps** (interpolated, recorded as `medianResidualBps`) |
+| had peer-to-peer movement | 7/40 — **five by 45 aWETH or more, largest 1,715 aWETH**; two below 1 aWETH |
 
 So the ledger does not reproduce a live balance to the wei — it understates it by a
 sub-basis-point residual that is interest. That is not a bug to hide, it is a quantity

@@ -228,4 +228,5 @@ The ChainInfo precompile at `0x0FD3` exposes attested protocol state. Verified l
 | Interest compounds | testInterestCompoundsOverMultiplePeriods | ✅ |
 | Deposit/Balance 2x edge | testDepositAndBalanceJustAbove2x | ✅ |
 
-**417 tests passing, 0 failures.** All security-critical paths are covered (see the full matrix below).
+**518 tests passing, 0 failures** (417 of them the frozen submitted suite). All security-critical
+paths are covered (see the full matrix below).

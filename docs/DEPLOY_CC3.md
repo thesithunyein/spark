@@ -209,8 +209,9 @@ Rehearsed on a local chain, which is where these numbers come from:
 
 Read this before broadcasting, because both consequences are visible to anyone who looks.
 
-1. **It starts with an empty record.** The live contract carries the 46-event record: 4 lines
-   opened, 2 closed, 6 attested payments. A new contract starts at zero. The record does not
+1. **It starts with an empty record.** The live contract carries the 49-event record across two
+   chains: 5 lines opened (one of them deposit-free), 2 closed, 6 attested payments. A new
+   contract starts at zero. The record does not
    vanish — it stays on generation 1's address forever — but the address a judge lands on when
    they click through the app stops having it.
 2. **It has its own sCREDIT.** `CreditLine`'s constructor deploys a fresh `SparkCredit`, so
@@ -226,7 +227,7 @@ configuration change, not a rewrite, and generation 1's history stays on the rec
 
 ```bash
 # app/.env — pointing the product at generation 2
-NEXT_PUBLIC_LEGACY_CREDITLINE_ADDRESS=<generation 1 CreditLine>   # keeps the 46-event record
+NEXT_PUBLIC_LEGACY_CREDITLINE_ADDRESS=<generation 1 CreditLine>   # keeps the generation-1 record
 NEXT_PUBLIC_LEGACY_PAYMENT_ADDRESS=<the existing SepoliaPayment>
 NEXT_PUBLIC_CREDITLINE_ADDRESS=<generation 2 CreditLine>
 NEXT_PUBLIC_CREDIT_TOKEN_ADDRESS=<generation 2 SparkCredit>

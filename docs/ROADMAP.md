@@ -20,7 +20,7 @@ free to re-run.
 **Measured but not deployed.** The mainnet position engine reconstructs a real Aave V3 position
 from the aToken Transfer ledger, anchored at a provably-zero block, and values it through
 attested Chainlink prices. Forty real mainnet wallets reconcile within 10 bps (largest residual
-4.36 bps, median 1.98 bps), and 7 of the 40 show peer-to-peer movement no Aave event can
+4.36 bps, median 2.17 bps), and 7 of the 40 show peer-to-peer movement no Aave event can
 describe. It was executed end to end on a local chain with real mainnet data and has since
 been **broadcast to CC3** and verified: see `docs/addresses.md`.
 

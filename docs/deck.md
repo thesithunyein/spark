@@ -1,5 +1,12 @@
 # Spark — pitch deck (source for deck.html, exported to deck.pdf for DoraHacks)
 
+> **This is the deck as submitted on September 13, and the submission is frozen.** Its numbers are the
+> ones that were judged and are left as they were. Two have moved in the repository since: the wallet
+> corpus is now 40 rather than 8, and the contract suite is 518 rather than 417. The current state is
+> generated from chain reads at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain)
+> and [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus), and the substitution is stated
+> in the README's judge path.
+
 ## Slide 1 — Title
 **Spark**
 Pay once. Unlock credit.
