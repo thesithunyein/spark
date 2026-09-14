@@ -10,6 +10,40 @@
 | SparkCredit (sCREDIT) | Creditcoin testnet | `0x1BaDE07F2F3295528a2F7316119813b6846dFfaD` | Yes |
 | BlockProver (USC precompile) | Creditcoin | `0x0000000000000000000000000000000000000FD2` | n/a |
 
+## Generation 2 + CEIP stack (deployed after the submission deadline)
+
+Not part of the judged entry. The deck and the DoraHacks text describe the deposit-backed
+generation at `0x2C35…C742`. This deployment closes the "built, not broadcast" gap named in
+that text, and is recorded here rather than in the frozen artifacts.
+
+| Contract | Network | Address |
+|---|---|---|
+| CreditLine (generation 2, balance-sized) | Creditcoin testnet | `0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682` |
+| AttestedStanding | Creditcoin testnet | `0x8Cc493C539767788eB5a89fe55a7b47FF46D3383` |
+| GroupCredit | Creditcoin testnet | `0x4accC2C22B0D497FBB9274DF310Fd89CCd0b11Ff` |
+| MainnetPositionRegistry | Creditcoin testnet | `0x8c718d733Eb3149d25A9aA0cc1487FA6eCFcE0Dd` |
+| MainnetTokenRegistry | Creditcoin testnet | `0x5B35f79C5aDFbB765dfFB522857a0c6C5a0d1E9f` |
+| AttestedPriceFeed | Creditcoin testnet | `0xFE16ea120848D75caCbc69BfCee8cb32ec7916c2` |
+| PositionValuer | Creditcoin testnet | `0x95847A47248BA848Fc1Bd43bB8C1F733A4845282` |
+| PositionSizedCredit | Creditcoin testnet | `0xD19E758C30bD97fe1CFA4d023a4016f2741e9A04` |
+| AttestcoinPaymentVerifier (reused) | Creditcoin testnet | `0xF13205Bdf48A3159d4A46309C639930aE8faC130` |
+
+All nine addresses are **verified on Blockscout**, source published and constructor arguments
+matched, so each reads as a contract rather than raw bytecode. Verification was submitted
+the same day as the deploy and confirmed against the Blockscout API (`is_verified: true`
+for all eight newly deployed contracts; the reused verifier was already verified).
+
+Deployed with `script/deploy-all-cc3.sh` from deployer
+`0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2`.
+
+Verified read-backs from the deploy: `openCreditFromBalance` (selector `9a689526`) is
+present in the generation-2 bytecode and absent from generation 1; the position engine
+returned a $1,086,828.42 net worth and a $217,365.68 limit at 20% LTV, priced from a live
+mainnet ETH/USD answer (2509.80, block 25973626).
+
+The live site still points at generation 1 (`NEXT_PUBLIC_CREDITLINE_ADDRESS`), which is
+what the frozen submission describes.
+
 ## Legacy (Aug 13 dual-proof — finish open repay via Repay page)
 
 | Contract | Network | Address |

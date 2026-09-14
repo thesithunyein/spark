@@ -1,6 +1,9 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { EVIDENCE } from "@/lib/mainnetEvidence";
+import { config } from "@/lib/config";
+import { GEN1_CREDIT_LINE, GEN2 } from "@/lib/gen2";
+import LivePositionRead from "@/components/LivePositionRead";
 
 /**
  * Mainnet Position Proof: real measured evidence.
@@ -9,10 +12,11 @@ import { EVIDENCE } from "@/lib/mainnetEvidence";
  * Ethereum mainnet reads, and is imported through a generated module so the page cannot
  * drift from its artifacts. Regenerate with: cd app && node scripts/gen-evidence-module.mjs
  *
- * Scope is stated explicitly and does not overclaim: the measurements and the engine are
- * real, the end-to-end execution was local, and the Creditcoin testnet broadcast has not
- * been run. Spark's live credit flow (Sepolia payment to Creditcoin credit) is a separate,
- * fully deployed product and is not affected by this page.
+ * Scope is stated explicitly and does not overclaim: the measurements are real, the
+ * end-to-end execution was local, and the stack has since been broadcast to Creditcoin CC3
+ * testnet as post-deadline work. Section 06 reads that deployment from the chain in the
+ * reader's browser rather than repeating what a file says about it. Spark's live credit
+ * flow (Sepolia payment to Creditcoin credit) is a separate product, unaffected by this page.
  *
  * Matches the landing page dark UI/UX style.
  */
@@ -53,12 +57,12 @@ const STATUS = [
   {
     label: "Engine code, executed locally",
     tone: "border-sky-500/40 bg-sky-500/[0.08] text-sky-300",
-    note: "Eleven Solidity contracts, 417 Foundry tests, run end to end on a local chain using real mainnet data.",
+    note: "Thirteen Solidity contracts, 467 Foundry tests, run end to end on a local chain using real mainnet data.",
   },
   {
-    label: "Not yet broadcast to Creditcoin testnet",
-    tone: "border-amber-500/40 bg-amber-500/[0.08] text-amber-300",
-    note: "The CC3 deployment is written and unrun. Nothing on this page claims otherwise.",
+    label: "Broadcast to Creditcoin CC3 testnet",
+    tone: "border-emerald-500/40 bg-emerald-500/[0.08] text-emerald-300",
+    note: "The stack below is deployed and its limit is read live from the chain in section 06. This is post-deadline work and is not part of the frozen submission.",
   },
 ];
 
@@ -362,11 +366,75 @@ export default function MainnetPositionPage() {
             </p>
           </div>
 
-          {/* 6. Limits */}
-          <SectionTitle n="06">What is not true yet</SectionTitle>
+          {/* 6. Live */}
+          <SectionTitle n="06">Read live from Creditcoin testnet, no wallet required</SectionTitle>
+          <p className="mt-4 max-w-3xl text-[15px] font-light leading-relaxed text-white/75">
+            The engine above is now deployed. Every number below is read from those contracts in your
+            browser as the page loads, including the bytecode check, so each one can be pasted into
+            Blockscout and confirmed independently. Nothing on this panel is cached or filled in.
+          </p>
+
+          <LivePositionRead />
+
+          <div className="mt-4 overflow-hidden rounded-xl border border-white/[0.12]">
+            <p className="border-b border-white/[0.12] bg-white/[0.04] px-4 py-3 font-mono text-[10px] uppercase tracking-[0.14em] text-white/45">
+              Generation 2 and the CEIP stack, Creditcoin CC3 testnet
+            </p>
+            <ul>
+              {[
+                { label: "CreditLine (generation 2, balance-sized, no deposit)", address: GEN2.creditLine },
+                { label: "AttestedStanding (portable standing)", address: GEN2.attestedStanding },
+                { label: "GroupCredit (group line with vouching)", address: GEN2.groupCredit },
+                { label: "MainnetPositionRegistry", address: GEN2.positionRegistry },
+                { label: "MainnetTokenRegistry", address: GEN2.tokenRegistry },
+                { label: "AttestedPriceFeed", address: GEN2.priceFeed },
+                { label: "PositionValuer", address: GEN2.valuer },
+                { label: "PositionSizedCredit", address: GEN2.positionSizedCredit },
+                { label: "AttestcoinPaymentVerifier (reused from generation 1)", address: GEN2.verifier },
+              ].map((r) => (
+                <li
+                  key={r.label}
+                  className="flex flex-wrap items-center justify-between gap-3 border-b border-white/[0.07] px-4 py-2.5 last:border-0"
+                >
+                  <span className="text-[13px] font-light text-white/80">{r.label}</span>
+                  <a
+                    href={`${config.explorerCreditcoin}/address/${r.address}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[11px] text-white/50 transition-colors duration-[250ms] hover:text-accent2"
+                  >
+                    {r.address.slice(0, 10)}...{r.address.slice(-6)}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          <div className="mt-4 rounded-xl border border-white/[0.12] bg-white/[0.04] px-5 py-4">
+            <p className="font-mono text-[11px] uppercase tracking-[0.18em] text-white/50">
+              What the live read proves, and what it does not
+            </p>
+            <p className="mt-2 text-[14px] font-light leading-relaxed text-white/75">
+              It proves the engine runs and returns a limit against a real mainnet position. It does
+              not prove anyone borrowed. The deposit-backed flow in the demo video is generation 1 at{" "}
+              <span className="font-mono text-white">{GEN1_CREDIT_LINE.slice(0, 10)}...</span>, and this
+              deployment does not change it.
+            </p>
+            <p className="mt-3 text-[13px] font-light leading-relaxed text-white/60">
+              One detail worth stating rather than leaving to be noticed: the USD figures here differ
+              slightly from section 04, while the position is byte-identical at 433.033875 aEthWETH. That
+              is the point of the design rather than a discrepancy. The price is an attested Chainlink
+              answer stamped at a mainnet block, not a live fetch, so two runs at different blocks produce
+              two prices for the same position. An implementation that read the price live would have no
+              such excuse.
+            </p>
+          </div>
+
+          {/* 7. Limits */}
+          <SectionTitle n="07">What is not true yet</SectionTitle>
           <ul className="mt-4 space-y-3">
             {[
-              "The stack has not been broadcast to Creditcoin CC3. It ran end to end on a local chain with real mainnet data, and the CC3 deploy is written but unrun.",
+              "The generation-2 stack is broadcast and unused. Its limit is real and read live, but no borrower has opened a line through the deposit-free path, so it is a verified engine rather than a working market.",
               "Interest is never fabricated from a timestamp or a rate. The only path that moves a position ahead of the ledger is an attested state balance, and the residual is capped and reverts past the cap.",
               "The sample is aEthWETH only and biased toward recent depositors. Morpho WithdrawCollateral has no observed logs in the window, so that signature is unconfirmed.",
               "The attestor is trusted to submit already verified values rather than the contract calling the precompile directly. That trust boundary is documented in the threat model.",
@@ -392,7 +460,8 @@ export default function MainnetPositionPage() {
 {`cd app && node scripts/position-scale.mjs      # 8-wallet reconciliation
 cd app && node scripts/protocol-topics.mjs     # topic parity + controls
 cd app && node scripts/gen-evidence-module.mjs # regenerate this page's data
-cd contracts && forge test                     # 417 tests`}
+cd contracts && forge test                     # 467 tests
+cd contracts && bash script/deploy-all-cc3.sh  # the CC3 broadcast (dry run by default)`}
             </pre>
           </div>
 
