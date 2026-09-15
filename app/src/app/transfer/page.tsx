@@ -24,7 +24,7 @@ import clsx from "clsx";
 type Tab = "send" | "receive";
 
 export default function TransferPage() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const [tab, setTab] = useState<Tab>("send");
   const [to, setTo] = useState("");
   const [amount, setAmount] = useState("");
@@ -76,9 +76,9 @@ export default function TransferPage() {
       if (value === 0n) return setError("Enter an amount greater than 0.");
       if (value > bal) return setError("Amount exceeds your sCREDIT balance.");
 
-      if (chainId !== creditcoinTestnet.id) {
-        await switchChainAsync({ chainId: creditcoinTestnet.id });
-      }
+      // Always switch — a cached chainId can be stale, and switching to the chain you are
+      // already on is a no-op.
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
 
       const hash = await writeContractAsync({
         address: config.creditTokenAddress,
@@ -99,7 +99,7 @@ export default function TransferPage() {
         href: `${config.explorerCreditcoin}/tx/${hash}`,
       });
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
     }
   }
 

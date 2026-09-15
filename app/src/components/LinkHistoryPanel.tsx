@@ -74,7 +74,7 @@ function useCountUp(value: number, durationMs = 700) {
 }
 
 export function LinkHistoryPanel() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const sepoliaClient = usePublicClient({ chainId: sepolia.id });
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
   const { switchChainAsync } = useSwitchChain();
@@ -237,9 +237,9 @@ export function LinkHistoryPanel() {
           });
         }
 
-        if (chainId !== creditcoinTestnet.id) {
-          await switchChainAsync({ chainId: creditcoinTestnet.id });
-        }
+        // Always switch — a cached chainId can be stale, and switching to the chain you are
+        // already on is a no-op.
+        await switchChainAsync({ chainId: creditcoinTestnet.id });
 
         setStatus(`Linking ${i + 1}/${found.length}: submitting on Creditcoin…`);
         await writeContractAsync({
@@ -264,7 +264,7 @@ export function LinkHistoryPanel() {
       setFound([]);
       await Promise.all([refetchHistory(), refetchScore(), refetchBonus()]);
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
       setAttestPhase(null);
     } finally {
       setLinking(false);

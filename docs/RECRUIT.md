@@ -5,7 +5,7 @@
 > code changes that. This is the part a solo builder cannot do from a repository.
 
 **The goal is ten to thirty people who run the loop with their own wallets.** Ten real
-participants takes the measured funnel from four wallets to fourteen, which is a genuine result.
+participants takes the measured funnel from five wallets to fifteen, which is a genuine result.
 Inflating that number with wallets we control would be worse than leaving it at one, because
 the addresses are public and a reviewer can count them.
 

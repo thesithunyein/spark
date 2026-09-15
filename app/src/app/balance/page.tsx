@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   useAccount,
   usePublicClient,
@@ -8,7 +8,7 @@ import {
   useSwitchChain,
   useWriteContract,
 } from "wagmi";
-import { keccak256, parseEther, toBytes, type Hex } from "viem";
+import { formatEther, keccak256, parseEther, toBytes, type Hex } from "viem";
 import { sepolia } from "wagmi/chains";
 import { AppShell } from "@/components/AppShell";
 import { ConnectButton } from "@/components/ConnectButton";
@@ -16,7 +16,7 @@ import { sepoliaPaymentAbi } from "@/lib/abi";
 import { config } from "@/lib/config";
 import { GEN2, GEN2_CREDIT_LINE_ABI } from "@/lib/gen2";
 import { buildAttestcoinProof, type AttestcoinPhase } from "@/lib/usc";
-import { ensureCreditcoinChain, ensureSepoliaChain } from "@/lib/chains";
+import { runOnChain } from "@/lib/chains";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { formatEth } from "@/lib/format";
 import { friendlyError } from "@/lib/errors";
@@ -59,7 +59,7 @@ function Row({ label, value, mono = true }: { label: string; value: React.ReactN
 }
 
 export default function BalanceCreditPage() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
   const sepoliaClient = usePublicClient({ chainId: sepolia.id });
   const { switchChainAsync } = useSwitchChain();
@@ -124,6 +124,29 @@ export default function BalanceCreditPage() {
   const gen2Status = position ? Number(position.status) : 0;
   const hasLine = gen2Status === 1;
 
+  const drawPrefilledRef = useRef(false);
+
+  /**
+   * Suggest the largest safe draw once, as soon as the line and its remaining limit are known.
+   *
+   * ── Why ─────────────────────────────────────────────────────────────────────
+   * The limit is 20% of the attested balance and the panel rounds it to four decimals, so the
+   * number a borrower would type off the display (0.006) exceeds the real remaining limit
+   * (0.005981…) and reverts. Two of the first four participants hit exactly that, and one of them
+   * paid for it with a second full attestation cycle. Rounding DOWN to the micro below the limit
+   * leaves both headroom and a value the contract will accept, so the field is already correct
+   * and the draw amount is visible without arithmetic.
+   */
+  useEffect(() => {
+    if (drawPrefilledRef.current || !hasLine) return;
+    if (availableWei == null || availableWei <= 0n) return;
+    drawPrefilledRef.current = true;
+    const micro = 10n ** 12n;
+    const floored = (availableWei / micro) * micro;
+    const suggested = floored === availableWei ? floored - micro : floored;
+    setDrawAmount(formatEther(suggested > 0n ? suggested : availableWei));
+  }, [hasLine, availableWei]);
+
   /** Step 1: emit BalanceAttested on Sepolia. This is the only input the path needs. */
   async function attest() {
     setError(null);
@@ -134,15 +157,19 @@ export default function BalanceCreditPage() {
     }
     setBusy(true);
     try {
-      if (chainId !== sepolia.id) await ensureSepoliaChain(switchChainAsync);
       const ref = keccak256(toBytes(`spark-balance-path-${address}-${Date.now()}`));
-      const hash = await writeContractAsync({
-        address: config.paymentAddress,
-        abi: sepoliaPaymentAbi,
-        functionName: "attestBalance",
-        args: [ref],
-        chainId: sepolia.id,
-      });
+      // Always switch, and retry once if the wallet reports the previous chain. Gating this on a
+      // cached chainId is what skipped the switch and left viem refusing a write the user had
+      // already approved.
+      const hash = await runOnChain(switchChainAsync, sepolia.id, () =>
+        writeContractAsync({
+          address: config.paymentAddress,
+          abi: sepoliaPaymentAbi,
+          functionName: "attestBalance",
+          args: [ref],
+          chainId: sepolia.id,
+        }),
+      );
       setNote("Waiting for the attestation to confirm on Sepolia…");
       if (!sepoliaClient) throw new Error("Sepolia RPC not ready. Retry in a moment.");
       // Read the value out of the receipt rather than from the wallet's local balance. The
@@ -166,7 +193,7 @@ export default function BalanceCreditPage() {
         href: `${config.explorerSepolia}/tx/${hash}`,
       });
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "sepolia"));
     } finally {
       setBusy(false);
     }
@@ -192,7 +219,7 @@ export default function BalanceCreditPage() {
 
       setStep("opening");
       setNote("Confirm in MetaMask on Creditcoin");
-      await ensureCreditcoinChain(switchChainAsync);
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
       const hash = await writeContractAsync({
         address: GEN2.creditLine as `0x${string}`,
         abi: GEN2_CREDIT_LINE_ABI,
@@ -218,7 +245,7 @@ export default function BalanceCreditPage() {
       });
       void refetchPosition();
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
       setStep(balanceTxHash ? "attested" : "idle");
     } finally {
       setBusy(false);
@@ -269,7 +296,7 @@ export default function BalanceCreditPage() {
     }
     setBusy(true);
     try {
-      await ensureCreditcoinChain(switchChainAsync);
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
       const hash = await writeContractAsync({
         address: GEN2.creditLine as `0x${string}`,
         abi: GEN2_CREDIT_LINE_ABI,
@@ -293,7 +320,7 @@ export default function BalanceCreditPage() {
       void refetchAvailable();
       void refetchDebt();
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
     } finally {
       setBusy(false);
     }
@@ -315,7 +342,7 @@ export default function BalanceCreditPage() {
     }
     setBusy(true);
     try {
-      await ensureCreditcoinChain(switchChainAsync);
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
       const hash = await writeContractAsync({
         address: GEN2.creditLine as `0x${string}`,
         abi: GEN2_CREDIT_LINE_ABI,
@@ -339,7 +366,7 @@ export default function BalanceCreditPage() {
       void refetchAvailable();
       void refetchDebt();
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
     } finally {
       setBusy(false);
     }
@@ -355,7 +382,7 @@ export default function BalanceCreditPage() {
     }
     setBusy(true);
     try {
-      await ensureCreditcoinChain(switchChainAsync);
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
       const hash = await writeContractAsync({
         address: GEN2.creditLine as `0x${string}`,
         abi: GEN2_CREDIT_LINE_ABI,
@@ -376,7 +403,7 @@ export default function BalanceCreditPage() {
       void refetchPosition();
       void refetchAvailable();
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
     } finally {
       setBusy(false);
     }
@@ -424,8 +451,17 @@ export default function BalanceCreditPage() {
                   {formatEth(position.credit)} ETH limit, one per address. The buttons below draw on it.
                 </p>
                 <div className="mt-3">
-                  <Row label="Available to draw" value={`${formatEth(availableWei ?? 0n)} ETH`} />
-                  <Row label="Outstanding debt" value={`${formatEth(debtWei ?? 0n)} ETH`} />
+                  {/* A read that has not resolved is not zero. Rendering "0 ETH" while the
+                      contract read is still in flight reads as an empty line, and the participant
+                      who sees it stops rather than drawing. */}
+                  <Row
+                    label="Available to draw"
+                    value={availableWei == null ? "reading…" : `${formatEth(availableWei)} ETH`}
+                  />
+                  <Row
+                    label="Outstanding debt"
+                    value={debtWei == null ? "reading…" : `${formatEth(debtWei)} ETH`}
+                  />
                 </div>
 
                 <div className="mt-3 flex flex-col gap-2 sm:flex-row">
@@ -440,7 +476,7 @@ export default function BalanceCreditPage() {
                   <button
                     type="button"
                     onClick={drawCredit}
-                    disabled={busy || (availableWei ?? 0n) === 0n}
+                    disabled={busy || (availableWei != null && availableWei === 0n)}
                     className="border border-border bg-accent/10 px-5 py-2 font-mono text-[11px] uppercase tracking-[0.16em] text-text transition disabled:opacity-40"
                   >
                     Draw
@@ -519,10 +555,15 @@ export default function BalanceCreditPage() {
               </div>
             )}
 
-            {attestedWei != null && (
+            {/* Once a line exists, the panel above already states the attested balance and the
+                limit it produced, so the projection only means anything before an open. Printing
+                both is what made this card look like two competing summaries of the same line. */}
+            {(attestedWei != null || balanceTxHash) && (
               <div className="mt-5">
-                <Row label="Attested balance" value={`${formatEth(attestedWei)} ETH`} />
-                {projectedCredit != null && (
+                {!hasLine && attestedWei != null && (
+                  <Row label="Attested balance" value={`${formatEth(attestedWei)} ETH`} />
+                )}
+                {!hasLine && projectedCredit != null && (
                   <Row label="Line it will open" value={`${formatEth(projectedCredit)} ETH`} />
                 )}
                 {balanceTxHash && (

@@ -88,10 +88,10 @@ Credit sizing needs history elsewhere and proof of cover, so we rebuilt real Aav
 - Live evidence and reproduction commands: spark.sithunyein.com/bonus
 
 ## Slide 9 — Traction
-Five full closed loops on-chain with real USC proofs.
-- 5 full closed loops: Open → Withdraw → Redeem → Repay → Close
-- 3 of them run end to end by wallets that are not the founder's, all on the deposit-free path
-- 10 attested payments on-chain credit history
+Six full closed loops on-chain with real USC proofs.
+- 6 full closed loops: Open → Withdraw → Redeem → Repay → Close
+- 4 of them run end to end by wallets that are not the founder's, all on the deposit-free path
+- 11 attested payments on-chain credit history
 - Credit score 850 (max possible)
 - LTV 95% (base 90% + 5% history bonus)
 - All proofs are real Attestcoin USC proofs verified by BlockProver

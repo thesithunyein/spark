@@ -32,7 +32,6 @@ import {
   type AttestcoinPhase,
   type AttestcoinProofMeta,
 } from "@/lib/usc";
-import { ensureCreditcoinChain, ensureSepoliaChain } from "@/lib/chains";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import { journalActivity } from "@/hooks/usePaymentActivity";
@@ -63,7 +62,7 @@ function readAttestedBalance(logs: Log[], payment: `0x${string}`): bigint | null
 }
 
 export default function PayPage() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const publicClient = usePublicClient({ chainId: sepolia.id });
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
   const [amount, setAmount] = useState("0.01");
@@ -255,9 +254,9 @@ export default function PayPage() {
       return;
     }
     try {
-      if (chainId !== sepolia.id) {
-        await ensureSepoliaChain(switchChainAsync);
-      }
+      // Always switch — a cached chainId can be stale, and switching to the chain you are
+      // already on is a no-op, so there is nothing to save by gating this.
+      await switchChainAsync({ chainId: sepolia.id });
       setStep(1);
       const ref = keccak256(toBytes(`spark-${address}-${Date.now()}`));
       const hash = await writeContractAsync({
@@ -282,16 +281,16 @@ export default function PayPage() {
         href: `${config.explorerSepolia}/tx/${hash}`,
       });
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "sepolia"));
       setStep(0);
     }
   }
 
   async function attestSepoliaBalance(): Promise<{ hash: Hex; balanceWei: bigint }> {
     if (!address || !publicClient) throw new Error("Wallet / RPC not ready.");
-    if (chainId !== sepolia.id) {
-      await ensureSepoliaChain(switchChainAsync);
-    }
+    // Always switch — a cached chainId can be stale, and switching to the chain you are
+    // already on is a no-op.
+    await switchChainAsync({ chainId: sepolia.id });
     const ref = keccak256(toBytes(`spark-bal-${address}-${Date.now()}`));
     const hash = await writeContractAsync({
       address: config.paymentAddress,
@@ -415,7 +414,7 @@ export default function PayPage() {
         });
       }
 
-      await ensureCreditcoinChain(switchChainAsync);
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
 
       const openHash = await writeContractAsync({
         address: config.creditLineAddress,
@@ -459,7 +458,7 @@ export default function PayPage() {
       setVerifyStartedAt(null);
       void refetchPosition();
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
       const lastPhase = lastAttestPhaseRef.current;
       const pastAttestation =
         lastPhase === "attested" ||

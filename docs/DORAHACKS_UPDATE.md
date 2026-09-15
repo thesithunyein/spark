@@ -6,9 +6,9 @@ produced by the commands in the README, and the credit-policy numbers match
 
 **These numbers describe the submission as entered on September 13, and the submission is
 frozen.** The repository has moved since: the live record at
-[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) now reads 74 events across
-4 distinct wallets, three of them not mine, and the deposit-free path has been opened, drawn
-against and closed by three of those wallets rather than only built. This file is left as the
+[spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) now reads 82 events across
+5 distinct wallets, four of them not mine, and the deposit-free path has been opened, drawn
+against and closed by four of those wallets rather than only built. This file is left as the
 record of what was judged rather than rewritten to match the current state; the current state
 is generated from chain reads and cannot drift.
 

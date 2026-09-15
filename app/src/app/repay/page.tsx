@@ -25,7 +25,7 @@ import {
   type AttestcoinPhase,
   type AttestcoinProofMeta,
 } from "@/lib/usc";
-import { ensureCreditcoinChain, ensureSepoliaChain } from "@/lib/chains";
+import { runOnChain } from "@/lib/chains";
 import { creditcoinTestnet } from "@/lib/wagmi";
 import { friendlyError } from "@/lib/errors";
 import {
@@ -48,7 +48,7 @@ function formatDebtLabel(wei: bigint) {
 }
 
 export default function RepayPage() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const [amount, setAmount] = useState("");
   const [step, setStep] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [creditTx, setCreditTx] = useState<Hex | undefined>();
@@ -267,20 +267,24 @@ export default function RepayPage() {
       return setError("Payment contract not configured.");
     }
     try {
-      if (chainId !== sepolia.id) await ensureSepoliaChain(switchChainAsync);
       const value = parseEther(amount || "0");
       if (value === 0n) return setError("Enter an amount greater than 0.");
       amountWeiRef.current = value;
       setStep(1);
       const ref = keccak256(toBytes(`spark-repay-${address}-${Date.now()}`));
-      const hash = await writeContractAsync({
-        address: config.paymentAddress,
-        abi: sepoliaPaymentAbi,
-        functionName: "payRepayment",
-        args: [ref],
-        value,
-        chainId: sepolia.id,
-      });
+      // Always switch, then retry once if the wallet reports the previous chain. Gating this on a
+      // cached chainId is what skipped the switch and produced a mismatch error that told the
+      // borrower to switch to Creditcoin while they were being asked to pay on Sepolia.
+      const hash = await runOnChain(switchChainAsync, sepolia.id, () =>
+        writeContractAsync({
+          address: config.paymentAddress,
+          abi: sepoliaPaymentAbi,
+          functionName: "payRepayment",
+          args: [ref],
+          value,
+          chainId: sepolia.id,
+        }),
+      );
       sepoliaTx.track(hash);
       setStep(2);
       journalActivity(address, {
@@ -293,7 +297,7 @@ export default function RepayPage() {
         href: `${config.explorerSepolia}/tx/${hash}`,
       });
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "sepolia"));
       setStep(0);
       sepoliaTx.reset();
     }
@@ -402,15 +406,15 @@ export default function RepayPage() {
         proof = encodePaymentProof({ txHash, payer: address, amountWei, kind: 2 });
       }
 
-      await ensureCreditcoinChain(switchChainAsync);
-
-      const repayHash = await writeContractAsync({
-        address: creditLine,
-        abi: creditLineAbi,
-        functionName: "repayCredit",
-        args: [{ txHash, payer: address, amount: amountWei, kind: 2 }, proof],
-        chainId: creditcoinTestnet.id,
-      });
+      const repayHash = await runOnChain(switchChainAsync, creditcoinTestnet.id, () =>
+        writeContractAsync({
+          address: creditLine,
+          abi: creditLineAbi,
+          functionName: "repayCredit",
+          args: [{ txHash, payer: address, amount: amountWei, kind: 2 }, proof],
+          chainId: creditcoinTestnet.id,
+        }),
+      );
       setCreditTx(repayHash);
       if (creditClient) {
         await creditClient.waitForTransactionReceipt({ hash: repayHash });
@@ -462,7 +466,7 @@ export default function RepayPage() {
       }
       setVerifyStartedAt(null);
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
       const lastPhase = lastAttestPhaseRef.current;
       const pastAttestation =
         lastPhase === "attested" ||

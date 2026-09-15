@@ -30,7 +30,7 @@ type SuccessState = {
 };
 
 export default function WithdrawPage() {
-  const { address, chainId, isConnected } = useAccount();
+  const { address, isConnected } = useAccount();
   const creditClient = usePublicClient({ chainId: creditcoinTestnet.id });
   const [amount, setAmount] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -229,9 +229,9 @@ export default function WithdrawPage() {
     if (!hasActiveLine) return setError("Open a credit line before withdrawing.");
     if (availableWei === 0n) return setError("No available credit to withdraw.");
     try {
-      if (chainId !== creditcoinTestnet.id) {
-        await switchChainAsync({ chainId: creditcoinTestnet.id });
-      }
+      // Always switch — a cached chainId can be stale, and switching to the chain you are
+      // already on is a no-op.
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
       const value = parseEther(amount || "0");
       if (value === 0n) return setError("Enter an amount greater than 0.");
       if (value > availableWei) return setError("Amount exceeds available credit.");
@@ -249,7 +249,7 @@ export default function WithdrawPage() {
       journalOnce(hash, "withdraw", value);
       void tryConfirmReceipt(hash, "withdraw", value);
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
       setPendingAction(null);
       setTxHash(undefined);
       submittedRef.current = null;
@@ -266,9 +266,9 @@ export default function WithdrawPage() {
     if (!hasActiveLine) return setError("No active credit line.");
     if (debtWei === 0n) return setError("No debt to redeem against.");
     try {
-      if (chainId !== creditcoinTestnet.id) {
-        await switchChainAsync({ chainId: creditcoinTestnet.id });
-      }
+      // Always switch — a cached chainId can be stale, and switching to the chain you are
+      // already on is a no-op.
+      await switchChainAsync({ chainId: creditcoinTestnet.id });
       const value = parseEther(amount || "0");
       if (value === 0n) return setError("Enter an amount greater than 0.");
       if (value > walletWei) return setError("Amount exceeds wallet sCREDIT.");
@@ -287,7 +287,7 @@ export default function WithdrawPage() {
       journalOnce(hash, "redeem", value);
       void tryConfirmReceipt(hash, "redeem", value);
     } catch (e) {
-      setError(friendlyError(e));
+      setError(friendlyError(e, "creditcoin"));
       setPendingAction(null);
       setTxHash(undefined);
       submittedRef.current = null;

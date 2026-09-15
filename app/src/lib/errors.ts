@@ -1,5 +1,12 @@
-/** Map wallet / RPC errors to short, user-facing copy. */
-export function friendlyError(err: unknown): string {
+/**
+ * Map wallet / RPC errors to short, user-facing copy.
+ *
+ * `chain` is the chain the failing step needed. It only affects the network-switch copy, and it
+ * exists because that copy is direction-sensitive: the same viem mismatch fires on a Sepolia
+ * payment and on a Creditcoin open, so a single fixed sentence sends half its readers the wrong
+ * way. That is exactly what happened to a real participant at the repay step.
+ */
+export function friendlyError(err: unknown, chain?: "sepolia" | "creditcoin"): string {
   const raw =
     err instanceof Error
       ? err.message
@@ -25,15 +32,28 @@ export function friendlyError(err: unknown): string {
     return "Not enough funds for gas + value. Get Sepolia ETH (or CTC on Creditcoin) and retry.";
   }
 
-  if (msg.includes("wrong network") || msg.includes("chain mismatch") || msg.includes("unrecognized chain")) {
-    return "Wrong network. Switch to Sepolia to pay, or Creditcoin to open credit.";
-  }
-
+  // Every flavour of "the wallet is on another chain" lands here, so the advice can be aimed at
+  // the step that actually failed rather than at Creditcoin by default.
   if (
+    msg.includes("wrong network") ||
+    msg.includes("chain mismatch") ||
+    msg.includes("unrecognized chain") ||
     msg.includes("does not match the target chain") ||
     msg.includes("current chain of the wallet")
   ) {
-    return "Wallet is on the wrong network. Approve switching to Creditcoin testnet in MetaMask, then click Retry verify.";
+    // viem names the chain the request wanted — "…does not match the target chain for the
+    // transaction (id: 11155111 – Sepolia)" — so the advice can point at the right network even
+    // without a caller passing context. 11155111 is Sepolia, 102031 is Creditcoin CC3.
+    const target = /target chain for the transaction \(id:\s*(\d+)/i.exec(raw)?.[1];
+    const wanted =
+      chain ?? (target === "11155111" ? "sepolia" : target === "102031" ? "creditcoin" : undefined);
+    if (wanted === "sepolia") {
+      return "Your wallet is not on Sepolia. Approve the switch to Sepolia in MetaMask, then press the button again.";
+    }
+    if (wanted === "creditcoin") {
+      return "Your wallet is not on Creditcoin testnet. Approve the switch to Creditcoin in MetaMask, then press the button again.";
+    }
+    return "Your wallet is on a different network from this step. Approve the switch in MetaMask, then press the button again.";
   }
 
   if (

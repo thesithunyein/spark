@@ -1,6 +1,6 @@
 # Running the Spark loop yourself
 
-Spark's on-chain record was produced by **four wallets**, one of which is mine. That is enough
+Spark's on-chain record was produced by **five wallets**, one of which is mine. That is enough
 to prove the loop works and nowhere near enough to prove anyone wants it, so this document
 exists to make running it yourself as cheap as possible.
 
