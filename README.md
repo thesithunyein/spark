@@ -30,6 +30,36 @@
   <a href="LICENSE">MIT License</a>
 </p>
 
+## Attestcoin Protocol integration at a glance
+
+**15 surfaces · 3 attested event kinds · 5 on-chain entry points.** Ten surfaces sit on the critical path — remove any one and the product stops working. The other five are integrated and tested off the payment path. The split is stated rather than blurred, and every row names the code and the test that exercises it, so the claim is checkable rather than asserted.
+
+| # | Surface | Where | Exercised by |
+|---|---|---|---|
+| 1 | `verifyAndEmit` (0x0FD2) | `AttestcoinPaymentVerifier._proveOnChain()` | `bash run-negative-paths.sh` — 8 forged proofs rejected by the live precompile, read-only, zero cost |
+| 2 | `MerkleProof` construction | `AttestcoinPaymentVerifier._proveOnChain()` | same, plus every open on both chains |
+| 3 | `ContinuityProof` construction | `AttestcoinPaymentVerifier._proveOnChain()` | same |
+| 4 | Receipt RLP parsing | `_parseReceiptLogs()` | `VerifierStrict.t.sol` — `testStrictPathParsesReceiptLogs`, `testStrictPathParsesLongFormBloom` |
+| 5 | Topic matching | `_verifyLogStrict()` | `VerifierStrict.t.sol` — `testStrictPathMultipleLogsFindsCorrectOne` |
+| 6 | Payer validation | `_verifyLogStrict()` | `VerifierStrict.t.sol` — `testStrictPathRejectsWrongPayer`; `Spark.t.sol` — `testWrongPayerReverts`, `testNegativePath_TamperedPayerRejected` |
+| 7 | Amount binding | `_verifyLogStrict()` | `VerifierStrict.t.sol` — `testStrictPathAcceptsMatchingAmount`, `testStrictPathRevertsOnAmountMismatch` |
+| 8 | `ProofBuilder` | `app/src/lib/usc.ts` | the live opens in this README — off-chain by nature, not unit-tested |
+| 9 | `waitUntilHeightAttested` | `app/src/lib/usc.ts` (`Promise.all`) | as above — one attestation window, not two sequential |
+| 10 | `getProof` | `app/src/lib/usc.ts` | as above |
+| 11 | `ChainInfo` (0x0FD3) | verifier + `usc.ts` | live `cast call` against CC3; no automated test |
+| 12 | `previewIngest` | `usc.ts` dry run | no automated test — `Spark.t.sol:1135` records that it needs the live precompile |
+| 13 | `executeBatch` | `submitAttestMultiple` | `Spark.t.sol` — `testExecuteBatchSuccess`, `testExecuteBatchEmptyReverts`, `testExecuteBatchLengthMismatchReverts`, `testExecuteBatchReplayReverts` |
+| 14 | `calculateTxIndex` | verifier, exposed | mocked in `VerifierStrict.t.sol`; no live test |
+| 15 | `getBatchProof` | `app/src/lib/usc.ts` | SDK path only |
+
+**Attested event kinds:** kind 1 `DepositPaid` · kind 2 `RepaymentPaid` · kind 3 `BalanceAttested` — the solvency check, which is what makes wash lending impossible by construction rather than by a scoring rule.
+
+**On-chain entry points:** `openCredit` (two proofs) · `openCreditFromBalance` (one proof, no deposit) · `repayCredit` · `submitAttestedPayment` · `submitAttestMultiple`.
+
+Five rows have no automated test, and they are named rather than hidden: three are off-chain SDK calls and two need the live precompile. The six with a named test are the six that decide whether a payment claim is real.
+
+**Where to check any of it:** `npm run test:contracts` (518 tests, 0 failures — 417 were the submitted suite) · `cd contracts && bash run-negative-paths.sh` (the live precompile rejecting 8 forged proofs) · [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) (the whole record, no wallet: 82 events, 5 wallets, 8 lines opened, 6 closed) · [docs/evidence/position-scale.json](docs/evidence/position-scale.json) (the 40-wallet mainnet reconstruction).
+
 ## Judge path in 90 seconds
 
 Everything here is reproducible from a clean clone. No wallet, no CTC, no faucet.
@@ -126,7 +156,22 @@ cd contracts && PRIVATE_KEY=<funded dev key> forge script \
 
 Deploys the position stack, anchors at a provably-zero mainnet balance, ingests the real token ledger, reconciles against the real attested balance, and submits the real Chainlink answer — then reads the net worth back off-chain-verified. Executed end to end against a local chain; independent reads of the deployed contracts returned `netPosition = 433033874843288486772`, **$1,086,382** of proven net worth, and a **$217,276** credit limit sized from it at a 20% policy LTV. Transcript, including the 10 transactions in order and the mainnet re-verification of every input: [docs/evidence/position-stack-e2e.txt](docs/evidence/position-stack-e2e.txt).
 
-Not yet broadcast to CC3. The deployer address (`0x7CEC5b3F9dA312072Aa987c7266f02A8Fca1bFF6`) already holds testnet CTC, so funding is not the blocker; the key is, and it belongs in `contracts/.env`, which is gitignored. Steps: [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md), which drives that path as `DRY_RUN=0 bash script/deploy-position-cc3.sh` rather than `forge script`. Once broadcast, `cd app && node scripts/verify-cc3-position-stack.mjs` reads the deployment back off CC3, asserts it reproduces these mainnet values, and writes the evidence file only if every assertion holds.
+**The same stack is also broadcast to CC3.** `PositionSizedCredit` is `0xD19E758C30bD97fe1CFA4d023a4016f2741e9A04` (owner `0x7A35f63F81357DaDE2cff8f5699b935786Aa9Da2`), its valuer is `0x95847A47248BA848Fc1Bd43bB8C1F733A4845282`, and its attested Chainlink feed is `0xFE16ea120848D75caCbc69BfCee8cb32ec7916c2`. All four position-stack contracts are named and verified on Blockscout. Read live off CC3:
+
+```bash
+cast call 0xD19E758C30bD97fe1CFA4d023a4016f2741e9A04 \
+  "limitFor(address,address[],address[])((int256,uint256,uint8))" \
+  0x0Cc688BF78bDCC3C072903100B2b821cC8d7d666 \
+  "[0x4d5F47FA6A74757f35C14fD3a6Ef8E3C9BC514E8]" \
+  "[0x7d4E742018fb52E48b08BE73d041C18B21de6Fb5]" \
+  --rpc-url https://rpc.cc3-testnet.creditcoin.network
+# → (104020019677448, 20804003935489, 0)
+#   $1,040,200.20 proven net worth → $208,040.04 limit, Eligible
+```
+
+The live figure moves with the attested price, and that is the design rather than an inconsistency: the local run above priced ETH at one answer and the live read prices it at another. The stored answer was refreshed on September 16 from attested mainnet round **33688** (submission tx [`0xe8730a2f…`](https://creditcoin-testnet.blockscout.com/tx/0xe8730a2feb0960831ebf55f0ea7029fd8661d29a6a31f4aa4848b80c35ee4c57)), so it is anchored to a round anyone can look up rather than to a number typed in. When an answer ages past the feed's own 24-hour bound the read **reverts with `StalePrice`** instead of valuing a position on old data — the guard working, not a failure.
+
+One honest note on verification. `scripts/verify-cc3-position-stack.mjs` requires a `forge` broadcast artifact, and `forge script --broadcast` cannot run against Creditcoin: its block headers omit `mixHash`, which Foundry validates when forking. The CC3 deployment therefore went through `script/deploy-position-cc3.sh`, which produces no such artifact, so the automated verifier does not run against CC3. The `cast` read above is the verification, and it is reproducible. Steps and caveats: [docs/DEPLOY_CC3.md](docs/DEPLOY_CC3.md).
 
 **What is different here:** two BlockProver proofs on every credit open (payment + solvency), and strict receipt RLP decoding in which a decoded amount that differs from the claim **reverts**. That path is proven by crafted-receipt tests in [contracts/test/VerifierStrict.t.sol](contracts/test/VerifierStrict.t.sol); the bug it replaced is documented in [SECURITY_FINDINGS.md](SECURITY_FINDINGS.md).
 

@@ -7,10 +7,23 @@ Two deploys live here, and they are independent:
 | **1. The position stack** | Five contracts that size a credit limit from a proven Ethereum mainnet net worth | the key |
 | **2. Generation 2 of `CreditLine`** | The path that sizes a line from an attested balance with **no deposit** | the key, plus a decision covered under [generation 1 stays visible](#generation-1-stays-visible) |
 
-The only input for either is a private key, and it belongs in a file, not in a shell history or
-a chat window. **Do the position stack first** — it is additive and touches nothing that is
-already live. Generation 2 replaces a live contract, so read that section's consequences
-before running it.
+**Status: both deploys have been run.** The position stack is live — `PositionSizedCredit`
+`0xD19E758C30bD97fe1CFA4d023a4016f2741e9A04`, valuer `0x95847A47248BA848Fc1Bd43bB8C1F733A4845282`,
+`AttestedPriceFeed` `0xFE16ea120848D75caCbc69BfCee8cb32ec7916c2` — and generation 2 of `CreditLine`
+is `0xD8cd1d29024aB86ACed6aA01b38612fb32ef2682`. Read live, `limitFor` returns
+**$208,040.04** against a proven **$1,040,200.20** for the registered mainnet position.
+
+One caveat worth knowing before following the steps below: `scripts/verify-cc3-position-stack.mjs`
+requires a `forge` broadcast artifact, and `forge script --broadcast` cannot run against
+Creditcoin because its block headers omit `mixHash`, which Foundry validates when forking. The
+CC3 deployment went through `script/deploy-position-cc3.sh`, which produces no such artifact, so
+that verifier does not run against CC3. The live `cast` reads in [addresses.md](addresses.md) are
+the verification.
+
+This page remains the runbook for a redeploy. The only input for either is a private key, and it
+belongs in a file, not in a shell history or a chat window. **Do the position stack first** — it
+is additive and touches nothing that is already live. Generation 2 replaces a live contract, so
+read that section's consequences before running it.
 
 ---
 

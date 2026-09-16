@@ -39,7 +39,11 @@ Deployed with `script/deploy-all-cc3.sh` from deployer
 Verified read-backs from the deploy: `openCreditFromBalance` (selector `9a689526`) is
 present in the generation-2 bytecode and absent from generation 1; the position engine
 returned a $1,086,828.42 net worth and a $217,365.68 limit at 20% LTV, priced from a live
-mainnet ETH/USD answer (2509.80, block 25973626).
+mainnet ETH/USD answer (2509.80, block 25973626). Refreshed 2026-09-16 from attested mainnet
+round 33688 (ETH/USD 2402.12, block 25987668; tx `0xe8730a2f…`): the same position now reads
+**$1,040,200.20** net worth → **$208,040.04** limit, `Eligible`. The figure tracks the attested
+price by design, and a read reverts with `StalePrice` once an answer ages past the feed's 24-hour
+bound, so the feed needs re-submitting roughly daily until it has a keeper.
 
 The live site still points at generation 1 (`NEXT_PUBLIC_CREDITLINE_ADDRESS`), which is
 what the frozen submission describes.

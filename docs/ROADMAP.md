@@ -57,10 +57,17 @@ verifiable artifact instead of a local execution plus a transcript.
 **Status: built, broadcast and unused.** `PositionSizedCredit` sizes a limit from proven net
 worth, with an explicit policy, a hard half-of-net-worth cap, and distinct status codes for why a
 limit is zero. In the local end-to-end run it returns **$217,276** against a proven net worth of
-**$1,086,382** at a 20% policy LTV; read live on CC3 it returns **$217,365.68** against the same
-byte-identical position at a later attested price, which is the design working rather than a
+**$1,086,382** at a 20% policy LTV; read live on CC3 it returns **$208,040.04** against
+**$1,040,200.20** for the same byte-identical position, priced from an attested mainnet answer
+refreshed on September 16 (round 33688). The live number moves with the price — the local run
+priced ETH at one answer, the live read at another — which is the design working rather than a
 discrepancy. 23 tests cover it, including the cases where the answer must be reported rather than
 flattened to zero. Deployed post-deadline; nothing has drawn against it.
+
+**An operational gap this exposes:** the feed has no keeper. `latestPrice` reverts once an answer
+is older than `maxStaleness` (24 h), so the live read goes dark about a day after every submission
+and has to be refreshed by hand. That is the guard behaving correctly, and it is also a job that
+should not need a human. A keeper that re-submits the newest attested round is the missing piece.
 
 **What is still missing:** no enforcement path. Nothing draws against the limit, so it is a
 policy output rather than a funded line, and there is no liquidation logic because there is

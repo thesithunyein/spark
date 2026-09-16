@@ -173,14 +173,22 @@ archive access.
 
 ## Honest limits
 
-- **Not yet broadcast to CC3.** The stack does deploy and prove a real mainnet position
-  in one command (`contracts/script/ProveMainnetPosition.s.sol`), and that command was
-  **executed end to end against a local chain: 10 transactions**, after which independent
-  reads of the deployed contracts returned the real mainnet values. Full transcript:
-  `docs/evidence/position-stack-e2e.txt`. What has *not* happened is the CC3 broadcast,
-  because this workspace contains no funded deployer key. That step is one command away
-  and is the deployer's to run; until it runs, treat the on-chain proof as
-  locally-executed rather than testnet-live.
+- **The stack is broadcast to CC3, but the automated verifier does not run against it.**
+  The stack deploys and proves a real mainnet position in one command
+  (`contracts/script/ProveMainnetPosition.s.sol`), and that command was **executed end to end
+  against a local chain: 10 transactions**, after which independent reads of the deployed
+  contracts returned the real mainnet values. Full transcript:
+  `docs/evidence/position-stack-e2e.txt`. It has since been broadcast to CC3:
+  `PositionSizedCredit` is `0xD19E758C30bD97fe1CFA4d023a4016f2741e9A04` and `limitFor`
+  answers there today. What does *not* happen is the automated check —
+  `scripts/verify-cc3-position-stack.mjs` requires a `forge` broadcast artifact, and
+  `forge script --broadcast` cannot run against Creditcoin, whose block headers omit
+  `mixHash`. The CC3 values are therefore verified by live `cast` reads. Addresses:
+  [addresses.md](addresses.md).
+- **The price feed has no keeper.** A limit is only readable while the stored Chainlink
+  answer is inside `maxStaleness` (24 h); after that the read reverts with `StalePrice`
+  rather than valuing a position on old data. Correct behaviour, and an operational gap
+  that currently needs a human to re-submit the newest attested round.
 - **The scale sample is aETHWETH only**, 40 wallets, and it selects recent depositors.
   Other reserves, other protocols, and long-lived positions are not covered.
 - **64 candidates were skipped for having no provable-zero anchor and 23 for a zero
