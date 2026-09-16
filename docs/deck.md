@@ -1,12 +1,14 @@
 # Spark — pitch deck (source for deck.html, exported to deck.pdf for DoraHacks)
 
-> **This is the deck as submitted on September 13, and the submission is frozen.** Its numbers are the
-> ones that were judged and are left as they were. Three have moved in the repository since: the wallet
-> corpus is now 40 rather than 8, the contract suite is 518 rather than 417, and the on-chain record
-> now shows five closed loops from four distinct wallets rather than two loops from one. The current state is
-> generated from chain reads at [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain)
-> and [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus), and the substitution is stated
-> in the README's judge path.
+> **This mirrors the deck published today, and it tracks the repository.** The version judged on
+> September 13 is the PDF attached to the DoraHacks submission; this file is kept current instead of
+> frozen, so that the deck a reviewer opens does not contradict the chain. Everything that has moved
+> since the submission, and the numbers themselves, are generated from chain reads at
+> [spark.sithunyein.com/onchain](https://spark.sithunyein.com/onchain) and
+> [spark.sithunyein.com/bonus](https://spark.sithunyein.com/bonus) and stated in full in the README's
+> judge path. The changes since the submitted version: the mainnet corpus grew from 8 wallets to 40,
+> the contract suite from 417 to 518, the on-chain record from two closed loops to six, and the
+> position layer went from built to deployed on CC3.
 
 ## Slide 1 — Title
 **Spark**
@@ -26,7 +28,7 @@ Under-collateralised lending is the growth edge of on-chain credit. Its bottlene
 A DeFi borrower who holds a verifiable position on Ethereum mainnet and needs liquidity on Creditcoin — without selling the position or bridging it.
 - Their facts **already exist on-chain**, verifiably. No bureau, no paperwork, no identity attestation
 - The alternative today is specific and bad: realise the gain, or accept bridge risk
-- Measured, not asserted: **8/8** real wallets rebuilt within 10 bps of the live balance
+- Measured, not asserted: **40** real mainnet wallets rebuilt from the transfer ledger, **38 of 38 measurable** within 10 bps of the live balance
 - **Portable attested standing:** a repaid line becomes proven history that follows the borrower across products and chains — not a score locked inside one app
 
 The unbanked borrower is the destination this reaches. The deposit-free path that gets there is built and covered by 21 tests.
@@ -77,13 +79,13 @@ Verifier parses receipt RLP from the proven encodedTransaction; a decoded amount
 ## Slide 8 — Measured, not asserted
 A position on another chain, rebuilt from proven facts.
 Credit sizing needs history elsewhere and proof of cover, so we rebuilt real Aave V3 positions from real mainnet data and measured how wrong the obvious method is.
-- **8/8** real wallets reconciled within 10 bps of the live balance
-- **0.51 bps** largest residual, the rebasing interest events cannot supply
+- **40** real mainnet wallets reconstructed from the transfer ledger, **38 of 38 measurable** within 10 bps of the live balance
+- **4.36 bps** largest residual, **2.17 bps** median, the rebasing interest events cannot supply
 - **66.8%** error in event-summing a position, measured on a real borrower
-- **417** contract tests, 0 failures
+- **518** contract tests, 0 failures (417 were the suite as submitted)
 - Aave events overstate a real position because aTokens move without emitting an event, so the engine reads the token Transfer ledger, anchored where balance is provably zero
 - Interest is never invented: positions advance only against an attested state balance, with a bounded residual
-- It sizes credit from the result: $217,276 against $1,086,382 of proven net worth, at a 20% policy LTV
+- It sizes credit from the result **on chain**: `PositionSizedCredit` is live on CC3 and returns a real limit — $208,040.04 against a proven $1,040,200.20 at a 20% policy LTV, priced from an attested answer and read live at spark.sithunyein.com/bonus
 - The Chainlink proxy that everyone quotes proves no price at all; the aggregator emits, the proxy does not (documented on the live evidence page)
 - Live evidence and reproduction commands: spark.sithunyein.com/bonus
 
@@ -104,7 +106,7 @@ Live testnet product, not a slideware demo.
 - github.com/thesithunyein/spark
 - Full flow: pay, prove, borrow, repay, close
 - Batch proving: link many payments in one tx
-- 417 contract tests, strict RLP amount-binding
+- 518 contract tests, strict RLP amount-binding
 - spark.sithunyein.com/onchain — all events, no wallet
 - Net-position engine: mainnet history to signed net worth
 
@@ -113,16 +115,17 @@ Live testnet product, not a slideware demo.
 | SepoliaPayment | Sepolia |
 | AttestcoinPaymentVerifier | Creditcoin testnet |
 | CreditLine + SparkCredit | Creditcoin testnet |
+| PositionSizedCredit | Creditcoin testnet |
 
 Testnet only. Not audited. MIT License.
 
 ## Slide 11 — The Ask
 $10K to ship credit for the real world.
-- **Now:** Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 417 tests
-- **Built, not deployed:** credit limits sized from a proven position on another chain, not just payment count
-- **With $10K:** Broadcast the position engine, external review of the strict verifier, faster attestation UX
+- **Now:** Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 518 tests
+- **Deployed:** credit limits sized from a proven position on another chain, not just payment count — `PositionSizedCredit` is live on CC3, and the limit it returns is a real dollar figure
+- **With $10K:** External review of the strict verifier, a funded credit book, and a keeper so the attested price never goes stale
 - **CEIP fast-track:** Funded credit book, distribution where borrowers already are, mainnet readiness
 
-Spark turns verified facts into creditworthiness. No bank. No oracle. No delegate. The first borrower is the one with a proven position; the path that reaches everyone else is built, tested, and one deploy away.
+Spark turns verified facts into creditworthiness. No bank. No oracle. No delegate. The first borrower is the one with a proven position; the path that reaches everyone else is built, tested and deployed — what it lacks is a channel.
 
 MIT License · Sithu Nyein · spark.sithunyein.com

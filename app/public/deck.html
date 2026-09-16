@@ -137,10 +137,10 @@
     <ul style="margin-top: 1.2rem;">
       <li>Their facts <strong>already exist on-chain</strong>, verifiably. No bureau, no paperwork, no identity attestation</li>
       <li>The alternative today is specific and bad: realise the gain, or accept bridge risk</li>
-      <li>Measured, not asserted: <strong>8/8</strong> real wallets rebuilt within 10 bps of the live balance</li>
+      <li>Measured, not asserted: <strong>40</strong> real mainnet wallets rebuilt from the transfer ledger, <strong>38 of 38 measurable</strong> within 10 bps of the live balance</li>
       <li><strong>Portable attested standing:</strong> a repaid line becomes proven history that follows the borrower across products and chains &mdash; not a score locked inside one app</li>
     </ul>
-    <p class="meta" style="margin-top: 1.4rem; max-width: 46em;">The unbanked borrower is the destination this reaches. The deposit-free path that gets there is built and covered by 21 tests.</p>
+    <p class="meta" style="margin-top: 1.4rem; max-width: 46em;">The unbanked borrower is the destination this reaches. The deposit-free path that gets there is deployed, and four wallets that are not the builder&rsquo;s have opened, drawn, repaid and closed lines through it.</p>
     <div class="footer"><span>Spark</span><span>3 / 11</span></div>
   </section>
 
@@ -221,16 +221,16 @@
     <h2 style="margin-top: 1.6rem;">A position on another chain, rebuilt from proven facts</h2>
     <p class="lead">Credit sizing needs history elsewhere and proof of cover. We rebuilt real Aave V3 positions from mainnet data.</p>
     <div class="stats" style="display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1rem;">
-      <div class="stat" style="margin-right: 0;"><div class="num">8/8</div><div class="label">Real wallets, within<br/>10 bps of live balance</div></div>
-      <div class="stat" style="margin-right: 0;"><div class="num">0.51</div><div class="label">Largest residual, bps<br/>from rebasing interest</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">38/38</div><div class="label">Measurable mainnet wallets,<br/>within 10 bps of live balance</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">4.36</div><div class="label">Largest residual, bps<br/>across 40 wallets</div></div>
       <div class="stat" style="margin-right: 0;"><div class="num">66.8%</div><div class="label">Error in event-summing<br/>a position, measured</div></div>
-      <div class="stat" style="margin-right: 0;"><div class="num">417</div><div class="label">Contract tests<br/>0 failures</div></div>
+      <div class="stat" style="margin-right: 0;"><div class="num">518</div><div class="label">Contract tests<br/>0 failures</div></div>
     </div>
     <ul style="margin-top: 1.4rem;">
       <li>Aave events overstate a real position by <strong>66.8%</strong>: aTokens move without emitting an event</li>
       <li>So the engine reads the <strong>Transfer ledger</strong>, anchored where balance is <strong>provably zero</strong></li>
       <li>Interest is never invented: positions advance only against an attested state balance</li>
-      <li>And it sizes credit: <strong>$217,276</strong> against $1,086,382 of proven net worth, at a 20% policy LTV</li>
+      <li>And it sizes credit <strong>on-chain</strong>: <a href="https://spark.sithunyein.com/bonus">PositionSizedCredit</a> is live on CC3 and returns a real limit &mdash; <strong>$208,040.04</strong> against a proven $1,040,200.20 at a 20% policy LTV, priced from an attested answer and read live at <a href="https://spark.sithunyein.com/bonus">spark.sithunyein.com/bonus</a></li>
     </ul>
     <div class="footer"><span><a href="https://spark.sithunyein.com/bonus">spark.sithunyein.com/bonus</a></span><span>8 / 11</span></div>
   </section>
@@ -261,7 +261,7 @@
           <li><a href="https://github.com/thesithunyein/spark">github.com/thesithunyein/spark</a></li>
           <li>Full flow: pay, prove, borrow, repay, close</li>
           <li>Batch proving: link many payments in one tx</li>
-          <li>417 contract tests, strict RLP amount-binding</li>
+          <li>518 contract tests, strict RLP amount-binding</li>
           <li><a href="https://spark.sithunyein.com/onchain">spark.sithunyein.com/onchain</a> &mdash; all events, no wallet</li>
           <li>Net-position engine: mainnet history to signed net worth</li>
         </ul>
@@ -272,6 +272,7 @@
           <tr><td>SepoliaPayment</td><td>Sepolia</td></tr>
           <tr><td>AttestcoinPaymentVerifier</td><td>Creditcoin testnet</td></tr>
           <tr><td>CreditLine + SparkCredit</td><td>Creditcoin testnet</td></tr>
+          <tr><td>PositionSizedCredit</td><td>Creditcoin testnet</td></tr>
         </table>
         <p class="meta" style="margin-top: 1rem;">Testnet only. Not audited. MIT License.</p>
       </div>
@@ -284,12 +285,12 @@
     <span class="badge">The Ask</span>
     <h2 style="margin-top: 2rem;">$10K to ship credit for the real world</h2>
     <ul>
-      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 417 tests</li>
-      <li><strong>Built, not deployed:</strong> credit limits sized from a proven position on another chain, not just payment count</li>
-      <li><strong>With $10K:</strong> Broadcast the position engine, external review of the strict verifier, faster attestation UX</li>
+      <li><strong>Now:</strong> Dual Attestcoin proofs, strict log decoding, credit score and history LTV bonus, live on testnet. 518 tests</li>
+      <li><strong>Deployed:</strong> credit limits sized from a proven position on another chain, not just payment count &mdash; <code>PositionSizedCredit</code> is live on CC3, and the limit it returns is a real dollar figure</li>
+      <li><strong>With $10K:</strong> External review of the strict verifier, a funded credit book, and a keeper so the attested price never goes stale</li>
       <li><strong>CEIP fast-track:</strong> Funded credit book, distribution where borrowers already are, mainnet readiness</li>
     </ul>
-    <p class="lead" style="margin-top: 2rem; font-size: clamp(16px, 1.5vw, 22px);">Spark turns verified facts into creditworthiness. No bank. No oracle. No delegate. The first borrower is the one with a proven position; the path that reaches everyone else is built, tested, and one deploy away.</p>
+    <p class="lead" style="margin-top: 2rem; font-size: clamp(16px, 1.5vw, 22px);">Spark turns verified facts into creditworthiness. No bank. No oracle. No delegate. The first borrower is the one with a proven position; the path that reaches everyone else is built, tested and deployed &mdash; what it lacks is a channel.</p>
     <p class="meta" style="margin-top: 2rem;">MIT License &middot; Sithu Nyein &middot; spark.sithunyein.com</p>
     <div class="footer"><span>spark.sithunyein.com</span><span>11 / 11</span></div>
   </section>
